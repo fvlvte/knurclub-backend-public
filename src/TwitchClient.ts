@@ -249,16 +249,18 @@ export class TwitchClient {
     );
   }
 
+  // @es-lint-ignore no-unused-vars
   private async handleFollowEvent(msg: TwitchWS_FollowEvent) {
     const { user_name } = msg.payload.event;
-    if (this.sypukenciWyswietleni[user_name]) return;
+
+    /*if (this.sypukenciWyswietleni[user_name]) return;
     this.eventQueue.default.push({
       type: AlertTypes.SUB_GIFCIK,
       innerHtml: `${user_name} dzięki za folow`,
       duration: 21370 / 2,
       entities: [Entitsy[Math.floor(Math.random() * 5)]],
-    });
-    this.kohaneFolowkiMeowAraAra.push(`${user_name} dzięki za folow`);
+    });*/
+    //this.kohaneFolowkiMeowAraAra.push(`${user_name} dzięki za folow`);
     this.sypukenciWyswietleni[user_name] = true;
   }
 
@@ -715,7 +717,7 @@ export class TwitchClient {
         } else if (duxpo.message.toLowerCase().includes("!projekt")) {
           await this.chatClient?.say(
             "fvlvte",
-            `@${duxpo.username} robimy teraz gre https://github.com/fvlvte/czysta-c-gjerka`,
+            `@${duxpo.username} robimy teraz songruesta backend: https://github.com/fvlvte/knurobotOG / frontend https://github.com/fvlvte/knurlements-widgtet`,
           );
         } else if (duxpo.message.toLowerCase().includes("!knurstartprezent")) {
           spamChamCounter.clear();
@@ -728,7 +730,10 @@ export class TwitchClient {
           if (duxpo.username === "fvlvte") {
             await GiwełejKontroler.instance.closeGiwełej();
           }
-        } else if (duxpo.message.toLowerCase().includes("!knursr")) {
+        } else if (
+          duxpo.message.toLowerCase().includes("!knursr") ||
+          duxpo.message.toLowerCase().includes("!ksr")
+        ) {
           const ytLink = duxpo.message.split(" ")[1];
 
           ytdl
@@ -742,7 +747,15 @@ export class TwitchClient {
               const category = info.videoDetails.category;
               const ageRestricted = info.videoDetails.age_restricted;
 
-              const allowedCategory = ["Gaming", "Music", "People & Blogs"];
+              const allowedCategory = [
+                "Gaming",
+                "Music",
+                "People & Blogs",
+                "Entertainment",
+              ];
+
+              const limitDlugosciHuja =
+                typeof duxpo.tags.badges.subscriber === "number" ? 8 : 5;
 
               const bannedRury = ["shadoweeee"];
 
@@ -781,10 +794,10 @@ export class TwitchClient {
                 );
                 return;
               }
-              if (length > 60 * 5) {
+              if (length > limitDlugosciHuja * 60) {
                 this.chatClient?.say(
                   "fvlvte",
-                  `@${duxpo.username} sory za dlugie (max 5 min)`,
+                  `@${duxpo.username} sory za dlugie (max ${limitDlugosciHuja} min)`,
                 );
                 return;
               }

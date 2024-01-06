@@ -256,7 +256,11 @@ export class HttpServer {
         res.status(HttpStatusCode.NoContent).send();
         return;
       } else {
-        res.status(HttpStatusCode.Ok).send(SR_QUEUE.splice(0, 1)[0]);
+        if (!req.query.pop) {
+          res.status(HttpStatusCode.Ok).send(SR_QUEUE.splice(0, 1)[0]);
+        } else {
+          res.status(HttpStatusCode.Ok).send(SR_QUEUE[0]);
+        }
       }
     } catch (e) {
       console.log(e);
