@@ -13,8 +13,7 @@ import WebSocket from "ws";
 import { BambikWRafflu, GiwełejKontroler } from "./GiwelejKontroler";
 import { AlertInfo, AlertTypes } from "./types/API";
 import { STRINGS_TO_PROTECT } from "./index.local";
-import { SR_QUEUE } from "./HttpServer";
-import ytdl from "ytdl-core";
+import { Songrequest } from "./Songrequest";
 
 enum TransportMethods {
   webhook = "webhook",
@@ -731,107 +730,180 @@ export class TwitchClient {
             await GiwełejKontroler.instance.closeGiwełej();
           }
         } else if (
-          duxpo.message.toLowerCase().includes("!knursr") ||
-          duxpo.message.toLowerCase().includes("!ksr")
+          duxpo.message.toLowerCase().startsWith("!knursrsong") ||
+          duxpo.message.toLowerCase().startsWith("!ksrs")
         ) {
+          const currentSong = Songrequest.getInstance().getCurrentSong();
+
+          if (currentSong === null) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} nie ma żadnej piosenki w queue dodaj coś przez !ksr |link do yt|`,
+            );
+            return;
+          }
+
+          this.chatClient?.say(
+            "fvlvte",
+            `@${duxpo.username} teraz leci ${currentSong.url} dodana przez ${currentSong.requestedBy}`,
+          );
+        } else if (duxpo.message.toLowerCase().startsWith("!knurskip")) {
+          const counter = Songrequest.getInstance().voteSkip(duxpo.username);
+
+          if (counter > 0) {
+            this.chatClient?.say(
+              "fvlvte",
+              `potrzeba jeszcze ${counter} głosów aby pominąć piosenke !knurskip`,
+            );
+          } else {
+            this.chatClient?.say(
+              "fvlvte",
+              `demokracja przemuwiła essa skipped`,
+            );
+          }
+        } else if (
+          duxpo.message.toLowerCase().startsWith("!knurmysong") ||
+          duxpo.message.toLowerCase().startsWith("!kms")
+        ) {
+          const queue = Songrequest.getInstance().getQueue();
+
+          const si = queue.find((item) => item.requestedBy === duxpo.username);
+
+          if (!si) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} nie masz żadnej piosenki w queue dodaj coś przez !ksr |link do yt|`,
+            );
+            return;
+          }
+
+          const index = queue.indexOf(si);
+
+          let durationUntilSong = 0;
+          for (let i = 0; i < index; i++) {
+            durationUntilSong += queue[i].duration;
+          }
+
+          durationUntilSong +=
+            Songrequest.getInstance().getCurrentSong()?.duration ?? 0;
+
+          const convertToHumanFormxD = (d: number) => {
+            const minutePart = Math.floor(d / 60);
+            const secondsPart = Math.floor(d % 60);
+            const secondsPartString =
+              secondsPart < 10 ? `0${secondsPart}` : `${secondsPart}`;
+            return `${minutePart > 0 ? minutePart : ""}${
+              minutePart > 0 ? "m" : ""
+            }${secondsPartString}s`;
+          };
+
+          this.chatClient?.say(
+            "fvlvte",
+            `@${duxpo.username} twoja piosenka jest na pozycji ${
+              index + 1
+            } i będzie grana za około ${convertToHumanFormxD(
+              durationUntilSong,
+            )}`,
+          );
+        } else if (duxpo.message.toLowerCase().startsWith("!knurgit")) {
+          const currentSong = Songrequest.getInstance().getCurrentSong();
+          if (!currentSong) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} nic nie leci mordo xd`,
+            );
+            return;
+          }
+          const ret = Songrequest.getInstance().handleVote(
+            duxpo.username,
+            currentSong.requestedBy,
+            1,
+          );
+          if (ret === 0) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} skonczyly ci sie juz glosy na tym strime (max 3 per strim)`,
+            );
+            return;
+          } else if (ret === -1) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} tylko 1 vote per piosenka`,
+            );
+            return;
+          } else if (ret === -2) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} nie można lizać własnych jajec`,
+            );
+            return;
+          } else {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} dałeś propsa (+1) dla @${currentSong.requestedBy} i ma on teraz reputacje ${ret}`,
+            );
+            return;
+          }
+        } else if (duxpo.message.toLowerCase().startsWith("!knursyf")) {
+          const currentSong = Songrequest.getInstance().getCurrentSong();
+          if (!currentSong) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} nic nie leci mordo xd`,
+            );
+            return;
+          }
+          const ret = Songrequest.getInstance().handleVote(
+            duxpo.username,
+            currentSong.requestedBy,
+            -1,
+          );
+          if (ret === 0) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} skonczyly ci sie juz glosy na tym strime (max 3 per strim)`,
+            );
+            return;
+          } else if (ret === -2) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} nie można lizać własnych jajec`,
+            );
+            return;
+          } else if (ret === -1) {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} tylko 1 vote per piosenka`,
+            );
+            return;
+          } else {
+            this.chatClient?.say(
+              "fvlvte",
+              `@${duxpo.username} dałeś syfa (-1) dla @${currentSong.requestedBy} i ma on teraz reputacje ${ret}`,
+            );
+            return;
+          }
+        } else if (
+          duxpo.message.toLowerCase().startsWith("!knursr ") ||
+          duxpo.message.toLowerCase().startsWith("!ksr ")
+        ) {
+          const username = duxpo.username;
+
           const ytLink = duxpo.message.split(" ")[1];
+          const subLevel =
+            typeof duxpo.tags.badges.subscriber === "number" ? 1 : 0;
 
-          ytdl
-            .getInfo(ytLink)
-            .then((info) => {
-              const username = duxpo.username;
-              const title = info.videoDetails.title;
-              const length = parseInt(info.videoDetails.lengthSeconds);
-              const thumb = info.videoDetails.thumbnails[0].url;
+          const result = await Songrequest.getInstance().tryAddSong(ytLink, {
+            subLevel,
+            username,
+          });
 
-              const category = info.videoDetails.category;
-              const ageRestricted = info.videoDetails.age_restricted;
-
-              const allowedCategory = [
-                "Gaming",
-                "Music",
-                "People & Blogs",
-                "Entertainment",
-              ];
-
-              const limitDlugosciHuja =
-                typeof duxpo.tags.badges.subscriber === "number" ? 8 : 5;
-
-              const bannedRury = ["shadoweeee"];
-
-              if (
-                title.toLowerCase().replace(/[\w]+/g, "").includes("earrape") ||
-                title.toLowerCase().includes("ear rape")
-              ) {
-                this.chatClient?.say(
-                  "fvlvte",
-                  `@${duxpo.username} matke se z uho rapuj`,
-                );
-                return;
-              }
-
-              if (bannedRury.includes(username)) {
-                this.chatClient?.say(
-                  "fvlvte",
-                  `@${duxpo.username} banned rura`,
-                );
-                return;
-              }
-
-              const views = info.videoDetails.viewCount;
-              if (parseInt(views) < 21370) {
-                this.chatClient?.say(
-                  "fvlvte",
-                  `@${duxpo.username} za malo wjusuw sory (21370)`,
-                );
-                return;
-              }
-
-              if (!allowedCategory.includes(category) || ageRestricted) {
-                this.chatClient?.say(
-                  "fvlvte",
-                  `@${duxpo.username} sory niedozwolona kategoria (${category})`,
-                );
-                return;
-              }
-              if (length > limitDlugosciHuja * 60) {
-                this.chatClient?.say(
-                  "fvlvte",
-                  `@${duxpo.username} sory za dlugie (max ${limitDlugosciHuja} min)`,
-                );
-                return;
-              }
-
-              this.chatClient?.say(
-                "fvlvte",
-                `@${duxpo.username} dodaned do kolejki - pozycja ${
-                  SR_QUEUE.length + 1
-                }`,
-              );
-
-              const stream = ytdl(ytLink, { filter: "audio" });
-              const buffers: Buffer[] = [];
-              stream.on("data", function (buf: Buffer) {
-                buffers.push(buf);
-              });
-              stream.on("end", function () {
-                const data = Buffer.concat(buffers);
-                SR_QUEUE.push({
-                  mediaBase64: data.toString("base64"),
-                  title: title,
-                  requestedBy: username,
-                  coverImage: thumb,
-                });
-              });
-            })
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            .catch((_e: unknown) => {
-              this.chatClient?.say(
-                "fvlvte",
-                `@${duxpo.username} nie znalazlem mordo xd`,
-              );
-            });
-          // }
+          this.chatClient?.say(
+            "fvlvte",
+            `@${duxpo.username} ${result.message} ${JSON.stringify(
+              result.param,
+            )}`,
+          );
         } else if (duxpo.message.toLowerCase().includes("!knurprezent")) {
           await GiwełejKontroler.instance.getOkuratneInfo(
             new BambikWRafflu(

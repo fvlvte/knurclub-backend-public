@@ -18,16 +18,11 @@ import { TwitchZiomek } from "./TwitchZiomek";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { google } from "@google-cloud/text-to-speech/build/protos/protos";
 import ISynthesizeSpeechRequest = google.cloud.texttospeech.v1.ISynthesizeSpeechRequest;
+import { Songrequest } from "./Songrequest";
 
 const ttsClient = new TextToSpeechClient({ projectId: "knurski-projekcik" });
 
 const UPTIME = Date.now();
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-// eslint-disable-next-line
-export const SR_QUEUE: any[] = [];
 
 export class HttpServer {
   private app: express.Application;
@@ -252,21 +247,25 @@ export class HttpServer {
     res: express.Response,
   ) {
     try {
-      if (SR_QUEUE.length === 0) {
+      const song = Songrequest.getInstance().getNextSong(
+        req.query.pop ? true : undefined,
+      );
+      if (!song) {
         res.status(HttpStatusCode.NoContent).send();
         return;
       } else {
-        if (!req.query.pop) {
-          res.status(HttpStatusCode.Ok).send(SR_QUEUE.splice(0, 1)[0]);
-        } else {
-          res.status(HttpStatusCode.Ok).send(SR_QUEUE[0]);
-        }
+        res.status(HttpStatusCode.Ok).send(song);
       }
     } catch (e) {
-      console.log(e);
-      res.status(HttpStatusCode.BadRequest).send({ error: "duxpo" });
+      res.status(HttpStatusCode.InternalServerError).send({ error: e });
       return;
     }
+  }
+
+  private async handleSkipCheck(req: express.Request, res: express.Response) {
+    res
+      .status(HttpStatusCode.Ok)
+      .send({ skip: Songrequest.getInstance().getAndUnsetSkipFlag() });
   }
 
   private async handleTtsRequest(req: express.Request, res: express.Response) {
@@ -326,6 +325,7 @@ export class HttpServer {
       "/api/songrequest",
       this.handleSongrequestMediaQuery.bind(this),
     );
+    this.app.get("/api/sr/skip", this.handleSkipCheck.bind(this));
     this.app.get("/twitch/viewers", this.getTwitchViewers.bind(this));
     this.app.get("/uptime", this.getUptime.bind(this));
     this.app.get(
