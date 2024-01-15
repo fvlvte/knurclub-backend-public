@@ -708,10 +708,23 @@ export class TwitchClient {
               typeof duxpo.tags.badges.subscriber === "number",
             ),
           );
-        } else if (duxpo.message.toLowerCase().includes("!giveway")) {
+        } else if (duxpo.message.toLowerCase().startsWith("!giveway")) {
           await this.chatClient?.say(
             "fvlvte",
             `@${duxpo.username} brawo WYGRAŁEŚ :3 :3 meow :3 oto twoje Visual Studio Code https://code.visualstudio.com/sha/download?build=stable&os=win32-user`,
+          );
+        } else if (duxpo.message.toLowerCase().startsWith("!yt")) {
+          await this.chatClient?.say(
+            "fvlvte",
+            `@${duxpo.username} https://www.youtube.com/@fvlvte`,
+          );
+        } else if (
+          duxpo.message.toLowerCase().startsWith("!dc") ||
+          duxpo.message.toLowerCase().startsWith("!discord")
+        ) {
+          await this.chatClient?.say(
+            "fvlvte",
+            `@${duxpo.username} https://discord.gg/BnRNzSzcv9 elo wsiadaj mordo na diskorta niezla s ciebie eskorta`,
           );
         } else if (duxpo.message.toLowerCase().includes("!projekt")) {
           await this.chatClient?.say(
@@ -889,7 +902,10 @@ export class TwitchClient {
         ) {
           const username = duxpo.username;
 
-          const ytLink = duxpo.message.split(" ")[1];
+          const array = duxpo.message.split(" ");
+          array.splice(0, 1);
+
+          const ytLink = array.join(" ");
           const subLevel =
             typeof duxpo.tags.badges.subscriber === "number" ? 1 : 0;
 

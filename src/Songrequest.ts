@@ -1,5 +1,6 @@
 import ytdl from "ytdl-core";
 import { readFileSync, writeFileSync } from "fs";
+import { default as axios } from "axios";
 const SR_QUEUE_FILE = "./cache/sr_queue.json";
 const SR_RANK_FILE = "./cache/sr_rank.json";
 const SR_VOTE_FILE = "./cache/sr_vote.json";
@@ -20,6 +21,53 @@ type SongInfo = {
   duration: number;
 };
 
+interface YoutubeSearchListResponse {
+  kind: string;
+  etag: string;
+  nextPageToken: string;
+  regionCode: string;
+  pageInfo: {
+    totalResults: number;
+    resultsPerPage: number;
+  };
+  items: YoutubeSearchResult[];
+}
+
+interface YoutubeSearchResult {
+  kind: string;
+  etag: string;
+  id: {
+    kind: string;
+    videoId: string;
+  };
+  snippet: {
+    publishedAt: string;
+    channelId: string;
+    title: string;
+    description: string;
+    thumbnails: {
+      default: {
+        url: string;
+        width: number;
+        height: number;
+      };
+      medium: {
+        url: string;
+        width: number;
+        height: number;
+      };
+      high: {
+        url: string;
+        width: number;
+        height: number;
+      };
+    };
+    channelTitle: string;
+    liveBroadcastContent: string;
+    publishTime: string;
+  };
+}
+
 const ytDlBufferBase64 = (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const stream = ytdl(url, { filter: "audio" });
@@ -35,6 +83,24 @@ const ytDlBufferBase64 = (url: string): Promise<string> => {
   });
 };
 
+const findYtVideoByTitle = async (title: string): Promise<string | null> => {
+  try {
+    const response = await axios.get<YoutubeSearchListResponse>(
+      `https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelType=any&q=${encodeURIComponent(
+        title,
+      )}&key=${process.env.YT_API_KEY}`,
+    );
+
+    return (
+      `https://www.youtube.com/watch?v=${response.data?.items[0]?.id.videoId}` ??
+      null
+    );
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+};
+
 export class Songrequest {
   private readonly BANNED_USERS = ["shadoweeee"];
 
@@ -43,6 +109,7 @@ export class Songrequest {
     "Music",
     "People & Blogs",
     "Entertainment",
+    "Education",
   ];
 
   private readonly BANNED_KEYWORDS = ["earrape"];
@@ -56,6 +123,7 @@ export class Songrequest {
   private readonly queue: SongInfo[] = [];
 
   private currentSong: SongInfo | null = null;
+  private currentSongStartedAt: number | null = null;
   private currentSongVotes: string[] = [];
 
   private skipCounter: string[] = [];
@@ -150,10 +218,16 @@ export class Songrequest {
 
         return { message: "OK", error: false, param: [] };
       } catch (e) {
+        console.log(e);
         return { message: "UNKNOWN_ERROR", error: false, param: [] };
       }
     } else {
-      return { message: "NOT_IMPLEMENTED", error: false, param: [] };
+      const d = await findYtVideoByTitle(query);
+      console.log(d);
+      if (d === null) {
+        return { message: "NOT_FOUND", error: true, param: [] };
+      }
+      return this.tryAddSong(d, userMetadata);
     }
   }
 
@@ -181,7 +255,7 @@ export class Songrequest {
   }
 
   public handleVote(from: string, to: string, amount: number): number {
-    if (from == to) return -2;
+    if (from === to) return -2;
 
     if (!this.voteCounter[from]) this.voteCounter[from] = 0;
 
@@ -207,11 +281,10 @@ export class Songrequest {
       this.currentSongVotes = [];
       this.queue[0].userReputation =
         this.reputationRanking[this.queue[0].requestedBy] ?? 0;
-      if (peek) return this.queue[0];
+      this.currentSong = this.queue[0];
       this.skipCounter = [];
-      const song = this.queue.splice(0, 1)[0];
-      this.currentSong = song;
-      return song;
+      if (peek) return this.queue[0];
+      return this.queue.splice(0, 1)[0];
     }
     return null;
   }
