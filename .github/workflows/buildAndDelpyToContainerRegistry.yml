@@ -3,33 +3,19 @@ on:
     branches: [main]
 jobs:
   build:
-    env:
-      DISCORD_FAKE_USER_NAME: ${{ secrets.DISCORD_FAKE_USER_NAME }}
-      DISCORD_FAKE_USER_PASS: ${{ secrets.DISCORD_FAKE_USER_PASS }}
-      NODE_ENV: production
-      DB_PASS: ${{ secrets.DB_PASSWORD }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_HOST: ${{ secrets.DB_HOST }}
-      TWITCH_ACCESS_TOKEN: ${{ secrets.TWITCH_ACCESS_TOKEN }}
-      TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
-      TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
-      TWITCH_REFRESH_TOKEN: ${{ secrets.TWITCH_REFRESH_TOKEN }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      KNUR_API_KEY: ${{ secrets.KNUR_API_KEY }}
-      DISCORD_BOT_1100530513703358565: ${{ secrets.DISCORD_BOT_1100530513703358565 }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.3
-      - name: Use Node.js 20.5.0
+      - name: Use Node.js 20.11.0
         uses: actions/setup-node@v3.7.0
         with:
-          node-version: 20.5.0
+          node-version: 20.11.0
       - name: Burn env variables
         run: npm run burnEnv
       - name: Login, build, tag, and push image to Docker Container Registry
         id: build-image
         run: |
           docker login -u nginx -p ${{ secrets.DOCKER_PASSWORD }} docker.knur.club
-          docker build -t docker.knur.club/bakendzik:latest .
-          docker push docker.knur.club/bakendzik:latest
+          docker build --build-arg="SECRETS=${{ secrets.SECRETS }}" -t docker.knur.club/backend:latest .
+          docker push docker.knur.club/backend:latest
