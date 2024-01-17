@@ -11,8 +11,6 @@ jobs:
         uses: actions/setup-node@v3.7.0
         with:
           node-version: 20.11.0
-      - name: Burn env variables
-        run: npm run burnEnv
       - name: Login, build, tag, and push image to Docker Container Registry
         id: build-image
         run: |

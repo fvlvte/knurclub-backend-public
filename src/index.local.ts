@@ -4,7 +4,10 @@ export const STRINGS_TO_PROTECT: string[] = [];
 
 try {
   const localData = JSON.parse(
-    readFileSync("/Users/fvlvte/Work/SECURE_VARS.json", "utf-8"),
+    readFileSync(
+      process.env.SECRETS_PATH ?? "/Users/fvlvte/Work/SECURE_VARS.json",
+      "utf-8",
+    ),
   );
   for (const entryKey in localData) {
     process.env[entryKey] = localData[entryKey];

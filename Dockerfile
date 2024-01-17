@@ -1,6 +1,8 @@
-FROM --platform=linux/amd64 node:20.5.0
+FROM --platform=linux/amd64 node:20.11.0
 
 ARG SECRETS
+
+ENV SECRETS_PATH="/usr/src/app/Secrets.json"
 
 WORKDIR /usr/src/app
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y apt-transport-https
