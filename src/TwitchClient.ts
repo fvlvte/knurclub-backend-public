@@ -708,6 +708,20 @@ export class TwitchClient {
               typeof duxpo.tags.badges.subscriber === "number",
             ),
           );
+        } else if (
+          duxpo.message.toLowerCase().startsWith("!knurqueue") ||
+          duxpo.message.toLowerCase().startsWith("!kq")
+        ) {
+          const queue = [...Songrequest.getInstance().getQueue()];
+
+          this.chatClient?.say(
+            "fvlvte",
+            `@${duxpo.username} nadhodzonce 5 piosenek w kolejce to ${queue
+              .splice(0, 5)
+              .map((i) => `${i.url} - ${i.requestedBy}`)
+              .join(" ")}`,
+          );
+          return;
         } else if (duxpo.message.toLowerCase().startsWith("!giveway")) {
           await this.chatClient?.say(
             "fvlvte",
