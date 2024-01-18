@@ -9,7 +9,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y apt-tran
 RUN DEBIAN_FRONTEND=noninteractive apt install chromium -y
 COPY package.json /usr/src/app/
 COPY package-lock.json /usr/src/app/
-RUN (echo ($SECRETS | base64 -d)) >> /usr/src/app/Secrets.json
+RUN echo $SECRETS | base64 -d >> /usr/src/app/Secrets.json
 RUN npm ci
 COPY . /usr/src/app
 
