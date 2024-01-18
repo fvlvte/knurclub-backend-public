@@ -2,7 +2,6 @@ import { default as express } from "express";
 import * as http from "http";
 import { default as bodyParser } from "body-parser";
 import * as cors from "cors";
-import { DatabaseClient } from "./DatabaseClient";
 import { TwitchDataFeed } from "./dataFeed/TwitchDataFeed";
 import { HttpStatusCode } from "axios";
 import { DiscordDataFeed } from "./dataFeed/DiscordDataFeed";

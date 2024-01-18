@@ -2,7 +2,6 @@ import { CDPSession, HTTPRequest, Page } from "puppeteer";
 import { DataFeed } from "../interfaces/DataFeed";
 import { BrowserManager } from "../BrowserManager";
 import { default as axios } from "axios";
-import { DatabaseClient } from "../DatabaseClient";
 import { readFileSync } from "fs";
 import path from "path";
 import { default as pako } from "pako";
