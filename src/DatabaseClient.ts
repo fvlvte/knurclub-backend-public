@@ -1,8 +1,8 @@
-import path from "path";
+//import path from "path";
 import { Database } from "sqlite3";
 
 export class DatabaseClient {
-  private db: Database | null;
+  private db?: Database | null;
   private static instance = new DatabaseClient();
 
   static getInstance(): DatabaseClient {
@@ -10,7 +10,7 @@ export class DatabaseClient {
   }
 
   private constructor() {
-    this.db = new Database(path.join(__dirname, "..", "db", "cache.sqli"));
+    //this.db = new Database(path.join(__dirname, "..", "db", "cache.sqli"));
   }
 
   public async getUserCache(username: string): Promise<string | null> {

@@ -60,10 +60,10 @@ export class HttpServer {
   ): Promise<void> {
     try {
       console.log(decodeURIComponent(req.query.data as string));
-      await DatabaseClient.getInstance().setUserCache(
+      /*await DatabaseClient.getInstance().setUserCache(
         process.env.DISCORD_FAKE_USER_NAME || "xd",
         atob(decodeURIComponent(req.query.data as string)),
-      );
+      );*/
       res.status(201).send();
     } catch (e) {
       console.error(e);
@@ -300,13 +300,13 @@ export class HttpServer {
         return next();
       }
 
-      /*if (
+      if (
         typeof req.header("X-IP-Knur") === "string" &&
         req.header("X-Knur-Key") !== process.env.REACT_APP_KNUR_KEY
       ) {
         res.status(HttpStatusCode.Unauthorized).send("Unauthorized");
         return;
-      } else */ next();
+      } else next();
     });
 
     this.app.use(

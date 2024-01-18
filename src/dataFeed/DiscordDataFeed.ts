@@ -266,9 +266,10 @@ export class DiscordDataFeed implements DataFeed {
 
     await this.client.send("Network.enable");
 
-    const cache = await DatabaseClient.getInstance().getUserCache(
+    /*const cache = await DatabaseClient.getInstance().getUserCache(
       process.env.DISCORD_FAKE_USER_NAME || "",
-    );
+    );*/
+    const cache = null;
 
     let isLoggedIn = false;
 
