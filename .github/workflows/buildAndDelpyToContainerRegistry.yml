@@ -15,5 +15,5 @@ jobs:
         id: build-image
         run: |
           docker login -u nginx -p ${{ secrets.DOCKER_PASSWORD }} docker.knur.club
-          docker build --build-arg="SECRETS=$(echo -n ${{ secrets.SECRETS }} | base64 -w 0)" -t docker.knur.club/backend:latest .
+          docker build --build-arg="SECRETS=$(echo -n ${{ secrets.SECRETS }} | base64)" -t docker.knur.club/backend:latest .
           docker push docker.knur.club/backend:latest
