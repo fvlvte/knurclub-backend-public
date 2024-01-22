@@ -14,13 +14,18 @@ import { BambikWRafflu, GiwełejKontroler } from "./GiwelejKontroler";
 import { AlertInfo, AlertTypes } from "./types/API";
 import { STRINGS_TO_PROTECT } from "./index.local";
 import { Songrequest } from "./Songrequest";
+import { CommandHandler } from "./commands/CommandHandler";
+import { CreateReward } from "./commands/CreateReward";
+import { ReloadLocale } from "./commands/ReloadLocale";
+import { existsSync, readFileSync } from "fs";
+import { FileReward } from "./types/FileReward";
 
 enum TransportMethods {
   webhook = "webhook",
   websocket = "websocket",
 }
 
-type TwitchMessage = {
+export type TwitchMessage = {
   _raw: string;
   timestamp: string; // or Date if you will convert it
   command: string;
@@ -97,6 +102,7 @@ enum TwitchMessageTypes {
 
 enum TwitchSubscriptionType {
   channelFollow = "channel.follow",
+  pointsRedemption = "channel.channel_points_custom_reward_redemption.add",
   sypukcjaOkOk = "channel.subscribe",
   sypukcjaOdPaszy = "channel.subscription.gift",
   sypukcja2OkOk = "channel.subscription.message",
@@ -130,6 +136,31 @@ interface TwitchWebsocketBitsMessage {
       broadcaster_user_name: string;
       message: string;
       bits: number;
+    };
+  };
+}
+
+interface Reward {
+  id: string;
+  title: string;
+  cost: number;
+  prompt: string;
+}
+
+export interface TwitchWebsocketRewardRedemption {
+  payload: {
+    event: {
+      id: string;
+      broadcaster_user_id: string;
+      broadcaster_user_login: string;
+      broadcaster_user_name: string;
+      user_id: string;
+      user_login: string;
+      user_name: string;
+      user_input: string;
+      status: string;
+      reward: Reward;
+      redeemed_at: string;
     };
   };
 }
@@ -191,6 +222,11 @@ export class TwitchClient {
 
   private static instance: TwitchClient;
 
+  private commandHandlers: CommandHandler[] = [
+    new CreateReward(),
+    new ReloadLocale(),
+  ];
+
   private sypukenciWyswietleni: { [id: string]: boolean } = {};
 
   private TWITCH_ACCESS_TOKEN = process.env.TWITCH_ACCESS_TOKEN || "dupsko";
@@ -219,6 +255,40 @@ export class TwitchClient {
     this.kohaneFolowkiMeowAraAra.push(
       `${user_name} dzięki za ${total} sypukcji w prezencie`,
     );
+  }
+
+  private async handleRewardRedemption(msg: TwitchWebsocketRewardRedemption) {
+    const data = msg.payload.event;
+    const rewardId = data.reward.id;
+
+    if (existsSync(`./rewards/${rewardId}.json`)) {
+      const dt: FileReward = JSON.parse(
+        readFileSync(`./rewards/${rewardId}.json`, "utf-8"),
+      );
+
+      switch (dt.type) {
+        case "SOUND_ALERT": {
+          Songrequest.getInstance().tryAddSong(
+            dt.param,
+            { subLevel: 0, username: data.user_login },
+            true,
+          );
+          break;
+        }
+        case "SR_SKIP_QUEUE": {
+          Songrequest.getInstance().tryAppendSongNoVerify(
+            dt.param,
+            { subLevel: 0, username: data.user_login },
+            true,
+          );
+          break;
+        }
+        case "SKIP_SR": {
+          Songrequest.getInstance().skip();
+          break;
+        }
+      }
+    }
   }
 
   private async handleSypukent(msg: TwitchWebsocketSubscribeMessage) {
@@ -319,6 +389,18 @@ export class TwitchClient {
     });
 
     await this.subscribeToHelix({
+      type: TwitchSubscriptionType.pointsRedemption,
+      version: "1",
+      condition: {
+        broadcaster_user_id: this.FULFTE_CHANNEL_ID,
+      },
+      transport: {
+        method: TransportMethods.websocket,
+        session_id: msg.payload.session.id,
+      },
+    });
+
+    await this.subscribeToHelix({
       type: TwitchSubscriptionType.sypukcjaOkOk,
       version: "1",
       condition: {
@@ -358,6 +440,10 @@ export class TwitchClient {
     });
   }
 
+  public async getBroadcasterId(): Promise<string> {
+    return this.FULFTE_CHANNEL_ID;
+  }
+
   private async onWebsocketMessage(
     data: TwitchWebsocketMetadata,
   ): Promise<void> {
@@ -379,6 +465,14 @@ export class TwitchClient {
       data.metadata.subscription_type === TwitchSubscriptionType.sypukcjaOdPaszy
     ) {
       await this.handlePasza(data as unknown as TwitchWebsocketSubOdPaszy);
+    } else if (
+      data.metadata.subscription_type &&
+      data.metadata.subscription_type ===
+        TwitchSubscriptionType.pointsRedemption
+    ) {
+      await this.handleRewardRedemption(
+        data as unknown as TwitchWebsocketRewardRedemption,
+      );
     } else if (
       data.metadata.subscription_type &&
       data.metadata.subscription_type === TwitchSubscriptionType.sypukcja2OkOk
@@ -653,6 +747,26 @@ export class TwitchClient {
     });
   }
 
+  async getStreamerUsername(): Promise<string> {
+    return "fvlvte";
+  }
+
+  async getBotUsername(): Promise<string> {
+    return "fvlvte";
+  }
+
+  async getStreamLanguage(): Promise<string> {
+    return "pl";
+  }
+
+  async dispatchBotMessage(message: string) {
+    try {
+      await this.chatClient?.say(await this.getBotUsername(), message);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   async guwnoxdLol() {
     try {
       await this.guwnoxd();
@@ -687,6 +801,15 @@ export class TwitchClient {
       this.chatClient?.on(ChatEvents.ALL, async (xdd) => {
         const duxpo = xdd as unknown as TwitchMessage;
         if (!duxpo.message) return;
+
+        if (duxpo.message.startsWith("$")) {
+          for (const handler of this.commandHandlers) {
+            if (duxpo.message.match(handler.getMatchingExp())) {
+              return await handler.handleCommand(this, duxpo);
+            }
+          }
+          return;
+        }
 
         if (duxpo.message.toLowerCase() === "!knurdajprezent") {
           if (!spamChamCounter.get(duxpo.username))

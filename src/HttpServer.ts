@@ -262,6 +262,24 @@ export class HttpServer {
     }
   }
 
+  private async handleAlertSoundQuery(
+    req: express.Request,
+    res: express.Response,
+  ) {
+    try {
+      const song = Songrequest.getInstance().getNextAlert();
+      if (!song) {
+        res.status(HttpStatusCode.NoContent).send();
+        return;
+      } else {
+        res.status(HttpStatusCode.Ok).send(song);
+      }
+    } catch (e) {
+      res.status(HttpStatusCode.InternalServerError).send({ error: e });
+      return;
+    }
+  }
+
   private async handleSkipCheck(req: express.Request, res: express.Response) {
     res
       .status(HttpStatusCode.Ok)
@@ -331,6 +349,7 @@ export class HttpServer {
       "/api/songrequest",
       this.handleSongrequestMediaQuery.bind(this),
     );
+    this.app.get("/api/soundalert", this.handleAlertSoundQuery.bind(this));
     this.app.get("/api/sr/skip", this.handleSkipCheck.bind(this));
     this.app.get("/api/timer/tick", this.handleTimerTick.bind(this));
     this.app.get("/twitch/viewers", this.getTwitchViewers.bind(this));

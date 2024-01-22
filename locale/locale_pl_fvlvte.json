@@ -1,0 +1,5 @@
+{
+  "UNAUTHORIZED_COMMAND_CALL": "@{{invokedBy}} nie morzesz urzyć tej komendy sry",
+  "SUCCESS": "@{{invokedBy}} udalo sie git",
+  "UNKNOWN_ERROR": "@{{invokedBy}} sory error wyebao"
+}

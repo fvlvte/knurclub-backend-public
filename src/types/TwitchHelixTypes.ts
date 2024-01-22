@@ -56,7 +56,7 @@ export type TwitchHelix_ChannelPoint_CreateReward_Response = {
     should_redemptions_skip_request_queue: boolean;
     redemptions_redeemed_current_stream: number;
     cooldown_expires_at: string;
-  };
+  }[];
 };
 
 /*

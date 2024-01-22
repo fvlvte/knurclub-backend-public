@@ -121,6 +121,7 @@ export class Songrequest {
   private readonly VOTES_TO_SKIP = 5;
 
   private readonly queue: SongInfo[] = [];
+  private readonly alertQueue: SongInfo[] = [];
 
   private currentSong: SongInfo | null = null;
   private currentSongStartedAt: number | null = null;
@@ -163,9 +164,39 @@ export class Songrequest {
     return this.instances[id ?? "default"];
   }
 
+  public async tryAppendSongNoVerify(
+    query: string,
+    userMetadata: { subLevel: number; username: string },
+    front: boolean = false,
+  ) {
+    const data = await ytdl.getInfo(query);
+
+    const title = data.videoDetails.title;
+    const length = parseInt(data.videoDetails.lengthSeconds);
+
+    const base64Data = await ytDlBufferBase64(query);
+    const songData = {
+      title: title,
+      coverImage: data.videoDetails.thumbnails[0].url,
+      requestedBy: userMetadata.username,
+      mediaBase64: base64Data,
+      url: query,
+      duration: length,
+    };
+
+    if (front) {
+      this.queue.unshift(songData);
+    } else {
+      this.queue.push(songData);
+    }
+
+    return { message: "OK", error: false, param: [] };
+  }
+
   public async tryAddSong(
     query: string,
     userMetadata: { subLevel: number; username: string },
+    isSoundAlert: boolean = false,
   ): Promise<TryAddSongResult> {
     if (query.includes("youtube.com") || query.includes("youtu.be")) {
       try {
@@ -177,15 +208,18 @@ export class Songrequest {
         const category = data.videoDetails.category;
         const titleProcessed = title.toLowerCase().replace(/[\w]+g/, "");
 
-        if (this.BANNED_USERS.includes(userMetadata.username)) {
+        if (
+          !isSoundAlert &&
+          this.BANNED_USERS.includes(userMetadata.username)
+        ) {
           return { message: "BANNED_USER", error: true, param: [] };
         }
 
-        if (this.BANNED_KEYWORDS.includes(titleProcessed)) {
+        if (!isSoundAlert && this.BANNED_KEYWORDS.includes(titleProcessed)) {
           return { message: "BANNED_KEYWORD", error: true, param: [] };
         }
 
-        if (!this.ALLOWED_CATEGORIES.includes(category)) {
+        if (!isSoundAlert && !this.ALLOWED_CATEGORIES.includes(category)) {
           return {
             message: "NON_ALLOWED_CATEGORY",
             error: true,
@@ -193,11 +227,14 @@ export class Songrequest {
           };
         }
 
-        if (views < this.VIEW_LIMIT[userMetadata.subLevel]) {
+        if (!isSoundAlert && views < this.VIEW_LIMIT[userMetadata.subLevel]) {
           return { message: "VIEW_LIMIT", error: true, param: [] };
         }
 
-        if (length > this.LENGTH_LIMIT[userMetadata.subLevel]) {
+        if (
+          !isSoundAlert &&
+          length > this.LENGTH_LIMIT[userMetadata.subLevel]
+        ) {
           return {
             message: "LENGTH_LIMIT",
             error: true,
@@ -207,14 +244,25 @@ export class Songrequest {
 
         const base64Data = await ytDlBufferBase64(query);
 
-        this.queue.push({
-          title: title,
-          coverImage: data.videoDetails.thumbnails[0].url,
-          requestedBy: userMetadata.username,
-          mediaBase64: base64Data,
-          url: query,
-          duration: length,
-        });
+        if (!isSoundAlert) {
+          this.queue.push({
+            title: title,
+            coverImage: data.videoDetails.thumbnails[0].url,
+            requestedBy: userMetadata.username,
+            mediaBase64: base64Data,
+            url: query,
+            duration: length,
+          });
+        } else {
+          this.alertQueue.push({
+            title: title,
+            coverImage: data.videoDetails.thumbnails[0].url,
+            requestedBy: userMetadata.username,
+            mediaBase64: base64Data,
+            url: query,
+            duration: length,
+          });
+        }
 
         return { message: "OK", error: false, param: [] };
       } catch (e) {
@@ -243,6 +291,10 @@ export class Songrequest {
     }
 
     return skipCounter >= 0 ? skipCounter : 0;
+  }
+
+  public skip(): void {
+    this.skipFlag = true;
   }
 
   public getAndUnsetSkipFlag(): boolean {
@@ -285,6 +337,13 @@ export class Songrequest {
       this.skipCounter = [];
       if (peek) return this.queue[0];
       return this.queue.splice(0, 1)[0];
+    }
+    return null;
+  }
+
+  public getNextAlert(): SongInfo | null {
+    if (this.alertQueue.length > 0) {
+      return this.alertQueue.splice(0, 1)[0];
     }
     return null;
   }
