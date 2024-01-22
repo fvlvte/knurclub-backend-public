@@ -1,4 +1,5 @@
-//import path from "path";
+//
+// import path from "path";
 import { Database } from "sqlite3";
 
 export class DatabaseClient {

@@ -18,6 +18,7 @@ import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { google } from "@google-cloud/text-to-speech/build/protos/protos";
 import ISynthesizeSpeechRequest = google.cloud.texttospeech.v1.ISynthesizeSpeechRequest;
 import { Songrequest } from "./Songrequest";
+import { TimerController } from "./TimerController";
 
 const ttsClient = new TextToSpeechClient({ projectId: "knurski-projekcik" });
 
@@ -267,6 +268,12 @@ export class HttpServer {
       .send({ skip: Songrequest.getInstance().getAndUnsetSkipFlag() });
   }
 
+  private async handleTimerTick(req: express.Request, res: express.Response) {
+    res
+      .status(HttpStatusCode.Ok)
+      .send({ seconds: TimerController.getInstance().timerTick() });
+  }
+
   private async handleTtsRequest(req: express.Request, res: express.Response) {
     try {
       const textData = req.query.data;
@@ -325,6 +332,7 @@ export class HttpServer {
       this.handleSongrequestMediaQuery.bind(this),
     );
     this.app.get("/api/sr/skip", this.handleSkipCheck.bind(this));
+    this.app.get("/api/timer/tick", this.handleTimerTick.bind(this));
     this.app.get("/twitch/viewers", this.getTwitchViewers.bind(this));
     this.app.get("/uptime", this.getUptime.bind(this));
     this.app.get(

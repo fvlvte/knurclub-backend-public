@@ -370,6 +370,7 @@ export class TwitchClient {
       data.metadata.subscription_type &&
       data.metadata.subscription_type === TwitchSubscriptionType.sypukcjaOkOk
     ) {
+      //TimerController.getInstance().incrementTimer(-1 * 10 * 60);
       await this.handleSypukent(
         data as unknown as TwitchWebsocketSubscribeMessage,
       );
