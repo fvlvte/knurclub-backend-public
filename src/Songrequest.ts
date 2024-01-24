@@ -4,6 +4,7 @@ import { default as axios } from "axios";
 const SR_QUEUE_FILE = "./cache/sr_queue.json";
 const SR_RANK_FILE = "./cache/sr_rank.json";
 const SR_VOTE_FILE = "./cache/sr_vote.json";
+const SR_CURRENT_FILE = "./cache/sr_current.json";
 
 type TryAddSongResult = {
   message: string;
@@ -129,7 +130,7 @@ export class Songrequest {
 
   private skipCounter: string[] = [];
   private skipFlag: boolean = false;
-  private reputationRanking: { [username: string]: number } = {};
+  private readonly reputationRanking: { [username: string]: number } = {};
   private voteCounter: { [username: string]: number } = {};
 
   private constructor() {
@@ -143,15 +144,20 @@ export class Songrequest {
       this.reputationRanking = { ...this.reputationRanking, ...data };
     } catch (_e) {}
 
-    /* try {
-      const data = JSON.parse(readFileSync(SR_VOTE_FILE, "utf-8"));
-      this.voteCounter = { ...this.voteCounter, ...data };
-    } catch (_e) {}*/
+    try {
+      const data = JSON.parse(readFileSync(SR_RANK_FILE, "utf-8"));
+      this.reputationRanking = { ...this.reputationRanking, ...data };
+    } catch (_e) {}
+
+    try {
+      this.currentSong = JSON.parse(readFileSync(SR_CURRENT_FILE, "utf-8"));
+    } catch (_e) {}
 
     process.on("SIGINT", () => {
       writeFileSync(SR_QUEUE_FILE, JSON.stringify(this.queue));
       writeFileSync(SR_RANK_FILE, JSON.stringify(this.reputationRanking));
       writeFileSync(SR_VOTE_FILE, JSON.stringify(this.voteCounter));
+      writeFileSync(SR_CURRENT_FILE, JSON.stringify(this.currentSong));
       process.exit(0);
     });
   }
@@ -162,6 +168,10 @@ export class Songrequest {
       this.instances[id ?? "default"] = new Songrequest();
     }
     return this.instances[id ?? "default"];
+  }
+
+  public getSongStartTimestamp() {
+    return this.currentSongStartedAt ?? 0;
   }
 
   public async tryAppendSongNoVerify(
@@ -323,17 +333,17 @@ export class Songrequest {
   }
 
   public handleVote(from: string, to: string, amount: number): number {
-    if (from === to) return -2;
+    if (from === to) throw new Error("SR_ERROR_VOTE_SELF");
 
     if (!this.voteCounter[from]) this.voteCounter[from] = 0;
 
     if (this.currentSongVotes.includes(from)) {
-      return -1;
+      throw new Error("SR_ERROR_VOTE_MULTIPLE");
     }
     this.currentSongVotes.push(from);
 
     if (this.voteCounter[from] >= 3) {
-      return 0;
+      throw new Error();
     }
 
     this.voteCounter[from]++;
@@ -350,6 +360,7 @@ export class Songrequest {
       this.queue[0].userReputation =
         this.reputationRanking[this.queue[0].requestedBy] ?? 0;
       this.currentSong = this.queue[0];
+      this.currentSongStartedAt = new Date().getTime();
       this.skipCounter = [];
       if (peek) return this.queue[0];
       return this.queue.splice(0, 1)[0];

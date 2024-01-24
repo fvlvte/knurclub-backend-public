@@ -1,5 +1,13 @@
 {
   "UNAUTHORIZED_COMMAND_CALL": "@{{invokedBy}} nie morzesz urzyć tej komendy sry",
   "SUCCESS": "@{{invokedBy}} udalo sie git",
-  "UNKNOWN_ERROR": "@{{invokedBy}} sory error wyebao"
+  "UNKNOWN_ERROR": "@{{invokedBy}} sory error wyebao",
+
+
+  "SR_ERROR_NO_SONG": "@{{invokedBy}} nic nie leci mordo xd",
+  "SR_VOTE_BAD_SUCCESS": "@{{invokedBy}} dałeś syfa ({{change}}) dla @{{targetUser}} i ma ziutek teraz {{currentValue}} punktów reputacji",
+  "SR_VOTE_GOOD_SUCCESS": "@{{invokedBy}} dałeś gita ({{change}}) dla @{{targetUser}} i ma ziutek teraz {{currentValue}} punktów reputacji",
+  "SR_ERROR_VOTE_SELF": "@{{invokedBy}} nie można lizać własnych jaj",
+  "SR_ERROR_VOTE_MULTIPLE": "@{{invokedBy}} tylko jeden głos per piosenka",
+  "SR_ERROR_VOTE_LIMIT": "@{{invokedBy}} limit głosów per stream osiągniety"
 }

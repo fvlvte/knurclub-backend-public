@@ -19,6 +19,7 @@ import { CreateReward } from "./commands/CreateReward";
 import { ReloadLocale } from "./commands/ReloadLocale";
 import { existsSync, readFileSync } from "fs";
 import { FileReward } from "./types/FileReward";
+import { SongRequestVote } from "./commands/SongRequestVote";
 
 enum TransportMethods {
   webhook = "webhook",
@@ -225,6 +226,7 @@ export class TwitchClient {
   private commandHandlers: CommandHandler[] = [
     new CreateReward(),
     new ReloadLocale(),
+    new SongRequestVote(),
   ];
 
   private sypukenciWyswietleni: { [id: string]: boolean } = {};
@@ -804,10 +806,12 @@ export class TwitchClient {
 
         if (duxpo.message.startsWith("$")) {
           for (const handler of this.commandHandlers) {
-            if (duxpo.message.match(handler.getMatchingExp())) {
+            if (duxpo.message.match(handler.getMatchingExp()) !== null) {
               return await handler.handleCommand(this, duxpo);
             }
           }
+
+          console.log(`Match not found with "${duxpo.message}"`);
           return;
         }
 
@@ -936,7 +940,12 @@ export class TwitchClient {
           }
 
           durationUntilSong +=
-            Songrequest.getInstance().getCurrentSong()?.duration ?? 0;
+            (Songrequest.getInstance().getCurrentSong()?.duration ?? 0) -
+            Math.floor(
+              (new Date().getTime() -
+                Songrequest.getInstance().getSongStartTimestamp()) /
+                1000,
+            );
 
           const convertToHumanFormxD = (d: number) => {
             const minutePart = Math.floor(d / 60);
@@ -956,7 +965,10 @@ export class TwitchClient {
               durationUntilSong,
             )}`,
           );
-        } else if (duxpo.message.toLowerCase().startsWith("!knurgit")) {
+        } else if (
+          duxpo.message.toLowerCase().startsWith("!knurgit") ||
+          duxpo.message.toLowerCase().startsWith("!knursyf")
+        ) {
           const currentSong = Songrequest.getInstance().getCurrentSong();
           if (!currentSong) {
             this.chatClient?.say(
@@ -965,74 +977,24 @@ export class TwitchClient {
             );
             return;
           }
-          const ret = Songrequest.getInstance().handleVote(
-            duxpo.username,
-            currentSong.requestedBy,
-            1,
-          );
-          if (ret === 0) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} skonczyly ci sie juz glosy na tym strime (max 3 per strim)`,
+          try {
+            const value = duxpo.message.toLowerCase().startsWith("!knursyf")
+              ? -1
+              : 1;
+            const ret = Songrequest.getInstance().handleVote(
+              duxpo.username,
+              currentSong.requestedBy,
+              value,
             );
-            return;
-          } else if (ret === -1) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} tylko 1 vote per piosenka`,
-            );
-            return;
-          } else if (ret === -2) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} nie można lizać własnych jajec`,
-            );
-            return;
-          } else {
             this.chatClient?.say(
               "fvlvte",
               `@${duxpo.username} dałeś propsa (+1) dla @${currentSong.requestedBy} i ma on teraz reputacje ${ret}`,
             );
-            return;
-          }
-        } else if (duxpo.message.toLowerCase().startsWith("!knursyf")) {
-          const currentSong = Songrequest.getInstance().getCurrentSong();
-          if (!currentSong) {
+          } catch (e) {
             this.chatClient?.say(
               "fvlvte",
-              `@${duxpo.username} nic nie leci mordo xd`,
+              `@${duxpo.username} ${(e as Error).message}`,
             );
-            return;
-          }
-          const ret = Songrequest.getInstance().handleVote(
-            duxpo.username,
-            currentSong.requestedBy,
-            -1,
-          );
-          if (ret === 0) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} skonczyly ci sie juz glosy na tym strime (max 3 per strim)`,
-            );
-            return;
-          } else if (ret === -2) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} nie można lizać własnych jajec`,
-            );
-            return;
-          } else if (ret === -1) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} tylko 1 vote per piosenka`,
-            );
-            return;
-          } else {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} dałeś syfa (-1) dla @${currentSong.requestedBy} i ma on teraz reputacje ${ret}`,
-            );
-            return;
           }
         } else if (
           duxpo.message.toLowerCase().startsWith("!knursr ") ||

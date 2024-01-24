@@ -28,6 +28,6 @@ export class ReloadLocale implements CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^\$lcreload$/;
+    return /^\$lcreload/;
   }
 }
