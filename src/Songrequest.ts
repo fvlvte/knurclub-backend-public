@@ -118,7 +118,7 @@ export class Songrequest {
   private readonly VIEW_LIMIT = [21370, 21370 / 1.5, 21370 / 2, 2137];
   private readonly LENGTH_LIMIT = [5 * 60, 8 * 60, 10 * 60, 15 * 60];
 
-  private readonly VOTES_TO_SKIP = 5;
+  private readonly VOTES_TO_SKIP = 10;
 
   private readonly queue: SongInfo[] = [];
   private readonly alertQueue: SongInfo[] = [];
@@ -143,10 +143,10 @@ export class Songrequest {
       this.reputationRanking = { ...this.reputationRanking, ...data };
     } catch (_e) {}
 
-    try {
+    /* try {
       const data = JSON.parse(readFileSync(SR_VOTE_FILE, "utf-8"));
       this.voteCounter = { ...this.voteCounter, ...data };
-    } catch (_e) {}
+    } catch (_e) {}*/
 
     process.on("SIGINT", () => {
       writeFileSync(SR_QUEUE_FILE, JSON.stringify(this.queue));
@@ -239,6 +239,22 @@ export class Songrequest {
             message: "LENGTH_LIMIT",
             error: true,
             param: [this.LENGTH_LIMIT[userMetadata.subLevel]],
+          };
+        }
+
+        const userReputation =
+          this.reputationRanking[userMetadata.username] ?? 0;
+
+        if (
+          !isSoundAlert &&
+          userReputation <= -25 &&
+          this.queue.find((si) => si.requestedBy === userMetadata.username) !==
+            undefined
+        ) {
+          return {
+            message: "NEGATIVE_REPUTATION_LIMIT",
+            error: true,
+            param: [],
           };
         }
 
