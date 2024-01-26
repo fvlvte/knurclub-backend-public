@@ -68,6 +68,6 @@ export class CreateReward implements CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^\$rewardadd/;
+    return /^!rewardadd/;
   }
 }

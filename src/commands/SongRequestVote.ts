@@ -43,6 +43,7 @@ export class SongRequestVote implements CommandHandler {
         }),
       );
     } catch (e) {
+      console.log(e);
       await client.dispatchBotMessage(
         translationManager.translate((e as Error).message, {
           invokedBy: message.username,
@@ -53,6 +54,6 @@ export class SongRequestVote implements CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^(\$knurgit)|(\$knursyf)/;
+    return /^(!knurgit)|(!knursyf)/;
   }
 }

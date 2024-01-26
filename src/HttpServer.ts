@@ -13,7 +13,7 @@ import {
 } from "./KeyValueStorage";
 
 import { TwitchClient } from "./TwitchClient";
-import { TwitchZiomek } from "./TwitchZiomek";
+import { TwitchAuthGuard } from "./TwitchAuthGuard";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { google } from "@google-cloud/text-to-speech/build/protos/protos";
 import ISynthesizeSpeechRequest = google.cloud.texttospeech.v1.ISynthesizeSpeechRequest;
@@ -211,7 +211,7 @@ export class HttpServer {
     }
 
     try {
-      const result = await TwitchZiomek.odpalZiomkaZKodu(token, rediUrl);
+      const result = await TwitchAuthGuard.generateToken(token, rediUrl);
       if (result === null) {
         console.log(result);
         throw new Error("invalid token 2");
@@ -233,7 +233,7 @@ export class HttpServer {
         return;
       }
 
-      const ziomoData = await TwitchZiomek.getZiomoInfo(auth);
+      const ziomoData = await TwitchAuthGuard.decodeToken(auth);
       res.status(HttpStatusCode.Ok).send({ id: ziomoData.user_id });
     } catch (e) {
       console.log(e);

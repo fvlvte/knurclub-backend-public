@@ -10,6 +10,7 @@ import { DiscordTwichBridge } from "./features/DiscordTwitchBridge";
 import { DBDriver } from "./DBDriver";
 import { CronJobManager } from "./CronJobManager";
 import { TwitchClient } from "./TwitchClient";
+import { ExternalServer } from "./ExternalServer";
 
 export async function initBot(): Promise<void> {
   const OBJECTS = {
@@ -21,6 +22,7 @@ export async function initBot(): Promise<void> {
     [HttpServer.name]: new HttpServer(),
     [DiscordApiClient.name]: new DiscordApiClient(),
     [CronJobManager.name]: new CronJobManager(),
+    [ExternalServer.name]: new ExternalServer(),
   };
 
   const configPath = join(__dirname, "..", ".env.json");
@@ -36,6 +38,8 @@ export async function initBot(): Promise<void> {
       } else process.env[key] = envData[key];
     }
   }
+
+  (OBJECTS[ExternalServer.name] as ExternalServer).init(21377);
 
   console.log("Initializing DiscordApiClient ...");
   await (OBJECTS[DiscordApiClient.name] as DiscordApiClient).init();

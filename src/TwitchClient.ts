@@ -804,15 +804,14 @@ export class TwitchClient {
         const duxpo = xdd as unknown as TwitchMessage;
         if (!duxpo.message) return;
 
-        if (duxpo.message.startsWith("$")) {
+        if (duxpo.message.startsWith("!")) {
           for (const handler of this.commandHandlers) {
             if (duxpo.message.match(handler.getMatchingExp()) !== null) {
               return await handler.handleCommand(this, duxpo);
             }
           }
 
-          console.log(`Match not found with "${duxpo.message}"`);
-          return;
+          //console.log(`Match not found with "${duxpo.message}"`);
         }
 
         if (duxpo.message.toLowerCase() === "!knurdajprezent") {
@@ -965,37 +964,6 @@ export class TwitchClient {
               durationUntilSong,
             )}`,
           );
-        } else if (
-          duxpo.message.toLowerCase().startsWith("!knurgit") ||
-          duxpo.message.toLowerCase().startsWith("!knursyf")
-        ) {
-          const currentSong = Songrequest.getInstance().getCurrentSong();
-          if (!currentSong) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} nic nie leci mordo xd`,
-            );
-            return;
-          }
-          try {
-            const value = duxpo.message.toLowerCase().startsWith("!knursyf")
-              ? -1
-              : 1;
-            const ret = Songrequest.getInstance().handleVote(
-              duxpo.username,
-              currentSong.requestedBy,
-              value,
-            );
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} dałeś propsa (+1) dla @${currentSong.requestedBy} i ma on teraz reputacje ${ret}`,
-            );
-          } catch (e) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} ${(e as Error).message}`,
-            );
-          }
         } else if (
           duxpo.message.toLowerCase().startsWith("!knursr ") ||
           duxpo.message.toLowerCase().startsWith("!ksr ")
