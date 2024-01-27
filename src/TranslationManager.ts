@@ -1,5 +1,5 @@
 import { default as Handlebars } from "handlebars";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 
 export class TranslationManager {
   private translationTable: Record<string, HandlebarsTemplateDelegate> = {};
@@ -17,15 +17,27 @@ export class TranslationManager {
 
   public reloadLocale() {
     try {
-      const data: Record<string, string> = JSON.parse(
-        readFileSync(
-          `./locale/locale_${this.language}_${this.streamer}.json`,
-          "utf-8",
-        ),
-      );
+      if (
+        !existsSync(`./locale/locale_${this.language}_${this.streamer}.json`)
+      ) {
+        const data: Record<string, string> = JSON.parse(
+          readFileSync(`./locale/locale_pl_fvlvte.json`, "utf-8"),
+        );
 
-      for (const key in data) {
-        this.translationTable[key] = Handlebars.compile(data[key]);
+        for (const key in data) {
+          this.translationTable[key] = Handlebars.compile(data[key]);
+        }
+      } else {
+        const data: Record<string, string> = JSON.parse(
+          readFileSync(
+            `./locale/locale_${this.language}_${this.streamer}.json`,
+            "utf-8",
+          ),
+        );
+
+        for (const key in data) {
+          this.translationTable[key] = Handlebars.compile(data[key]);
+        }
       }
     } catch (e) {
       console.error(e);

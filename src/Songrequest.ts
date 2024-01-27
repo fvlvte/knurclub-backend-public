@@ -164,10 +164,10 @@ export class Songrequest {
   private static instances: { [id: string]: Songrequest } = {};
 
   public static getInstance(id?: string): Songrequest {
-    if (!this.instances[id ?? "default"]) {
-      this.instances[id ?? "default"] = new Songrequest();
+    if (!this.instances[id || "default"]) {
+      this.instances[id || "default"] = new Songrequest();
     }
-    return this.instances[id ?? "default"];
+    return this.instances[id || "default"];
   }
 
   public getSongStartTimestamp() {

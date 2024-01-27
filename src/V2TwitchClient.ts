@@ -30,8 +30,14 @@ import {
   TwitchWelcomeWebsocketMessage,
   TwitchWS_FollowEvent,
 } from "./types/TwitchTypes";
+import { SongRequestAdd } from "./commands/SongRequestAdd";
 
 export class V2TwitchClient {
+  constructor(refreshToken: string, userId: string) {
+    this.streamerId = userId;
+    this.TWITCH_REFRESH_TOKEN = refreshToken;
+  }
+
   private TWITCH_ACCESS_TOKEN = process.env.TWITCH_ACCESS_TOKEN || "dupsko";
   private TWITCH_REFRESH_TOKEN = process.env.TWITCH_REFRESH_TOKEN || "dupsko";
   private TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID || "dupsko";
@@ -44,6 +50,7 @@ export class V2TwitchClient {
     new CreateReward(),
     new ReloadLocale(),
     new SongRequestVote(),
+    new SongRequestAdd(),
   ];
 
   private chatClient?: Chat;
@@ -494,8 +501,7 @@ export class V2TwitchClient {
             if (
               castedMessage.message.match(handler.getMatchingExp()) !== null
             ) {
-              // TODO: dispatch to handler
-              //return await handler.handleCommand(this, duxpo);
+              return await handler.handleCommand(this, castedMessage);
             }
           }
         }
@@ -503,6 +509,10 @@ export class V2TwitchClient {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  keepAliveTick() {
+    this.keepAliveTsLast = new Date().getTime();
   }
 
   async shutdown() {

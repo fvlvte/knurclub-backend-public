@@ -9,7 +9,7 @@ type TokenType = {
   token_type: "bearer";
 };
 
-type Data = {
+export type Data = {
   refresh_token: string;
   user_id: string;
   is_sub: boolean;
@@ -24,7 +24,7 @@ type TokenInfoType = {
   expires_in: number;
 };
 
-type TwitchData = {
+/*type TwitchData = {
   data: {
     broadcaster_id: string;
     broadcaster_name: string;
@@ -32,7 +32,7 @@ type TwitchData = {
     is_gift: boolean;
     tier: string;
   }[];
-};
+};*/
 
 export class TwitchAuthGuard {
   public static async generateToken(code: string, redirect?: string) {
@@ -51,7 +51,7 @@ export class TwitchAuthGuard {
     );
     const r = await axios.post<TokenType>(
       "https://id.twitch.tv/oauth2/token",
-      janPawulon.toString(),
+      janPawulon,
       {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       },
@@ -111,8 +111,6 @@ export class TwitchAuthGuard {
         return tkn.encrypt();
       }
     }*/
-
-    return null;
   }
 
   public static async decodeToken(token: string) {
