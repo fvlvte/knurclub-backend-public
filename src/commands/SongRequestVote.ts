@@ -13,7 +13,9 @@ export class SongRequestVote implements CommandHandler {
       await client.getStreamerUsername(),
     );
 
-    const currentSong = Songrequest.getInstance().getCurrentSong();
+    const currentSong = Songrequest.getInstance(
+      await client.getBroadcasterId(),
+    ).getCurrentSong();
 
     if (currentSong === null) {
       await client.dispatchBotMessage(
@@ -26,11 +28,9 @@ export class SongRequestVote implements CommandHandler {
 
     try {
       const value = message.message.includes("syf") ? -1 : 1;
-      const ret = Songrequest.getInstance().handleVote(
-        message.username,
-        currentSong.requestedBy,
-        value,
-      );
+      const ret = Songrequest.getInstance(
+        await client.getBroadcasterId(),
+      ).handleVote(message.username, currentSong.requestedBy, value);
 
       const template =
         value > 0 ? "SR_VOTE_GOOD_SUCCESS" : "SR_VOTE_BAD_SUCCESS";
