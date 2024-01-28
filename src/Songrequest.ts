@@ -1,10 +1,10 @@
 import ytdl from "ytdl-core";
-import { readFileSync, writeFileSync } from "fs";
+//import { readFileSync, writeFileSync } from "fs";
 import { default as axios } from "axios";
-const SR_QUEUE_FILE = "./cache/sr_queue.json";
+/*const SR_QUEUE_FILE = "./cache/sr_queue.json";
 const SR_RANK_FILE = "./cache/sr_rank.json";
 const SR_VOTE_FILE = "./cache/sr_vote.json";
-const SR_CURRENT_FILE = "./cache/sr_current.json";
+const SR_CURRENT_FILE = "./cache/sr_current.json";*/
 
 type TryAddSongResult = {
   message: string;
@@ -134,7 +134,7 @@ export class Songrequest {
   private voteCounter: { [username: string]: number } = {};
 
   private constructor() {
-    try {
+    /*try {
       const data = JSON.parse(readFileSync(SR_QUEUE_FILE, "utf-8"));
       this.queue.push(...data);
     } catch (_e) {}
@@ -159,7 +159,7 @@ export class Songrequest {
       writeFileSync(SR_VOTE_FILE, JSON.stringify(this.voteCounter));
       writeFileSync(SR_CURRENT_FILE, JSON.stringify(this.currentSong));
       process.exit(0);
-    });
+    });*/
   }
   private static instances: { [id: string]: Songrequest } = {};
 

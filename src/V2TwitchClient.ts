@@ -190,82 +190,105 @@ export class V2TwitchClient {
   }
 
   private async handleWelcomeMessage(msg: TwitchWelcomeWebsocketMessage) {
-    await this.subscribeToHelix({
-      type: TwitchSubscriptionType.channelFollow,
-      version: "2",
-      condition: {
-        broadcaster_user_id: this.streamerId,
-        moderator_user_id: this.streamerId,
-      },
-      transport: {
-        method: TransportMethods.websocket,
-        session_id: msg.payload.session.id,
-      },
-    });
+    try {
+      await this.subscribeToHelix({
+        type: TwitchSubscriptionType.channelFollow,
+        version: "2",
+        condition: {
+          broadcaster_user_id: this.streamerId,
+          moderator_user_id: this.streamerId,
+        },
+        transport: {
+          method: TransportMethods.websocket,
+          session_id: msg.payload.session.id,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
 
-    await this.subscribeToHelix({
-      type: TwitchSubscriptionType.sypukcjaOdPaszy,
-      version: "1",
-      condition: {
-        broadcaster_user_id: this.streamerId,
-        moderator_user_id: this.streamerId,
-      },
-      transport: {
-        method: TransportMethods.websocket,
-        session_id: msg.payload.session.id,
-      },
-    });
+    try {
+      await this.subscribeToHelix({
+        type: TwitchSubscriptionType.sypukcjaOdPaszy,
+        version: "1",
+        condition: {
+          broadcaster_user_id: this.streamerId,
+          moderator_user_id: this.streamerId,
+        },
+        transport: {
+          method: TransportMethods.websocket,
+          session_id: msg.payload.session.id,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+    try {
+      await this.subscribeToHelix({
+        type: TwitchSubscriptionType.pointsRedemption,
+        version: "1",
+        condition: {
+          broadcaster_user_id: this.streamerId,
+        },
+        transport: {
+          method: TransportMethods.websocket,
+          session_id: msg.payload.session.id,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
 
-    await this.subscribeToHelix({
-      type: TwitchSubscriptionType.pointsRedemption,
-      version: "1",
-      condition: {
-        broadcaster_user_id: this.streamerId,
-      },
-      transport: {
-        method: TransportMethods.websocket,
-        session_id: msg.payload.session.id,
-      },
-    });
+    try {
+      await this.subscribeToHelix({
+        type: TwitchSubscriptionType.sypukcjaOkOk,
+        version: "1",
+        condition: {
+          broadcaster_user_id: this.streamerId,
+          moderator_user_id: this.streamerId,
+        },
+        transport: {
+          method: TransportMethods.websocket,
+          session_id: msg.payload.session.id,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
 
-    await this.subscribeToHelix({
-      type: TwitchSubscriptionType.sypukcjaOkOk,
-      version: "1",
-      condition: {
-        broadcaster_user_id: this.streamerId,
-        moderator_user_id: this.streamerId,
-      },
-      transport: {
-        method: TransportMethods.websocket,
-        session_id: msg.payload.session.id,
-      },
-    });
+    try {
+      await this.subscribeToHelix({
+        type: TwitchSubscriptionType.sypukcja2OkOk,
+        version: "1",
+        condition: {
+          broadcaster_user_id: this.streamerId,
+          moderator_user_id: this.streamerId,
+        },
+        transport: {
+          method: TransportMethods.websocket,
+          session_id: msg.payload.session.id,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
 
-    await this.subscribeToHelix({
-      type: TwitchSubscriptionType.sypukcja2OkOk,
-      version: "1",
-      condition: {
-        broadcaster_user_id: this.streamerId,
-        moderator_user_id: this.streamerId,
-      },
-      transport: {
-        method: TransportMethods.websocket,
-        session_id: msg.payload.session.id,
-      },
-    });
-
-    await this.subscribeToHelix({
-      type: TwitchSubscriptionType.bits,
-      version: "1",
-      condition: {
-        broadcaster_user_id: this.streamerId,
-        moderator_user_id: this.streamerId,
-      },
-      transport: {
-        method: TransportMethods.websocket,
-        session_id: msg.payload.session.id,
-      },
-    });
+    try {
+      await this.subscribeToHelix({
+        type: TwitchSubscriptionType.bits,
+        version: "1",
+        condition: {
+          broadcaster_user_id: this.streamerId,
+          moderator_user_id: this.streamerId,
+        },
+        transport: {
+          method: TransportMethods.websocket,
+          session_id: msg.payload.session.id,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   public async getBroadcasterId(): Promise<string> {
@@ -479,7 +502,7 @@ export class V2TwitchClient {
 
       await this.chatClient?.connect();
 
-      await this.chatClient?.join(await this.getBotUsername());
+      await this.chatClient?.join(await this.getStreamerUsername());
       await this.chatClient?.say(
         await this.getBotUsername(),
         "czy jakas ladna streamerka mi zamiauczy :3 ????",
@@ -490,7 +513,7 @@ export class V2TwitchClient {
         "czuje egirla SNIFFA SNIFFA SNIFFA SNIFFA",
       );
 
-      //await this.setUpWebsockets();
+      await this.setUpWebsockets();
 
       this.chatClient?.on(ChatEvents.ALL, async (msg) => {
         const castedMessage = msg as unknown as TwitchMessage;
