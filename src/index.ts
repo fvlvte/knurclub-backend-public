@@ -14,14 +14,21 @@ import { ExternalServer } from "./ExternalServer";
 
 export async function initBot(): Promise<void> {
   const OBJECTS = {
-    [TwitchDataFeed.name]: new TwitchDataFeed(),
-    [BrowserManager.name]: new BrowserManager(),
-    [DiscordTwichBridge.name]: new DiscordTwichBridge(),
+    [TwitchDataFeed.name]:
+      process.env.IS_HOSTED !== "true" ? new TwitchDataFeed() : null,
+    [BrowserManager.name]:
+      process.env.IS_HOSTED !== "true" ? new BrowserManager() : null,
+    [DiscordTwichBridge.name]:
+      process.env.IS_HOSTED !== "true" ? new DiscordTwichBridge() : null,
     [DBDriver.name]: new DBDriver(),
-    [DiscordDataFeed.name]: new DiscordDataFeed(),
-    [HttpServer.name]: new HttpServer(),
-    [DiscordApiClient.name]: new DiscordApiClient(),
-    [CronJobManager.name]: new CronJobManager(),
+    [DiscordDataFeed.name]:
+      process.env.IS_HOSTED !== "true" ? new DiscordDataFeed() : null,
+    [HttpServer.name]:
+      process.env.IS_HOSTED !== "true" ? new HttpServer() : null,
+    [DiscordApiClient.name]:
+      process.env.IS_HOSTED !== "true" ? new DiscordApiClient() : null,
+    [CronJobManager.name]:
+      process.env.IS_HOSTED !== "true" ? new CronJobManager() : null,
     [ExternalServer.name]: new ExternalServer(),
   };
 
@@ -42,15 +49,18 @@ export async function initBot(): Promise<void> {
   (OBJECTS[ExternalServer.name] as ExternalServer).init(21377);
 
   console.log("Initializing DiscordApiClient ...");
-  await (OBJECTS[DiscordApiClient.name] as DiscordApiClient).init();
+  process.env.IS_HOSTED !== "true" &&
+    (await (OBJECTS[DiscordApiClient.name] as DiscordApiClient).init());
   console.log("DiscordApiClient initialized!");
 
-  // 1126266755111735346
-  const cvL = new TwitchClient();
-  await cvL.guwnoxdLol();
+  if (process.env.IS_HOSTED !== "true") {
+    const cvL = new TwitchClient();
+    await cvL.guwnoxdLol();
+  }
 
   console.log("Initializing HttpServer ...");
-  await (OBJECTS[HttpServer.name] as HttpServer).init(80);
+  process.env.IS_HOSTED !== "true" &&
+    (await (OBJECTS[HttpServer.name] as HttpServer).init(80));
   console.log("HttpServer initialized!");
 
   console.log("Initialization done!");
