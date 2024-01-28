@@ -479,7 +479,7 @@ export class V2TwitchClient {
 
   async dispatchBotMessage(message: string) {
     try {
-      await this.chatClient?.say(await this.getBotUsername(), message);
+      await this.chatClient?.say(await this.getStreamerUsername(), message);
     } catch (e) {
       console.error(e);
     }
@@ -504,12 +504,12 @@ export class V2TwitchClient {
 
       await this.chatClient?.join(await this.getStreamerUsername());
       await this.chatClient?.say(
-        await this.getBotUsername(),
+        await this.getStreamerUsername(),
         "czy jakas ladna streamerka mi zamiauczy :3 ????",
       );
 
       await this.chatClient?.say(
-        await this.getBotUsername(),
+        await this.getStreamerUsername(),
         "czuje egirla SNIFFA SNIFFA SNIFFA SNIFFA",
       );
 
