@@ -3,7 +3,7 @@ import { TwitchClient, TwitchMessage } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
 import { Songrequest } from "../Songrequest";
 
-export class SongRequestVote implements CommandHandler {
+export class SongRequestReputationVote implements CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,
@@ -27,7 +27,10 @@ export class SongRequestVote implements CommandHandler {
     }
 
     try {
-      const value = message.message.includes("syf") ? -1 : 1;
+      const value =
+        message.message.includes("syf") || message.message.includes("!ks")
+          ? -1
+          : 1;
       const ret = Songrequest.getInstance(
         await client.getBroadcasterId(),
       ).handleVote(message.username, currentSong.requestedBy, value);
@@ -54,6 +57,6 @@ export class SongRequestVote implements CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^(!knurgit)|(!knursyf)/;
+    return /^(!knurgit)|(!knursyf)|(!git)|(!syf)|(!kg)|(!ks)\s*$/i;
   }
 }

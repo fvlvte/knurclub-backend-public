@@ -13,7 +13,7 @@ import { CreateReward } from "./commands/CreateReward";
 import { ReloadLocale } from "./commands/ReloadLocale";
 import { existsSync, readFileSync } from "fs";
 import { FileReward } from "./types/FileReward";
-import { SongRequestVote } from "./commands/SongRequestVote";
+import { SongRequestReputationVote } from "./commands/SongRequestReputationVote";
 import {
   Entitsy,
   TransportMethods,
@@ -31,6 +31,14 @@ import {
   TwitchWS_FollowEvent,
 } from "./types/TwitchTypes";
 import { SongRequestAdd } from "./commands/SongRequestAdd";
+import { SongRequestQueue } from "./commands/SongRequestQueue";
+import { SongRequestCurrent } from "./commands/SongRequestCurrent";
+import { SongRequestSkipVote } from "./commands/SongRequestSkipVote";
+import { SongRequestWrongSong } from "./commands/SongRequestWrongSong";
+import { SongRequestMySong } from "./commands/SongRequestMySong";
+import { StaticText } from "./commands/StaticText";
+import { Timer } from "./timers/Timer";
+import { StaticTextTimer } from "./timers/StaticTextTimer";
 
 export class V2TwitchClient {
   constructor(refreshToken: string, userId: string) {
@@ -49,8 +57,30 @@ export class V2TwitchClient {
   private commandHandlers: CommandHandler[] = [
     new CreateReward(),
     new ReloadLocale(),
-    new SongRequestVote(),
+    new SongRequestReputationVote(),
     new SongRequestAdd(),
+    new SongRequestQueue(),
+    new SongRequestCurrent(),
+    new SongRequestSkipVote(),
+    new SongRequestWrongSong(),
+    new SongRequestMySong(),
+    new StaticText(
+      "SOCIALS_DISCORD",
+      /^(!dc)|(!discord)|(!dsc)|(!jakijestserwerdiskord)\s*$/i,
+    ),
+    new StaticText(
+      "SOCIALS_YT",
+      /^(!yt)|(!youtube)|(!yubetube)|(!jakijestyutube)\s*$/i,
+    ),
+    new StaticText(
+      "SOCIALS_PROJECT",
+      /^(!projekt)|(!project)|(!cotykurwarobisz)|(!github)|(!gh)\s*$/i,
+    ),
+  ];
+
+  private timers: Timer[] = [
+    new StaticTextTimer("TIMER_DISCORD", 1000 * 60 * 15),
+    new StaticTextTimer("TIMER_YT", 1000 * 60 * 33),
   ];
 
   private chatClient?: Chat;
@@ -529,6 +559,10 @@ export class V2TwitchClient {
       });
 
       await this.setUpWebsockets();
+
+      for (const timer of this.timers) {
+        timer.init(this);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -545,5 +579,7 @@ export class V2TwitchClient {
     this.wsClientPubSub?.close();
 
     clearInterval(this.refreshInterval);
+
+    for (const timer of this.timers) timer.shut();
   }
 }

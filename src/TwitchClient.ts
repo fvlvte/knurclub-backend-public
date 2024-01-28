@@ -1,4 +1,4 @@
-import { Chat, ChatEvents } from "twitch-js";
+import { Chat } from "twitch-js";
 import { default as axios } from "axios";
 import { ObjectManager } from "./ObjectManager";
 import { DiscordApiClient } from "./DiscordBotApiClient";
@@ -10,7 +10,6 @@ import {
   TwitchHelix_RewardStatus,
 } from "./types/TwitchHelixTypes";
 import WebSocket from "ws";
-import { BambikWRafflu, GiwełejKontroler } from "./GiwelejKontroler";
 import { AlertInfo, AlertTypes } from "./types/API";
 import { STRINGS_TO_PROTECT } from "./index.local";
 import { Songrequest } from "./Songrequest";
@@ -19,7 +18,7 @@ import { CreateReward } from "./commands/CreateReward";
 import { ReloadLocale } from "./commands/ReloadLocale";
 import { existsSync, readFileSync } from "fs";
 import { FileReward } from "./types/FileReward";
-import { SongRequestVote } from "./commands/SongRequestVote";
+import { SongRequestReputationVote } from "./commands/SongRequestReputationVote";
 
 enum TransportMethods {
   webhook = "webhook",
@@ -226,7 +225,7 @@ export class TwitchClient {
   private commandHandlers: CommandHandler[] = [
     new CreateReward(),
     new ReloadLocale(),
-    new SongRequestVote(),
+    new SongRequestReputationVote(),
   ];
 
   private sypukenciWyswietleni: { [id: string]: boolean } = {};
@@ -781,7 +780,7 @@ export class TwitchClient {
         log: { enabled: false },
       });
 
-      await this.chatClient?.connect();
+      /* await this.chatClient?.connect();
 
       await this.chatClient?.join("fvlvte");
       await this.chatClient?.say(
@@ -792,15 +791,13 @@ export class TwitchClient {
       await this.chatClient?.say(
         "fvlvte",
         "czuje egirla SNIFFA SNIFFA SNIFFA SNIFFA",
-      );
+      );*/
 
       this.setUpWebsockets();
 
-      const spamChamCounter = new Map<string, number>();
-
       //setInterval(this.workerPrzymusowy.bind(this), 10000);
 
-      this.chatClient?.on(ChatEvents.ALL, async (xdd) => {
+      /*this.chatClient?.on(ChatEvents.ALL, async (xdd) => {
         const duxpo = xdd as unknown as TwitchMessage;
         if (!duxpo.message) return;
 
@@ -835,20 +832,6 @@ export class TwitchClient {
               typeof duxpo.tags.badges.subscriber === "number",
             ),
           );
-        } else if (
-          duxpo.message.toLowerCase().startsWith("!knurqueue") ||
-          duxpo.message.toLowerCase().startsWith("!kq")
-        ) {
-          const queue = [...Songrequest.getInstance().getQueue()];
-
-          this.chatClient?.say(
-            "fvlvte",
-            `@${duxpo.username} nadhodzonce 5 piosenek w kolejce to ${queue
-              .splice(0, 5)
-              .map((i) => `${i.url} - ${i.requestedBy}`)
-              .join(" ")}`,
-          );
-          return;
         } else if (duxpo.message.toLowerCase().startsWith("!giveway")) {
           await this.chatClient?.say(
             "fvlvte",
@@ -870,7 +853,7 @@ export class TwitchClient {
         } else if (duxpo.message.toLowerCase().includes("!projekt")) {
           await this.chatClient?.say(
             "fvlvte",
-            `@${duxpo.username} robimy teraz songruesta backend: https://github.com/fvlvte/knurobotOG / frontend https://github.com/fvlvte/knurlements-widgtet`,
+            `@${duxpo.username} `,
           );
         } else if (duxpo.message.toLowerCase().includes("!knurstartprezent")) {
           spamChamCounter.clear();
@@ -883,112 +866,7 @@ export class TwitchClient {
           if (duxpo.username === "fvlvte") {
             await GiwełejKontroler.instance.closeGiwełej();
           }
-        } else if (
-          duxpo.message.toLowerCase().startsWith("!knursrsong") ||
-          duxpo.message.toLowerCase().startsWith("!ksrs")
-        ) {
-          const currentSong = Songrequest.getInstance().getCurrentSong();
-
-          if (currentSong === null) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} nie ma żadnej piosenki w queue dodaj coś przez !ksr |link do yt|`,
-            );
-            return;
-          }
-
-          this.chatClient?.say(
-            "fvlvte",
-            `@${duxpo.username} teraz leci ${currentSong.url} dodana przez ${currentSong.requestedBy}`,
-          );
-        } else if (duxpo.message.toLowerCase().startsWith("!knurskip")) {
-          const counter = Songrequest.getInstance().voteSkip(duxpo.username);
-
-          if (counter > 0) {
-            this.chatClient?.say(
-              "fvlvte",
-              `potrzeba jeszcze ${counter} głosów aby pominąć piosenke !knurskip`,
-            );
-          } else {
-            this.chatClient?.say(
-              "fvlvte",
-              `demokracja przemuwiła essa skipped`,
-            );
-          }
-        } else if (
-          duxpo.message.toLowerCase().startsWith("!knurmysong") ||
-          duxpo.message.toLowerCase().startsWith("!kms")
-        ) {
-          const queue = Songrequest.getInstance().getQueue();
-
-          const si = queue.find((item) => item.requestedBy === duxpo.username);
-
-          if (!si) {
-            this.chatClient?.say(
-              "fvlvte",
-              `@${duxpo.username} nie masz żadnej piosenki w queue dodaj coś przez !ksr |link do yt|`,
-            );
-            return;
-          }
-
-          const index = queue.indexOf(si);
-
-          let durationUntilSong = 0;
-          for (let i = 0; i < index; i++) {
-            durationUntilSong += queue[i].duration;
-          }
-
-          durationUntilSong +=
-            (Songrequest.getInstance().getCurrentSong()?.duration ?? 0) -
-            Math.floor(
-              (new Date().getTime() -
-                Songrequest.getInstance().getSongStartTimestamp()) /
-                1000,
-            );
-
-          const convertToHumanFormxD = (d: number) => {
-            const minutePart = Math.floor(d / 60);
-            const secondsPart = Math.floor(d % 60);
-            const secondsPartString =
-              secondsPart < 10 ? `0${secondsPart}` : `${secondsPart}`;
-            return `${minutePart > 0 ? minutePart : ""}${
-              minutePart > 0 ? "m" : ""
-            }${secondsPartString}s`;
-          };
-
-          this.chatClient?.say(
-            "fvlvte",
-            `@${duxpo.username} twoja piosenka jest na pozycji ${
-              index + 1
-            } i będzie grana za około ${convertToHumanFormxD(
-              durationUntilSong,
-            )}`,
-          );
-        } else if (
-          duxpo.message.toLowerCase().startsWith("!knursr ") ||
-          duxpo.message.toLowerCase().startsWith("!ksr ")
-        ) {
-          const username = duxpo.username;
-
-          const array = duxpo.message.split(" ");
-          array.splice(0, 1);
-
-          const ytLink = array.join(" ");
-          const subLevel =
-            typeof duxpo.tags.badges.subscriber === "number" ? 1 : 0;
-
-          const result = await Songrequest.getInstance().tryAddSong(ytLink, {
-            subLevel,
-            username,
-          });
-
-          this.chatClient?.say(
-            "fvlvte",
-            `@${duxpo.username} ${result.message} ${JSON.stringify(
-              result.param,
-            )}`,
-          );
-        } else if (duxpo.message.toLowerCase().includes("!knurprezent")) {
+        }else if (duxpo.message.toLowerCase().includes("!knurprezent")) {
           await GiwełejKontroler.instance.getOkuratneInfo(
             new BambikWRafflu(
               duxpo.username,
@@ -996,7 +874,7 @@ export class TwitchClient {
             ),
           );
         }
-      });
+      });*/
     } catch (e) {
       console.error(e);
     }

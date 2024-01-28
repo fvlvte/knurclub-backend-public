@@ -73,6 +73,7 @@ export class TwitchAuthGuard {
       "197171878",
       "883479198",
       "589037322",
+      "268563714",
     ];
 
     if (!whitelistedUserIDs.includes(userId)) {
@@ -90,32 +91,6 @@ export class TwitchAuthGuard {
     );
 
     return tkn.encrypt();
-
-    /* const redsfdsgdfsult = await axios.get<TwitchData>(
-      `https://api.twitch.tv/helix/subscriptions/user?broadcaster_id=${268563714}&user_id=${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Client-Id": process.env.TWITCH_CLIENT_ID,
-        },
-      },
-    );
-
-    for (const sub of redsfdsgdfsult.data.data) {
-      if (sub.broadcaster_name === "fvlvtebot") {
-     const tkn = new TwitchAuthToken<Data>(
-              {
-                refresh_token: refreshToken,
-                user_id: userId,
-                is_sub: true,
-                expires_at: Date.now() + 1000 * 60 * 60 * 24 * 30,
-              } as Data,
-              userId,
-            );
-
-        return tkn.encrypt();
-      }
-    }*/
   }
 
   public static async decodeToken(token: string) {

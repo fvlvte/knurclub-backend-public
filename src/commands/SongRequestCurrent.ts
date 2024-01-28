@@ -4,7 +4,7 @@ import { TranslationManager } from "../TranslationManager";
 import { Songrequest } from "../Songrequest";
 import { V2TwitchClient } from "../V2TwitchClient";
 
-export class SongRequestAdd implements CommandHandler {
+export class SongRequestCurrent implements CommandHandler {
   async handleCommand(
     client: TwitchClient | V2TwitchClient,
     message: TwitchMessage,
@@ -14,30 +14,30 @@ export class SongRequestAdd implements CommandHandler {
       await client.getStreamerUsername(),
     );
 
-    const username = message.username;
-
-    const array = message.message.split(" ");
-    array.splice(0, 1);
-
-    const ytLink = array.join(" ");
-    const subLevel = typeof message.tags.badges.subscriber === "number" ? 1 : 0;
-
-    const result = await Songrequest.getInstance(
+    const songInfo = Songrequest.getInstance(
       await client.getBroadcasterId(),
-    ).tryAddSong(ytLink, {
-      subLevel,
-      username,
-    });
+    ).getCurrentSong();
 
-    await client.dispatchBotMessage(
-      translationManager.translate(result.message, {
+    if (!songInfo) {
+      return await client.dispatchBotMessage(
+        translationManager.translate("SR_ERR_NO_SONG", {
+          invokedBy: message.username,
+        }),
+      );
+    }
+
+    return await client.dispatchBotMessage(
+      translationManager.translate("SR_SONG_INFO", {
         invokedBy: message.username,
-        ...result.param,
+        title: songInfo.title,
+        rep: songInfo.userReputation ?? 0,
+        url: songInfo.url,
+        requestedBy: songInfo.requestedBy,
       }),
     );
   }
 
   getMatchingExp(): RegExp {
-    return /^(!ksr)|(!sr)|(!knursr)|(!songrequest)|(!knursongrequest)|(!wezpuscpiosenkeknurze)/i;
+    return /^(!knursrsong)|(!ksrs)|(!song)|(!knursong)\s*$/i;
   }
 }

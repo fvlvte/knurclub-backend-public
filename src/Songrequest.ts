@@ -203,6 +203,36 @@ export class Songrequest {
     return { message: "OK", error: false, param: [] };
   }
 
+  public when(si: SongInfo) {
+    const index = this.queue.indexOf(si);
+
+    let durationUntilSong = 0;
+    for (let i = 0; i < index; i++) {
+      durationUntilSong += this.queue[i].duration;
+    }
+
+    const tmp =
+      (this.currentSong?.duration ?? 0) -
+      Math.floor(
+        (new Date().getTime() -
+          Songrequest.getInstance().getSongStartTimestamp()) /
+          1000,
+      );
+    if (tmp > 0) durationUntilSong += tmp;
+
+    const convertToHumanFormxD = (d: number) => {
+      const minutePart = Math.floor(d / 60);
+      const secondsPart = Math.floor(d % 60);
+      const secondsPartString =
+        secondsPart < 10 ? `0${secondsPart}` : `${secondsPart}`;
+      return `${minutePart > 0 ? minutePart : ""}${
+        minutePart > 0 ? "m" : ""
+      }${secondsPartString}s`;
+    };
+
+    return { when: convertToHumanFormxD(durationUntilSong), index: index + 1 };
+  }
+
   public async tryAddSong(
     query: string,
     userMetadata: { subLevel: number; username: string },
@@ -285,45 +315,22 @@ export class Songrequest {
 
         if (!isSoundAlert) {
           this.queue.push(songInfo);
+          return {
+            message: "SR_ADD_OK",
+            error: false,
+            param: {
+              title: title,
+              ...this.when(songInfo),
+            },
+          };
         } else {
           this.alertQueue.push(songInfo);
+          return {
+            message: "SA_ADD_OK",
+            error: false,
+            param: {},
+          };
         }
-
-        const index = this.queue.indexOf(songInfo);
-
-        let durationUntilSong = 0;
-        for (let i = 0; i < index; i++) {
-          durationUntilSong += this.queue[i].duration;
-        }
-
-        const tmp =
-          (this.currentSong?.duration ?? 0) -
-          Math.floor(
-            (new Date().getTime() -
-              Songrequest.getInstance().getSongStartTimestamp()) /
-              1000,
-          );
-        if (tmp > 0) durationUntilSong += tmp;
-
-        const convertToHumanFormxD = (d: number) => {
-          const minutePart = Math.floor(d / 60);
-          const secondsPart = Math.floor(d % 60);
-          const secondsPartString =
-            secondsPart < 10 ? `0${secondsPart}` : `${secondsPart}`;
-          return `${minutePart > 0 ? minutePart : ""}${
-            minutePart > 0 ? "m" : ""
-          }${secondsPartString}s`;
-        };
-
-        return {
-          message: "SR_ADD_OK",
-          error: false,
-          param: {
-            title: title,
-            index: index + 1,
-            when: convertToHumanFormxD(durationUntilSong),
-          },
-        };
       } catch (e) {
         console.log(e);
         return { message: "SR_ADD_UNKNOWN_ERROR", error: false, param: {} };
@@ -409,7 +416,14 @@ export class Songrequest {
   }
 
   public getQueue(): SongInfo[] {
-    return this.queue;
+    return [...this.queue];
+  }
+
+  public removeFromQueue(si: SongInfo) {
+    const index = this.queue.indexOf(si);
+    if (index >= 0) {
+      this.queue.splice(index, 1);
+    }
   }
 
   public getCurrentSong(): SongInfo | null {
