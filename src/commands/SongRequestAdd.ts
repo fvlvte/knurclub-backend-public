@@ -32,7 +32,7 @@ export class SongRequestAdd implements CommandHandler {
     await client.dispatchBotMessage(
       translationManager.translate(result.message, {
         invokedBy: message.username,
-        //...result.param,
+        ...result.param,
       }),
     );
   }

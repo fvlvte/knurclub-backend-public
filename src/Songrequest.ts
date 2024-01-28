@@ -9,7 +9,7 @@ const SR_CURRENT_FILE = "./cache/sr_current.json";*/
 type TryAddSongResult = {
   message: string;
   error: boolean;
-  param: unknown[];
+  param: Record<string, unknown>;
 };
 
 type SongInfo = {
@@ -215,30 +215,34 @@ export class Songrequest {
         const views = parseInt(data.videoDetails.viewCount);
         const title = data.videoDetails.title;
         const length = parseInt(data.videoDetails.lengthSeconds);
-        const category = data.videoDetails.category;
+        //const category = data.videoDetails.category;
         const titleProcessed = title.toLowerCase().replace(/[\w]+g/, "");
 
         if (
           !isSoundAlert &&
           this.BANNED_USERS.includes(userMetadata.username)
         ) {
-          return { message: "BANNED_USER", error: true, param: [] };
+          return { message: "SR_BANNED_USER", error: true, param: {} };
         }
 
         if (!isSoundAlert && this.BANNED_KEYWORDS.includes(titleProcessed)) {
-          return { message: "BANNED_KEYWORD", error: true, param: [] };
+          return { message: "SR_BANNED_KEYWORD", error: true, param: {} };
         }
 
-        if (!isSoundAlert && !this.ALLOWED_CATEGORIES.includes(category)) {
+        /*if (!isSoundAlert && !this.ALLOWED_CATEGORIES.includes(category)) {
           return {
-            message: "NON_ALLOWED_CATEGORY",
+            message: "SR_NON_ALLOWED_CATEGORY",
             error: true,
-            param: [category],
+            param: { category: category },
           };
-        }
+        }*/
 
         if (!isSoundAlert && views < this.VIEW_LIMIT[userMetadata.subLevel]) {
-          return { message: "VIEW_LIMIT", error: true, param: [] };
+          return {
+            message: "SR_VIEW_LIMIT",
+            error: true,
+            param: { min: this.VIEW_LIMIT[userMetadata.subLevel] },
+          };
         }
 
         if (
@@ -246,9 +250,9 @@ export class Songrequest {
           length > this.LENGTH_LIMIT[userMetadata.subLevel]
         ) {
           return {
-            message: "LENGTH_LIMIT",
+            message: "SR_LENGTH_LIMIT",
             error: true,
-            param: [this.LENGTH_LIMIT[userMetadata.subLevel]],
+            param: { max: this.LENGTH_LIMIT[userMetadata.subLevel] },
           };
         }
 
@@ -262,9 +266,9 @@ export class Songrequest {
             undefined
         ) {
           return {
-            message: "NEGATIVE_REPUTATION_LIMIT",
+            message: "SR_NEGATIVE_REPUTATION_LIMIT",
             error: true,
-            param: [],
+            param: {},
           };
         }
 
@@ -290,16 +294,22 @@ export class Songrequest {
           });
         }
 
-        return { message: "OK", error: false, param: [] };
+        return {
+          message: "SR_ADD_OK",
+          error: false,
+          param: {
+            title: title,
+          },
+        };
       } catch (e) {
         console.log(e);
-        return { message: "UNKNOWN_ERROR", error: false, param: [] };
+        return { message: "SR_ADD_UNKNOWN_ERROR", error: false, param: {} };
       }
     } else {
       const d = await findYtVideoByTitle(query);
       console.log(d);
       if (d === null) {
-        return { message: "NOT_FOUND", error: true, param: [] };
+        return { message: "SR_NOT_FOUND", error: true, param: {} };
       }
       return this.tryAddSong(d, userMetadata);
     }
