@@ -296,13 +296,14 @@ export class Songrequest {
           durationUntilSong += this.queue[i].duration;
         }
 
-        durationUntilSong +=
+        const tmp =
           (this.currentSong?.duration ?? 0) -
           Math.floor(
             (new Date().getTime() -
               Songrequest.getInstance().getSongStartTimestamp()) /
               1000,
           );
+        if (tmp > 0) durationUntilSong += tmp;
 
         const convertToHumanFormxD = (d: number) => {
           const minutePart = Math.floor(d / 60);
