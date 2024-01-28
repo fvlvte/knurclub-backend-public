@@ -513,8 +513,6 @@ export class V2TwitchClient {
         "czuje egirla SNIFFA SNIFFA SNIFFA SNIFFA",
       );
 
-      await this.setUpWebsockets();
-
       this.chatClient?.on(ChatEvents.ALL, async (msg) => {
         const castedMessage = msg as unknown as TwitchMessage;
         if (!castedMessage.message) return;
@@ -529,6 +527,8 @@ export class V2TwitchClient {
           }
         }
       });
+
+      await this.setUpWebsockets();
     } catch (e) {
       console.error(e);
     }
