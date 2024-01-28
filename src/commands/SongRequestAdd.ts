@@ -38,6 +38,6 @@ export class SongRequestAdd implements CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^(!sr)/;
+    return /^(!ksr)/;
   }
 }
