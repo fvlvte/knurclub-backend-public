@@ -17,7 +17,7 @@
   "SR_VIEW_LIMIT": "@{{invokedBy}} sory morda za mało wyświetleń (minimum {{min}})",
   "SR_LENGTH_LIMIT": "@{{invokedBy}} sory morda za długie (max {{max}} s)",
   "SR_NEGATIVE_REPUTATION_LIMIT": "@{{invokedBy}} sory morda masz za mało reputacji",
-  "SR_ADD_OK": "@{{invokedBy}} dodaned '{{title}}' do kolejki sr",
+  "SR_ADD_OK": "@{{invokedBy}} dodaned '{{title}}' do kolejki sr (pozycja {{index}} za {{when}})",
   "SR_ADD_UNKNOWN_ERROR":  "@{{invokedBy}} sory nie można dodać tego linka",
   "SR_NOT_FOUND": "@{{invokedBy}} sory nie znalazłem"
 }

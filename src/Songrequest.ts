@@ -105,13 +105,13 @@ const findYtVideoByTitle = async (title: string): Promise<string | null> => {
 export class Songrequest {
   private readonly BANNED_USERS = ["shadoweeee"];
 
-  private readonly ALLOWED_CATEGORIES = [
+  /*private readonly ALLOWED_CATEGORIES = [
     "Gaming",
     "Music",
     "People & Blogs",
     "Entertainment",
     "Education",
-  ];
+  ];*/
 
   private readonly BANNED_KEYWORDS = ["earrape"];
 
@@ -274,31 +274,53 @@ export class Songrequest {
 
         const base64Data = await ytDlBufferBase64(query);
 
+        const songInfo = {
+          title: title,
+          coverImage: data.videoDetails.thumbnails[0].url,
+          requestedBy: userMetadata.username,
+          mediaBase64: base64Data,
+          url: query,
+          duration: length,
+        };
+
         if (!isSoundAlert) {
-          this.queue.push({
-            title: title,
-            coverImage: data.videoDetails.thumbnails[0].url,
-            requestedBy: userMetadata.username,
-            mediaBase64: base64Data,
-            url: query,
-            duration: length,
-          });
+          this.queue.push(songInfo);
         } else {
-          this.alertQueue.push({
-            title: title,
-            coverImage: data.videoDetails.thumbnails[0].url,
-            requestedBy: userMetadata.username,
-            mediaBase64: base64Data,
-            url: query,
-            duration: length,
-          });
+          this.alertQueue.push(songInfo);
         }
+
+        const index = this.queue.indexOf(songInfo);
+
+        let durationUntilSong = 0;
+        for (let i = 0; i < index; i++) {
+          durationUntilSong += this.queue[i].duration;
+        }
+
+        durationUntilSong +=
+          (this.currentSong?.duration ?? 0) -
+          Math.floor(
+            (new Date().getTime() -
+              Songrequest.getInstance().getSongStartTimestamp()) /
+              1000,
+          );
+
+        const convertToHumanFormxD = (d: number) => {
+          const minutePart = Math.floor(d / 60);
+          const secondsPart = Math.floor(d % 60);
+          const secondsPartString =
+            secondsPart < 10 ? `0${secondsPart}` : `${secondsPart}`;
+          return `${minutePart > 0 ? minutePart : ""}${
+            minutePart > 0 ? "m" : ""
+          }${secondsPartString}s`;
+        };
 
         return {
           message: "SR_ADD_OK",
           error: false,
           param: {
             title: title,
+            index: index + 1,
+            when: convertToHumanFormxD(durationUntilSong),
           },
         };
       } catch (e) {
