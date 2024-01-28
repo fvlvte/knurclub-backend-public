@@ -22,8 +22,10 @@ export interface TokenDataPayload {
 export class TwitchAuthToken<T> {
   private static readonly algorithm: string = "aes-256-cbc";
   private static readonly iv: Buffer = Buffer.from("1234567812345678", "utf8");
-  private static readonly key = "julkaSuperMod123julkaSuperMod123";
-  private static readonly hmacKey = "kardymaLwojtylaPapiezPolakow";
+  private static readonly key =
+    process.env.AUTH_TOKEN_ENC_KEY ?? "julkaSuperMod123julkaSuperMod123";
+  private static readonly hmacKey =
+    process.env.AUTH_TOKEN_HMAC_KEY ?? "kardymaLwojtylaPapiezPolakow";
 
   private static revocationList: string[] = [];
 
