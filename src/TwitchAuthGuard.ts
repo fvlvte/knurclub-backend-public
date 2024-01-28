@@ -68,7 +68,7 @@ export class TwitchAuthGuard {
     );
     const userId = vr.data.user_id;
 
-    const whitelistedUserIDs = ["1024010545"];
+    const whitelistedUserIDs = ["1024010545", "197171878"];
 
     if (!whitelistedUserIDs.includes(userId)) {
       throw new Error("not whitelisted user");
