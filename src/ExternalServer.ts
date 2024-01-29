@@ -79,9 +79,9 @@ export class ExternalServer {
       return res.status(HttpStatusCode.Unauthorized).send();
     }
 
-    const song = Songrequest.getInstance(req.authData.user_id).getNextSong(
-      req.query.pop ? true : undefined,
-    );
+    const song = await Songrequest.getInstance(
+      req.authData.user_id,
+    ).getNextSong(req.query.pop ? true : undefined);
     if (!song) {
       res.status(HttpStatusCode.NoContent).send();
       return;
@@ -108,7 +108,9 @@ export class ExternalServer {
       return res.status(HttpStatusCode.Unauthorized).send();
     }
 
-    const song = Songrequest.getInstance(req.authData.user_id).getNextAlert();
+    const song = await Songrequest.getInstance(
+      req.authData.user_id,
+    ).getNextAlert();
     if (!song) {
       res.status(HttpStatusCode.NoContent).send();
       return;
@@ -132,7 +134,7 @@ export class ExternalServer {
         "/v1/sr/playback",
         this.handleSongRequestPlaybackQuery.bind(this),
       );
-      this.app.get("/v1/sa/query", this.handleSoundAlertQuery.bind(this));
+      this.app.get("/v1/sa/queue", this.handleSoundAlertQuery.bind(this));
 
       this.server = this.app.listen(port ?? 21377);
       return true;

@@ -1,10 +1,11 @@
 import ytdl from "ytdl-core";
-//import { readFileSync, writeFileSync } from "fs";
 import { default as axios } from "axios";
-/*const SR_QUEUE_FILE = "./cache/sr_queue.json";
-const SR_RANK_FILE = "./cache/sr_rank.json";
-const SR_VOTE_FILE = "./cache/sr_vote.json";
-const SR_CURRENT_FILE = "./cache/sr_current.json";*/
+import {
+  restoreQueue,
+  restoreRanking,
+  storeQueue,
+  storeRanking,
+} from "./MongoDBClient";
 
 type TryAddSongResult = {
   message: string;
@@ -116,13 +117,16 @@ export class Songrequest {
   private readonly BANNED_KEYWORDS = ["earrape"];
 
   // SUB 0, 1, 2, 3
+  private readonly SONGS_IN_QUEUE = [1, 3, 4, 5];
   private readonly VIEW_LIMIT = [21370, 21370 / 1.5, 21370 / 2, 2137];
   private readonly LENGTH_LIMIT = [5 * 60, 8 * 60, 10 * 60, 15 * 60];
+  private readonly QUEUE_MAX = 25;
 
   private readonly VOTES_TO_SKIP = 10;
 
   private readonly queue: SongInfo[] = [];
   private readonly alertQueue: SongInfo[] = [];
+  private readonly id: string;
 
   private currentSong: SongInfo | null = null;
   private currentSongStartedAt: number | null = null;
@@ -130,42 +134,31 @@ export class Songrequest {
 
   private skipCounter: string[] = [];
   private skipFlag: boolean = false;
-  private readonly reputationRanking: { [username: string]: number } = {};
+  private reputationRanking: { [username: string]: number } = {};
   private voteCounter: { [username: string]: number } = {};
 
-  private constructor() {
-    /*try {
-      const data = JSON.parse(readFileSync(SR_QUEUE_FILE, "utf-8"));
-      this.queue.push(...data);
-    } catch (_e) {}
+  private constructor(id: string) {
+    this.id = id;
 
-    try {
-      const data = JSON.parse(readFileSync(SR_RANK_FILE, "utf-8"));
-      this.reputationRanking = { ...this.reputationRanking, ...data };
-    } catch (_e) {}
+    restoreQueue(id)
+      .then((d) => {
+        if (d) {
+          this.queue.push(...JSON.parse(d));
+        }
+      })
+      .catch(console.error);
 
-    try {
-      const data = JSON.parse(readFileSync(SR_RANK_FILE, "utf-8"));
-      this.reputationRanking = { ...this.reputationRanking, ...data };
-    } catch (_e) {}
-
-    try {
-      this.currentSong = JSON.parse(readFileSync(SR_CURRENT_FILE, "utf-8"));
-    } catch (_e) {}
-
-    process.on("SIGINT", () => {
-      writeFileSync(SR_QUEUE_FILE, JSON.stringify(this.queue));
-      writeFileSync(SR_RANK_FILE, JSON.stringify(this.reputationRanking));
-      writeFileSync(SR_VOTE_FILE, JSON.stringify(this.voteCounter));
-      writeFileSync(SR_CURRENT_FILE, JSON.stringify(this.currentSong));
-      process.exit(0);
-    });*/
+    restoreRanking(id).then((d) => {
+      if (d) {
+        this.reputationRanking = JSON.parse(d);
+      }
+    });
   }
   private static instances: { [id: string]: Songrequest } = {};
 
   public static getInstance(id?: string): Songrequest {
     if (!this.instances[id || "default"]) {
-      this.instances[id || "default"] = new Songrequest();
+      this.instances[id || "default"] = new Songrequest(id || "default");
     }
     return this.instances[id || "default"];
   }
@@ -238,6 +231,30 @@ export class Songrequest {
     userMetadata: { subLevel: number; username: string },
     isSoundAlert: boolean = false,
   ): Promise<TryAddSongResult> {
+    if (this.queue.length >= this.QUEUE_MAX) {
+      return {
+        message: "SR_QUEUE_LIMIT",
+        error: true,
+        param: { limit: this.QUEUE_MAX },
+      };
+    }
+
+    let malpiaPentla = 0;
+    for (const item of this.queue) {
+      if (
+        item.requestedBy.toLowerCase() === userMetadata.username.toLowerCase()
+      ) {
+        malpiaPentla++;
+      }
+    }
+
+    if (malpiaPentla + 1 > this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0]) {
+      return {
+        message: "SR_QUEUE_SONG_LIMIT",
+        error: true,
+        param: { limit: this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0] },
+      };
+    }
     if (query.includes("youtube.com") || query.includes("youtu.be")) {
       try {
         const data = await ytdl.getInfo(query);
@@ -247,6 +264,14 @@ export class Songrequest {
         const length = parseInt(data.videoDetails.lengthSeconds);
         //const category = data.videoDetails.category;
         const titleProcessed = title.toLowerCase().replace(/[\w]+g/, "");
+
+        if (this.queue.find((si) => si.title === title)) {
+          return {
+            message: "SR_SONG_IN_QUEUE",
+            error: true,
+            param: { title: title, url: data.videoDetails.video_url },
+          };
+        }
 
         if (
           !isSoundAlert &&
@@ -302,19 +327,18 @@ export class Songrequest {
           };
         }
 
-        const base64Data = await ytDlBufferBase64(query);
-
         const songInfo = {
           title: title,
           coverImage: data.videoDetails.thumbnails[0].url,
           requestedBy: userMetadata.username,
-          mediaBase64: base64Data,
+          mediaBase64: "",
           url: query,
           duration: length,
         };
 
         if (!isSoundAlert) {
           this.queue.push(songInfo);
+          await storeQueue(this.id, JSON.stringify(this.queue));
           return {
             message: "SR_ADD_OK",
             error: false,
@@ -332,12 +356,11 @@ export class Songrequest {
           };
         }
       } catch (e) {
-        console.log(e);
+        console.error(e);
         return { message: "SR_ADD_UNKNOWN_ERROR", error: false, param: {} };
       }
     } else {
       const d = await findYtVideoByTitle(query);
-      console.log(d);
       if (d === null) {
         return { message: "SR_NOT_FOUND", error: true, param: {} };
       }
@@ -382,34 +405,43 @@ export class Songrequest {
     }
     this.currentSongVotes.push(from);
 
-    if (this.voteCounter[from] >= 3) {
-      throw new Error();
-    }
-
     this.voteCounter[from]++;
     if (!this.reputationRanking[to]) this.reputationRanking[to] = 0;
 
     this.reputationRanking[to] += amount;
 
+    storeRanking(this.id, JSON.stringify(this.reputationRanking)).catch(
+      console.error,
+    );
+
     return this.reputationRanking[to];
   }
 
-  public getNextSong(peek?: boolean): SongInfo | null {
+  public async getNextSong(peek?: boolean): Promise<SongInfo | null> {
     if (this.queue.length > 0) {
       this.currentSongVotes = [];
+      this.queue[0].mediaBase64 = await ytDlBufferBase64(this.queue[0].url);
       this.queue[0].userReputation =
         this.reputationRanking[this.queue[0].requestedBy] ?? 0;
       this.currentSong = this.queue[0];
       this.currentSongStartedAt = new Date().getTime();
       this.skipCounter = [];
       if (peek) return this.queue[0];
+      storeQueue(this.id, JSON.stringify(this.queue)).catch(console.error);
       return this.queue.splice(0, 1)[0];
     }
     return null;
   }
 
-  public getNextAlert(): SongInfo | null {
+  public wipeQueue() {
+    this.queue.length = 0;
+  }
+
+  public async getNextAlert(): Promise<SongInfo | null> {
     if (this.alertQueue.length > 0) {
+      this.alertQueue[0].mediaBase64 = await ytDlBufferBase64(
+        this.alertQueue[0].url,
+      );
       return this.alertQueue.splice(0, 1)[0];
     }
     return null;

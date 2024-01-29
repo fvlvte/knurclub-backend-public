@@ -19,7 +19,7 @@ export class SongRequestQueue implements CommandHandler {
     ];
     const songInfo: string[] = [];
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       const si = queue[i];
       if (si) {
         songInfo.push(
@@ -29,6 +29,8 @@ export class SongRequestQueue implements CommandHandler {
         );
       }
     }
+
+    console.log(songInfo);
 
     if (songInfo.length === 0) {
       return await client.dispatchBotMessage(

@@ -39,6 +39,8 @@ import { SongRequestMySong } from "./commands/SongRequestMySong";
 import { StaticText } from "./commands/StaticText";
 import { Timer } from "./timers/Timer";
 import { StaticTextTimer } from "./timers/StaticTextTimer";
+import { SongRequestWipe } from "./commands/SongRequestWipe";
+import { getRewardById } from "./MongoDBClient";
 
 export class V2TwitchClient {
   constructor(refreshToken: string, userId: string) {
@@ -64,6 +66,7 @@ export class V2TwitchClient {
     new SongRequestSkipVote(),
     new SongRequestWrongSong(),
     new SongRequestMySong(),
+    new SongRequestWipe(),
     new StaticText(
       "SOCIALS_DISCORD",
       /^(!dc)|(!discord)|(!dsc)|(!jakijestserwerdiskord)\s*$/i,
@@ -127,14 +130,14 @@ export class V2TwitchClient {
     const data = msg.payload.event;
     const rewardId = data.reward.id;
 
-    if (existsSync(`./rewards/${rewardId}.json`)) {
-      const dt: FileReward = JSON.parse(
-        readFileSync(`./rewards/${rewardId}.json`, "utf-8"),
-      );
+    const record = await getRewardById(rewardId);
+
+    if (record) {
+      const dt: FileReward = record as unknown as FileReward;
 
       switch (dt.type) {
         case "SOUND_ALERT": {
-          Songrequest.getInstance().tryAddSong(
+          await Songrequest.getInstance(this.streamerId).tryAddSong(
             dt.param,
             { subLevel: 0, username: data.user_login },
             true,
@@ -142,7 +145,7 @@ export class V2TwitchClient {
           break;
         }
         case "SR_SKIP_QUEUE": {
-          Songrequest.getInstance().tryAppendSongNoVerify(
+          Songrequest.getInstance(this.streamerId).tryAppendSongNoVerify(
             dt.param,
             { subLevel: 0, username: data.user_login },
             true,
@@ -150,7 +153,7 @@ export class V2TwitchClient {
           break;
         }
         case "SKIP_SR": {
-          Songrequest.getInstance().skip();
+          Songrequest.getInstance(this.streamerId).skip();
           break;
         }
       }
@@ -480,7 +483,9 @@ export class V2TwitchClient {
       console.log(
         `${
           this.constructor.name
-        }: WSS ${"wss://eventsub.wss.twitch.tv/ws"} opened!`,
+        }: WSS ${"wss://eventsub.wss.twitch.tv/ws"} opened for ${
+          this.streamerId
+        }`,
       );
     });
 

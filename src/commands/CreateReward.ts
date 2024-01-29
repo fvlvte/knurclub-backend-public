@@ -1,7 +1,7 @@
 import { CommandHandler } from "./CommandHandler";
 import { TwitchClient, TwitchMessage } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
-import { writeFileSync } from "fs";
+import { upsertRewardById } from "../MongoDBClient";
 
 export class CreateReward implements CommandHandler {
   async handleCommand(
@@ -44,12 +44,8 @@ export class CreateReward implements CommandHandler {
         param: param,
       };
 
-      console.log(result);
+      await upsertRewardById(result.data[0].id, rewardJson);
 
-      writeFileSync(
-        `./rewards/${result.data[0].id}.json`,
-        JSON.stringify(rewardJson),
-      );
       await client.dispatchBotMessage(
         TranslationManager.getInstance(
           await client.getStreamLanguage(),

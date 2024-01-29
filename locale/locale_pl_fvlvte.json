@@ -21,7 +21,7 @@
   "SR_ADD_UNKNOWN_ERROR":  "@{{invokedBy}} sory nie można dodać tego linka",
   "SR_NOT_FOUND": "@{{invokedBy}} sory nie znalazłem",
   "SR_EMPTY_QUEUE": "@{{invokedBy}} kolejka jest pusta",
-  "SR_QUEUE_PRINT": "@{{invokedBy}} oto nadchodzonce 5 pioseneg {{queue}}",
+  "SR_QUEUE_PRINT": "@{{invokedBy}} oto nadchodzonce 3 pioseneg {{queue}}",
   "SR_ERR_NO_SONG": "@{{invokedBy}} nie ma nic w queue SR dodaj se piosenke komendom !ksr",
   "SR_SONG_INFO": "@{{invokedBy}} aktualna piosenka to {{title}} {{url}} dodana przez {{requestedBy}} ({{rep}})",
   "SR_SKIP_VOTE_IN_PROGRESS": "@{{invokedBy}} potrzeba jeszcze {{counter}} głosuw żeby skipnonc",
@@ -37,5 +37,9 @@
   "SOCIALS_PROJECT": "@{{invokedBy}} robimy teraz songruesta backend: https://github.com/fvlvte/knurobotOG / frontend https://github.com/fvlvte/knurlements-widgtet",
 
   "TIMER_DISCORD": "elo eskorta wsiadaj na diskorta https://discord.gg/BnRNzSzcv9",
-  "TIMER_YT": "elo daj suba na jutuba https://www.youtube.com/@fvlvte"
+  "TIMER_YT": "elo daj suba na jutuba https://www.youtube.com/@fvlvte",
+
+  "SR_QUEUE_LIMIT": "@{{invokedBy}} sory kolejka jusz jest pelna milosci (max. {{limit}} piosenek)",
+  "SR_SONG_IN_QUEUE": "@{{invokedBy}} sory ta piosenka jest już w kłełe ({{title}} {{url}})",
+  "SR_QUEUE_SONG_LIMIT": "@{{invokedBy}} sory możesz mieć maksymalnie {{limit}} kawałkuw w kolejce"
 }
