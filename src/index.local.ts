@@ -13,7 +13,7 @@ try {
     process.env[entryKey] = localData[entryKey];
     STRINGS_TO_PROTECT.push(localData[entryKey]);
   }
-  console.log("OK local envs overridden UwU");
+  console.log("OK local envs overridden UwU OwO");
 
   function escapeRegExp(str: string) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
