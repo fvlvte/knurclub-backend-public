@@ -1,6 +1,4 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
-import { readdirSync } from "node:fs";
-import { readFileSync } from "fs";
 
 const uri = "mongodb://127.0.0.1:27017/?maxPoolSize=20&w=majority";
 
@@ -19,7 +17,7 @@ export async function storeQueue(streamerId: string, q: unknown) {
     await queue.createIndex({
       streamerId: 1,
     });
-    const r = await queue.updateOne(
+    await queue.updateOne(
       { streamerId: { eq: streamerId } },
       {
         $set: {
@@ -28,7 +26,6 @@ export async function storeQueue(streamerId: string, q: unknown) {
       },
       { upsert: true },
     );
-    console.log(r);
   } catch (e) {
     console.error(e);
   }
@@ -56,7 +53,7 @@ export async function storeRanking(streamerId: string, q: unknown) {
     await ranking.createIndex({
       streamerId: 1,
     });
-    const r = await ranking.updateOne(
+    await ranking.updateOne(
       { streamerId: { eq: streamerId } },
       {
         $set: {
@@ -65,7 +62,6 @@ export async function storeRanking(streamerId: string, q: unknown) {
       },
       { upsert: true },
     );
-    console.log(r);
   } catch (e) {
     console.error(e);
   }

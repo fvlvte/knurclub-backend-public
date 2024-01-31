@@ -14,6 +14,6 @@ jobs:
       - name: Login, build, tag, and push image to Docker Container Registry
         id: build-image
         run: |
-          docker login -u nginx -p ${{ secrets.DOCKER_PASSWORD }} docker.knur.club
-          docker build -q --build-arg="SECRETS=$(echo -n '${{ secrets.SECRETS }}' | base64)" -t docker.knur.club/backend:latest .
-          docker push docker.knur.club/backend:latest
+          docker login -u fvlvte -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -q --build-arg="ENC_PWD=$(echo -n '${{ secrets.ENC_PWD }}')" --build-arg="SECRETS=$(echo -n '${{ secrets.SECRETS }}' | base64)" -t fvlvte/knurobot:latest .
+          docker push fvlvte/knurobot:latest
