@@ -1,16 +1,10 @@
 FROM --platform=linux/amd64 node:20.11.0
 
-ARG SECRETS
-ARG ENC_PWD
-
-ENV SECRETS_PATH="/usr/src/app/Secrets.json"
-
 WORKDIR /usr/src/app
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y apt-transport-https
 RUN DEBIAN_FRONTEND=noninteractive apt install chromium -y
 COPY package.json /usr/src/app/
 COPY package-lock.json /usr/src/app/
-RUN echo "${SECRETS}" | openssl aes-256-cbc -a -salt -k ${ENC_PWD} >> /usr/src/app/SecretsEncrypted.json
 RUN npm ci
 COPY . /usr/src/app
 

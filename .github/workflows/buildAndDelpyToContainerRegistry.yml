@@ -15,5 +15,5 @@ jobs:
         id: build-image
         run: |
           docker login -u fvlvte -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -q --build-arg="ENC_PWD=$(echo -n '${{ secrets.ENC_PWD }}')" --build-arg="SECRETS=$(echo -n '${{ secrets.SECRETS }}' | base64)" -t fvlvte/knurobot:latest .
+          docker build -q -t fvlvte/knurobot:latest .
           docker push fvlvte/knurobot:latest
