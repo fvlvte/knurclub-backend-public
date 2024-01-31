@@ -294,7 +294,7 @@ export class HttpServer {
 
   private async handleTtsRequest(req: express.Request, res: express.Response) {
     try {
-      const textData = req.query.data;
+      /*const textData = req.query.data;
 
       // Construct the request
       const request = {
@@ -310,7 +310,8 @@ export class HttpServer {
         request as unknown as ISynthesizeSpeechRequest,
       );
 
-      return res.send(response.audioContent);
+      return res.send(response.audioContent);*/
+      res.status(HttpStatusCode.BadRequest).send({ error: "invalid token 3" });
     } catch (e) {
       console.log(e);
       res.status(HttpStatusCode.BadRequest).send({ error: "invalid token 3" });
