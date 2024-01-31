@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/core": "0.6.0",
+    "@distube/ytdl-core": "^4.13.3",
     "@google-cloud/text-to-speech": "^5.0.0",
     "@sentry/node": "7.60.0",
     "body-parser": "1.20.2",
@@ -52,6 +53,7 @@
     "@types/node-telegram-bot-api": "0.61.6",
     "@types/pako": "2.0.0",
     "@types/pg": "8.10.2",
+    "@types/tough-cookie": "^4.0.5",
     "@typescript-eslint/eslint-plugin": "6.2.0",
     "chai": "4.3.7",
     "eslint": "8.45.0",
