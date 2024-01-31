@@ -2,7 +2,7 @@ import { CommandHandler } from "./CommandHandler";
 import { TwitchClient, TwitchMessage } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
 
-export class ReloadLocale implements CommandHandler {
+export class ReloadLocale extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,
@@ -28,6 +28,6 @@ export class ReloadLocale implements CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^!lcreload\s*$/i;
+    return /^[?!]lcreload\s*$/i;
   }
 }

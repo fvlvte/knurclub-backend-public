@@ -4,7 +4,7 @@ import { TranslationManager } from "../TranslationManager";
 import { Songrequest } from "../Songrequest";
 import { V2TwitchClient } from "../V2TwitchClient";
 
-export class SongRequestAdd implements CommandHandler {
+export class SongRequestAdd extends CommandHandler {
   async handleCommand(
     client: TwitchClient | V2TwitchClient,
     message: TwitchMessage,
@@ -38,6 +38,6 @@ export class SongRequestAdd implements CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^(!ksr)|(!sr)|(!knursr)|(!songrequest)|(!knursongrequest)|(!wezpuscpiosenkeknurze)/i;
+    return /^([?!]ksr)|([?!]sr)|([?!]knursr)|([?!]songrequest)|([?!]knursongrequest)|([?!]wezpuscpiosenkeknurze)/i;
   }
 }

@@ -3,7 +3,7 @@ import { TwitchClient, TwitchMessage } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
 import { upsertRewardById } from "../MongoDBClient";
 
-export class CreateReward implements CommandHandler {
+export class CreateReward extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,
@@ -64,6 +64,6 @@ export class CreateReward implements CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^!rewardadd/i;
+    return /^[?!]rewardadd/i;
   }
 }

@@ -3,10 +3,12 @@ import { TwitchClient, TwitchMessage } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
 import { V2TwitchClient } from "../V2TwitchClient";
 
-export class StaticText implements CommandHandler {
+export class StaticText extends CommandHandler {
   private readonly translationId: string;
   private readonly regExp: RegExp;
   constructor(translationId: string, regExp: RegExp) {
+    super();
+
     this.translationId = translationId;
     this.regExp = regExp;
   }

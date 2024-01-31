@@ -3,7 +3,7 @@ import { TwitchClient, TwitchMessage } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
 import { Songrequest } from "../Songrequest";
 
-export class SongRequestWipe implements CommandHandler {
+export class SongRequestWipe extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,

@@ -3,7 +3,7 @@ import { TwitchClient, TwitchMessage } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
 import { Songrequest } from "../Songrequest";
 
-export class SongRequestReputationVote implements CommandHandler {
+export class SongRequestReputationVote extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,

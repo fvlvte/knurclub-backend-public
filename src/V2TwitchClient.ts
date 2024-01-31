@@ -11,7 +11,6 @@ import { Songrequest } from "./Songrequest";
 import { CommandHandler } from "./commands/CommandHandler";
 import { CreateReward } from "./commands/CreateReward";
 import { ReloadLocale } from "./commands/ReloadLocale";
-import { existsSync, readFileSync } from "fs";
 import { FileReward } from "./types/FileReward";
 import { SongRequestReputationVote } from "./commands/SongRequestReputationVote";
 import {
@@ -552,12 +551,15 @@ export class V2TwitchClient {
         const castedMessage = msg as unknown as TwitchMessage;
         if (!castedMessage.message) return;
 
-        if (castedMessage.message.startsWith("!")) {
+        if (
+          castedMessage.message.startsWith("!") ||
+          castedMessage.message.startsWith("?")
+        ) {
           for (const handler of this.commandHandlers) {
             if (
               castedMessage.message.match(handler.getMatchingExp()) !== null
             ) {
-              return await handler.handleCommand(this, castedMessage);
+              return await handler.preHandleCommand(this, castedMessage);
             }
           }
         }

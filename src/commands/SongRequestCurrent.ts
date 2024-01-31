@@ -4,7 +4,7 @@ import { TranslationManager } from "../TranslationManager";
 import { Songrequest } from "../Songrequest";
 import { V2TwitchClient } from "../V2TwitchClient";
 
-export class SongRequestCurrent implements CommandHandler {
+export class SongRequestCurrent extends CommandHandler {
   async handleCommand(
     client: TwitchClient | V2TwitchClient,
     message: TwitchMessage,

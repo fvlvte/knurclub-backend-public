@@ -41,5 +41,16 @@
 
   "SR_QUEUE_LIMIT": "@{{invokedBy}} sory kolejka jusz jest pelna milosci (max. {{limit}} piosenek)",
   "SR_SONG_IN_QUEUE": "@{{invokedBy}} sory ta piosenka jest już w kłełe ({{title}} {{url}})",
-  "SR_QUEUE_SONG_LIMIT": "@{{invokedBy}} sory możesz mieć maksymalnie {{limit}} kawałkuw w kolejce"
+  "SR_QUEUE_SONG_LIMIT": "@{{invokedBy}} sory możesz mieć maksymalnie {{limit}} kawałkuw w kolejce",
+
+  "CMD_CreateReward_HELP": "pomoc do komendy aha ok",
+  "CMD_ReloadLocale_HELP": "pomoc do komendy aha ok",
+  "CMD_SongRequestAdd_HELP": "pomoc do komendy aha ok",
+  "CMD_SongRequestCurrent_HELP": "pomoc do komendy aok",
+  "CMD_SongRequestMySong_HELP": "pozdrowienia z podziemia",
+  "CMD_SongRequestQueue_HELP": "ahah dupa huj",
+  "CMD_SongRequestReputationVote_HELP": "kut as",
+  "CMD_SongRequestSkipVote_HELP": "sra nie",
+  "CMD_SongRequestWipe_HELP": "kup sko",
+  "CMD_SongRequestWrongSong_HELP": "wa le nie"
 }
