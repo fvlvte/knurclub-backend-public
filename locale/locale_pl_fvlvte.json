@@ -43,6 +43,9 @@
   "SR_SONG_IN_QUEUE": "@{{invokedBy}} sory ta piosenka jest już w kłełe ({{title}} {{url}})",
   "SR_QUEUE_SONG_LIMIT": "@{{invokedBy}} sory możesz mieć maksymalnie {{limit}} kawałkuw w kolejce",
 
+  "SR_INVALID_VOLUME_VALUE": "@{{invokedBy}} sory nieprawidlowa wartosc 0 - 100",
+  "SR_VOLUME_SET": "@{{invokedBy}} ok ustawioned volume ok",
+
   "CMD_CreateReward_HELP": "pomoc do komendy aha ok",
   "CMD_ReloadLocale_HELP": "pomoc do komendy aha ok",
   "CMD_SongRequestAdd_HELP": "pomoc do komendy aha ok",

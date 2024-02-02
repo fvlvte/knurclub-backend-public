@@ -12,7 +12,7 @@ const client = new MongoClient(uri, {
 
 export async function storeQueue(streamerId: string, q: unknown) {
   try {
-    const sr = client.db("sr");
+    /* const sr = client.db("sr");
     const queue = await sr.createCollection("queue");
     await queue.createIndex({
       streamerId: 1,
@@ -25,7 +25,7 @@ export async function storeQueue(streamerId: string, q: unknown) {
         },
       },
       { upsert: true },
-    );
+    );*/
   } catch (e) {
     console.error(e);
   }
@@ -33,13 +33,14 @@ export async function storeQueue(streamerId: string, q: unknown) {
 
 export async function restoreQueue(streamerId: string): Promise<string | null> {
   try {
-    const sr = client.db("sr");
+    /*const sr = client.db("sr");
     const queue = await sr.createCollection("queue");
     await queue.createIndex({
       streamerId: 1,
     });
     const r = await queue.findOne({ streamerId: { eq: streamerId } });
-    return r?.queue as string;
+    return r?.queue as string;*/
+    return null;
   } catch (e) {
     console.error(e);
     return null;
@@ -48,7 +49,7 @@ export async function restoreQueue(streamerId: string): Promise<string | null> {
 
 export async function storeRanking(streamerId: string, q: unknown) {
   try {
-    const sr = client.db("sr");
+    /*const sr = client.db("sr");
     const ranking = await sr.createCollection("ranking");
     await ranking.createIndex({
       streamerId: 1,
@@ -61,7 +62,7 @@ export async function storeRanking(streamerId: string, q: unknown) {
         },
       },
       { upsert: true },
-    );
+    );*/
   } catch (e) {
     console.error(e);
   }
@@ -71,13 +72,14 @@ export async function restoreRanking(
   streamerId: string,
 ): Promise<string | null> {
   try {
-    const sr = client.db("sr");
+    /*const sr = client.db("sr");
     const ranking = await sr.createCollection("ranking");
     await ranking.createIndex({
       streamerId: 1,
     });
     const r = await ranking.findOne({ streamerId: { eq: streamerId } });
-    return r?.ranking as string;
+    return r?.ranking as string;*/
+    return null;
   } catch (e) {
     console.error(e);
     return null;

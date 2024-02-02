@@ -128,6 +128,8 @@ export class Songrequest {
   private readonly alertQueue: SongInfo[] = [];
   private readonly id: string;
 
+  private volume = 0.2;
+
   private currentSong: SongInfo | null = null;
   private currentSongStartedAt: number | null = null;
   private currentSongVotes: string[] = [];
@@ -384,6 +386,14 @@ export class Songrequest {
 
   public skip(): void {
     this.skipFlag = true;
+  }
+
+  public getVolume(): number {
+    return this.volume;
+  }
+
+  public setVolume(v: number): void {
+    this.volume = v;
   }
 
   public getAndUnsetSkipFlag(): boolean {

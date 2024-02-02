@@ -100,6 +100,7 @@ export class ExternalServer {
 
     res.status(HttpStatusCode.Ok).send({
       skip: Songrequest.getInstance(req.authData.user_id).getAndUnsetSkipFlag(),
+      volume: Songrequest.getInstance(req.authData.user_id).getVolume(),
     });
   }
 
