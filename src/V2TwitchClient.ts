@@ -40,6 +40,7 @@ import { Timer } from "./timers/Timer";
 import { StaticTextTimer } from "./timers/StaticTextTimer";
 import { SongRequestWipe } from "./commands/SongRequestWipe";
 import { getRewardById } from "./MongoDBClient";
+import { SongRequestVolumeSet } from "./commands/SongRequestVolumeSet";
 
 export class V2TwitchClient {
   constructor(refreshToken: string, userId: string) {
@@ -64,6 +65,7 @@ export class V2TwitchClient {
     new SongRequestCurrent(),
     new SongRequestSkipVote(),
     new SongRequestWrongSong(),
+    new SongRequestVolumeSet(),
     new SongRequestMySong(),
     new SongRequestWipe(),
     new StaticText(
