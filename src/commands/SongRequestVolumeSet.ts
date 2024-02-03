@@ -14,9 +14,11 @@ export class SongRequestVolumeSet extends CommandHandler {
     );
 
     if (
-      message.tags.isModerator ||
-      message.username.toLowerCase() ===
-        (await client.getStreamerUsername()).toLowerCase()
+      !(
+        message.tags.isModerator ||
+        message.username.toLowerCase() ===
+          (await client.getStreamerUsername()).toLowerCase()
+      )
     ) {
       return;
     }
@@ -32,8 +34,9 @@ export class SongRequestVolumeSet extends CommandHandler {
           invokedBy: message.username,
         }),
       );
+      return;
     }
-    const realVolume = 100 / i;
+    const realVolume = i / 100;
 
     sr.setVolume(realVolume);
 

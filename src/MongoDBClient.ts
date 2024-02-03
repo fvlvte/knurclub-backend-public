@@ -12,7 +12,7 @@ const client = new MongoClient(uri, {
 
 export async function storeQueue(streamerId: string, q: unknown) {
   try {
-    /* const sr = client.db("sr");
+    const sr = client.db("sr");
     const queue = await sr.createCollection("queue");
     await queue.createIndex({
       streamerId: 1,
@@ -25,7 +25,7 @@ export async function storeQueue(streamerId: string, q: unknown) {
         },
       },
       { upsert: true },
-    );*/
+    );
   } catch (e) {
     console.error(e);
   }
@@ -33,13 +33,13 @@ export async function storeQueue(streamerId: string, q: unknown) {
 
 export async function restoreQueue(streamerId: string): Promise<string | null> {
   try {
-    /*const sr = client.db("sr");
+    const sr = client.db("sr");
     const queue = await sr.createCollection("queue");
     await queue.createIndex({
       streamerId: 1,
     });
     const r = await queue.findOne({ streamerId: { eq: streamerId } });
-    return r?.queue as string;*/
+    return r?.queue as string;
     return null;
   } catch (e) {
     console.error(e);
@@ -49,7 +49,7 @@ export async function restoreQueue(streamerId: string): Promise<string | null> {
 
 export async function storeRanking(streamerId: string, q: unknown) {
   try {
-    /*const sr = client.db("sr");
+    const sr = client.db("sr");
     const ranking = await sr.createCollection("ranking");
     await ranking.createIndex({
       streamerId: 1,
@@ -62,7 +62,7 @@ export async function storeRanking(streamerId: string, q: unknown) {
         },
       },
       { upsert: true },
-    );*/
+    );
   } catch (e) {
     console.error(e);
   }
@@ -72,13 +72,13 @@ export async function restoreRanking(
   streamerId: string,
 ): Promise<string | null> {
   try {
-    /*const sr = client.db("sr");
+    const sr = client.db("sr");
     const ranking = await sr.createCollection("ranking");
     await ranking.createIndex({
       streamerId: 1,
     });
     const r = await ranking.findOne({ streamerId: { eq: streamerId } });
-    return r?.ranking as string;*/
+    return r?.ranking as string;
     return null;
   } catch (e) {
     console.error(e);
@@ -87,63 +87,42 @@ export async function restoreRanking(
 }
 
 export async function getRewardById(id: string) {
-  const sr = client.db("sr");
-  const alerts = await sr.createCollection("alerts");
-  await alerts.createIndex({
-    streamerId: 1,
-    rewardId: 1,
-  });
-  const alert = await alerts.findOne({ rewardId: { eq: id } });
-  return alert;
+  try {
+    const sr = client.db("sr");
+    const alerts = await sr.createCollection("alerts");
+    await alerts.createIndex({
+      streamerId: 1,
+      rewardId: 1,
+    });
+    const alert = await alerts.findOne({ rewardId: { eq: id } });
+    return alert;
+  } catch (e) {
+    console.error(e);
+    return {};
+  }
 }
 
 export async function upsertRewardById(
   id: string,
   value: Record<string, unknown>,
 ) {
-  const sr = client.db("sr");
-  const alerts = await sr.createCollection("alerts");
-  await alerts.createIndex({
-    streamerId: 1,
-    rewardId: 1,
-  });
-  await alerts.updateOne(
-    { rewardId: { eq: id } },
-    {
-      $set: {
-        ...value,
-      },
-    },
-    { upsert: true },
-  );
-}
-
-/*async function migrateRewardsJSON() {
-  const files = readdirSync("./rewards/");
-  for (const file of files) {
+  try {
     const sr = client.db("sr");
-    const data = JSON.parse(readFileSync(`./rewards/${file}`, "utf-8"));
-
     const alerts = await sr.createCollection("alerts");
     await alerts.createIndex({
       streamerId: 1,
       rewardId: 1,
     });
-    const upsertEntry = await alerts.updateOne(
-      { rewardId: { eq: file.split(".")[0] } },
+    await alerts.updateOne(
+      { rewardId: { eq: id } },
       {
         $set: {
-          type: data.type,
-          param: data.param,
-          name: data.name,
-          streamerId: "268563714",
+          ...value,
         },
       },
       { upsert: true },
     );
-    console.log(upsertEntry);
+  } catch (e) {
+    console.error(e);
   }
-  console.log(files);
-}*/
-
-export default client;
+}
