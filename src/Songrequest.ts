@@ -334,7 +334,7 @@ export class Songrequest {
           coverImage: data.videoDetails.thumbnails[0].url,
           requestedBy: userMetadata.username,
           mediaBase64: "",
-          url: data.videoDetails.video_url,
+          url: data.videoDetails.video_url.replace("&#x3D;", "="),
           duration: length,
         };
 
@@ -347,7 +347,7 @@ export class Songrequest {
             param: {
               title: title,
               ...this.when(songInfo),
-              url: data.videoDetails.video_url,
+              url: data.videoDetails.video_url.replace("&#x3D;", "="),
             },
           };
         } else {
