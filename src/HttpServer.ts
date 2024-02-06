@@ -14,13 +14,13 @@ import {
 
 import { TwitchClient } from "./TwitchClient";
 import { TwitchAuthGuard } from "./TwitchAuthGuard";
-import { TextToSpeechClient } from "@google-cloud/text-to-speech";
-import { google } from "@google-cloud/text-to-speech/build/protos/protos";
-import ISynthesizeSpeechRequest = google.cloud.texttospeech.v1.ISynthesizeSpeechRequest;
+//import { TextToSpeechClient } from "@google-cloud/text-to-speech";
+//import { google } from "@google-cloud/text-to-speech/build/protos/protos";
+//import ISynthesizeSpeechRequest = google.cloud.texttospeech.v1.ISynthesizeSpeechRequest;
 import { Songrequest } from "./Songrequest";
 import { TimerController } from "./TimerController";
 
-const ttsClient = new TextToSpeechClient({ projectId: "knurski-projekcik" });
+//const ttsClient = new TextToSpeechClient({ projectId: "knurski-projekcik" });
 
 const UPTIME = Date.now();
 
@@ -247,9 +247,7 @@ export class HttpServer {
     res: express.Response,
   ) {
     try {
-      const song = Songrequest.getInstance().getNextSong(
-        req.query.pop ? true : undefined,
-      );
+      const song = Songrequest.getInstance().getNextSong();
       if (!song) {
         res.status(HttpStatusCode.NoContent).send();
         return;

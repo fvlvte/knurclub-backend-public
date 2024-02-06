@@ -334,7 +334,7 @@ export class Songrequest {
           coverImage: data.videoDetails.thumbnails[0].url,
           requestedBy: userMetadata.username,
           mediaBase64: "",
-          url: query,
+          url: data.videoDetails.video_url,
           duration: length,
         };
 
@@ -347,6 +347,7 @@ export class Songrequest {
             param: {
               title: title,
               ...this.when(songInfo),
+              url: data.videoDetails.video_url,
             },
           };
         } else {
@@ -427,18 +428,17 @@ export class Songrequest {
     return this.reputationRanking[to];
   }
 
-  public async getNextSong(peek?: boolean): Promise<SongInfo | null> {
+  public async getNextSong(): Promise<SongInfo | null> {
     if (this.queue.length > 0) {
+      const song = this.queue.splice(0, 1)[0];
       this.currentSongVotes = [];
-      this.queue[0].mediaBase64 = await ytDlBufferBase64(this.queue[0].url);
-      this.queue[0].userReputation =
-        this.reputationRanking[this.queue[0].requestedBy] ?? 0;
-      this.currentSong = this.queue[0];
+      song.mediaBase64 = await ytDlBufferBase64(song.url);
+      song.userReputation = this.reputationRanking[song.requestedBy] ?? 0;
+      this.currentSong = song;
       this.currentSongStartedAt = new Date().getTime();
       this.skipCounter = [];
-      if (peek) return this.queue[0];
       storeQueue(this.id, JSON.stringify(this.queue)).catch(console.error);
-      return this.queue.splice(0, 1)[0];
+      return song;
     }
     return null;
   }

@@ -81,7 +81,7 @@ export class ExternalServer {
 
     const song = await Songrequest.getInstance(
       req.authData.user_id,
-    ).getNextSong(req.query.pop ? true : undefined);
+    ).getNextSong();
     if (!song) {
       res.status(HttpStatusCode.NoContent).send();
       return;
