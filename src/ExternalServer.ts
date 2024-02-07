@@ -6,6 +6,8 @@ import * as cors from "cors";
 import { default as bodyParser } from "body-parser";
 import { TwitchTennantManager } from "./TwitchKlienty";
 import { Songrequest } from "./Songrequest";
+import { AuthToken } from "./AuthToken";
+import { DiscordApiClient } from "./DiscordBotApiClient";
 
 type RequestWithAuthData = Request & { authData?: Data };
 
@@ -71,6 +73,49 @@ export class ExternalServer {
     return res.status(HttpStatusCode.Ok).send({ git: req.authData.user_id });
   }
 
+  private async handleKnurCampTelemetry(req: Request, res: Response) {
+    const token = req.query.token;
+    if (typeof token !== "string")
+      return res.status(HttpStatusCode.Unauthorized).send("dupa");
+    try {
+      const payload = await AuthToken.getPayloadFromToken<{
+        username: string;
+        threadId: string;
+      }>(token, "hex");
+      const { username, threadId } = payload;
+
+      console.log("dupa1");
+
+      const data = req.body;
+
+      const taskId = (req.query.tid as string) ?? "unknown";
+
+      const file = data.file;
+
+      delete data.file;
+
+      data.username = username;
+      data.taskId = taskId;
+
+      let message = "";
+
+      for (const key in data) {
+        message += `${key} = ${data[key]}\n`;
+      }
+
+      const client = new DiscordApiClient();
+      await client.init(true);
+      console.log(
+        await client.sendMessageToChannel(threadId, message, data, file),
+      );
+
+      res.send("aok");
+    } catch (e) {
+      console.error(e);
+      res.status(500).send("eror");
+    }
+  }
+
   private async handleSongRequestQuery(
     req: RequestWithAuthData,
     res: Response,
@@ -131,6 +176,10 @@ export class ExternalServer {
       this.app.get("/auth/login/twitch", this.handleAuthLoginTwitch.bind(this));
       this.app.get("/core/keep-alive", this.handleKeepAliveTick.bind(this));
       this.app.get("/v1/sr/queue", this.handleSongRequestQuery.bind(this));
+      this.app.post(
+        "/api/knurcamp/metrics",
+        this.handleKnurCampTelemetry.bind(this),
+      );
       this.app.get(
         "/v1/sr/playback",
         this.handleSongRequestPlaybackQuery.bind(this),

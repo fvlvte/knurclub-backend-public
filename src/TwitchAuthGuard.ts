@@ -1,5 +1,5 @@
 import { default as axios } from "axios";
-import { TwitchAuthToken } from "./TwitchAuthToken";
+import { AuthToken } from "./AuthToken";
 
 type TokenType = {
   access_token: string;
@@ -80,7 +80,7 @@ export class TwitchAuthGuard {
       throw new Error("not whitelisted user");
     }
 
-    const tkn = new TwitchAuthToken<Data>(
+    const tkn = new AuthToken<Data>(
       {
         refresh_token: refreshToken,
         user_id: userId,
@@ -94,6 +94,6 @@ export class TwitchAuthGuard {
   }
 
   public static async decodeToken(token: string) {
-    return await TwitchAuthToken.getPayloadFromToken<Data>(token);
+    return await AuthToken.getPayloadFromToken<Data>(token);
   }
 }

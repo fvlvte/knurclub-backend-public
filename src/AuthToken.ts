@@ -19,13 +19,9 @@ export interface TokenDataPayload {
   refresh_token: string;
 }
 
-export class TwitchAuthToken<T> {
+export class AuthToken<T> {
   private static readonly algorithm: string = "aes-256-cbc";
   private static readonly iv: Buffer = Buffer.from("1234567812345678", "utf8");
-  private static readonly key =
-    process.env.AUTH_TOKEN_ENC_KEY ?? "julkaSuperMod123julkaSuperMod123";
-  private static readonly hmacKey =
-    process.env.AUTH_TOKEN_HMAC_KEY ?? "kardymaLwojtylaPapiezPolakow";
 
   private static revocationList: string[] = [];
 
@@ -38,7 +34,10 @@ export class TwitchAuthToken<T> {
   }
 
   private static sign(data: string): string {
-    const hmac = createHmac("sha256", TwitchAuthToken.hmacKey);
+    const hmac = createHmac(
+      "sha256",
+      process.env.AUTH_TOKEN_HMAC_KEY ?? "kardymaLwojtylaPapiezPolakow",
+    );
     hmac.update(data);
     return hmac.digest("base64");
   }
@@ -68,36 +67,40 @@ export class TwitchAuthToken<T> {
   }
 
   public static async loadRevokedTokensAndUsernames() {
-    const fileContents = await TwitchAuthToken.makeCom("revokedTokens.json");
+    const fileContents = await AuthToken.makeCom("revokedTokens.json");
     const data = JSON.parse(fileContents);
     this.revocationList = data.revokedTokens;
   }
 
   public static async revokeToken(token: string) {
     this.revocationList.push(token);
-    await TwitchAuthToken.cmakeCom(
+    await AuthToken.cmakeCom(
       "revokedTokens.json",
       JSON.stringify(this.revocationList),
     );
   }
 
-  public encrypt(): string {
+  public encrypt(format?: BufferEncoding): string {
     const jdata = JSON.stringify(this.data);
     const jwtData = {
       payload: jdata,
-      signature: TwitchAuthToken.sign(jdata),
+      signature: AuthToken.sign(jdata),
       expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30,
       id: createHash("sha256")
         .update(jdata + Date.now() + 1000 * 60 * 60 * 24 * 30)
         .digest("base64"),
     };
     const cipher = createCipheriv(
-      TwitchAuthToken.algorithm,
-      TwitchAuthToken.key,
-      TwitchAuthToken.iv,
+      AuthToken.algorithm,
+      process.env.AUTH_TOKEN_ENC_KEY ?? "julkaSuperMod123julkaSuperMod123",
+      AuthToken.iv,
     );
-    const encrypted = cipher.update(JSON.stringify(jwtData), "utf8", "base64");
-    return encrypted + cipher.final("base64");
+    const encrypted = cipher.update(
+      JSON.stringify(jwtData),
+      "utf8",
+      format ?? "base64",
+    );
+    return encrypted + cipher.final(format ?? "base64");
   }
 
   private static mmcPromisedGet(key: string): Promise<unknown> {
@@ -113,13 +116,16 @@ export class TwitchAuthToken<T> {
     });
   }
 
-  public static async getPayloadFromToken<T>(token: string): Promise<T> {
+  public static async getPayloadFromToken<T>(
+    token: string,
+    format?: BufferEncoding,
+  ): Promise<T> {
     const decipher = createDecipheriv(
-      TwitchAuthToken.algorithm,
-      TwitchAuthToken.key,
-      TwitchAuthToken.iv,
+      AuthToken.algorithm,
+      process.env.AUTH_TOKEN_ENC_KEY ?? "julkaSuperMod123julkaSuperMod123",
+      AuthToken.iv,
     );
-    let decrypted = decipher.update(token, "base64", "utf8");
+    let decrypted = decipher.update(token, format ?? "base64", "utf8");
     decrypted += decipher.final("utf8");
     const jwtData: TokenData = JSON.parse(decrypted);
 

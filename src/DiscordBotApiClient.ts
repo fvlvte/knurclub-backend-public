@@ -110,7 +110,25 @@ export class DiscordApiClient {
     return "KNUREK";
   }
 
-  async init(): Promise<void> {
+  //1204898310868181054
+  public async sendMessageToChannel(
+    channelId: string,
+    message: string,
+    analytics: string,
+    file?: string,
+  ) {
+    const files = [];
+    if (file) {
+      files.push({ name: "Kodzik.js", data: file });
+    }
+    files.push({ name: "analityka.json", data: JSON.stringify(analytics) });
+    return this.client?.api.channels.createMessage(channelId, {
+      files: files,
+      content: message,
+    });
+  }
+
+  async init(isMinimal?: boolean): Promise<void> {
     // TODO: fix prod creds
     return new Promise((resolve, reject) => {
       const rest = new REST({ version: "10" }).setToken(
@@ -131,110 +149,119 @@ export class DiscordApiClient {
 
       this.client = new Client({ rest, gateway: this.wsManager });
 
-      this.client.on(
-        GatewayDispatchEvents.InteractionCreate,
-        async ({ data: interaction, api }) => {
-          try {
-            const ia = interaction as APIApplicationCommandInteraction;
-            if (
-              interaction.type === InteractionType.ApplicationCommand ||
-              ia.data?.name === "mclogin"
-            ) {
-              const authToken = this.generateRandomKey();
+      if (isMinimal) return resolve();
 
-              const authData: MinecraftAuthToken = {
-                discordUser: ia.member?.user?.username || "scierwojad",
-                discordRole: this.discordRoleToMinecraftRole(
-                  ia.member?.roles[0] || "duxpo",
-                ),
-              };
+      if (!isMinimal) {
+        this.client.on(
+          GatewayDispatchEvents.InteractionCreate,
+          async ({ data: interaction, api }) => {
+            try {
+              const ia = interaction as APIApplicationCommandInteraction;
+              if (
+                interaction.type === InteractionType.ApplicationCommand ||
+                ia.data?.name === "mclogin"
+              ) {
+                const authToken = this.generateRandomKey();
 
-              KeyValueStorageSingleton.getInstance().set(
-                "login_" + authToken,
-                authData,
+                const authData: MinecraftAuthToken = {
+                  discordUser: ia.member?.user?.username || "scierwojad",
+                  discordRole: this.discordRoleToMinecraftRole(
+                    ia.member?.roles[0] || "duxpo",
+                  ),
+                };
+
+                KeyValueStorageSingleton.getInstance().set(
+                  "login_" + authToken,
+                  authData,
+                );
+
+                await api.interactions.reply(
+                  interaction.id,
+                  interaction.token,
+                  {
+                    content: `Wbij na server 141.95.84.97 (1.19.4) uzywajac username ${authData.discordUser} i wklej "${authToken}" ten kod logowania`,
+                    flags: MessageFlags.Ephemeral,
+                  },
+                );
+              }
+            } catch (_e) {
+              console.error(_e);
+            }
+          },
+        );
+
+        this.client.on(
+          GatewayDispatchEvents.GuildMemberAdd,
+          async ({ data: interaction, api }) => {
+            try {
+              const ia = interaction as GatewayGuildMemberAddDispatchData;
+
+              await api.guilds.addRoleToMember(
+                "934812690390605884",
+                ia.user?.id || "scierwojad",
+                "1029774070507655260",
               );
 
-              await api.interactions.reply(interaction.id, interaction.token, {
-                content: `Wbij na server 141.95.84.97 (1.19.4) uzywajac username ${authData.discordUser} i wklej "${authToken}" ten kod logowania`,
-                flags: MessageFlags.Ephemeral,
+              const dupskoPrompt =
+                Math.random() > 0.5 ? "komplement" : "obelgę";
+
+              const dupskoPrompts = [
+                "z karty kredytowej mamy",
+                "za pieniądze z komunii",
+                "za rente",
+                "za 500+",
+              ];
+
+              const dupskoPrompts2 = [
+                "zostanie programista pythona",
+                "zostanie programista clojure",
+                "dostanie umyslu biedaka",
+              ];
+
+              const chatCompletion = await this.openai.chat.completions.create({
+                model: "gpt-3.5-turbo",
+                max_tokens: 256,
+                temperature: 1.05,
+                messages: [
+                  {
+                    role: "user",
+                    content:
+                      "Wygeneruj powitanie dla nowego członka społeczności 'Knurownia' który nazywa się " +
+                      ia.user?.username +
+                      ` i powiedz mu ${dupskoPrompt} związany z jego nickiem oraz zeby kupił subskrypcje na Twitchu u knura ${
+                        dupskoPrompts[
+                          Math.floor(Math.random() * dupskoPrompts.length)
+                        ]
+                      } oraz żeby zrobil to jak najszybciej bo inaczej ${
+                        dupskoPrompts2[
+                          Math.floor(Math.random() * dupskoPrompts2.length)
+                        ]
+                      }, użyj maksymalnie 20 słów`,
+                  },
+                ],
               });
+
+              await api.channels.createMessage("964679871668314212", {
+                content: `<@${ia.user?.id}> ${chatCompletion.choices[0].message.content}`,
+              });
+            } catch (_e) {
+              console.error(_e);
             }
-          } catch (_e) {
-            console.error(_e);
-          }
-        },
-      );
+          },
+        );
+        this.applicationCommnadsAPI = new ApplicationCommandsAPI(rest);
 
-      this.client.on(
-        GatewayDispatchEvents.GuildMemberAdd,
-        async ({ data: interaction, api }) => {
-          try {
-            const ia = interaction as GatewayGuildMemberAddDispatchData;
+        this.wsManager.connect().then(resolve).catch(reject);
 
-            await api.guilds.addRoleToMember(
-              "934812690390605884",
-              ia.user?.id || "scierwojad",
-              "1029774070507655260",
-            );
-
-            const dupskoPrompt = Math.random() > 0.5 ? "komplement" : "obelgę";
-
-            const dupskoPrompts = [
-              "z karty kredytowej mamy",
-              "za pieniądze z komunii",
-              "za rente",
-              "za 500+",
-            ];
-
-            const dupskoPrompts2 = [
-              "zostanie programista pythona",
-              "zostanie programista clojure",
-              "dostanie umyslu biedaka",
-            ];
-
-            const chatCompletion = await this.openai.chat.completions.create({
-              model: "gpt-3.5-turbo",
-              max_tokens: 256,
-              temperature: 1.05,
-              messages: [
-                {
-                  role: "user",
-                  content:
-                    "Wygeneruj powitanie dla nowego członka społeczności 'Knurownia' który nazywa się " +
-                    ia.user?.username +
-                    ` i powiedz mu ${dupskoPrompt} związany z jego nickiem oraz zeby kupił subskrypcje na Twitchu u knura ${
-                      dupskoPrompts[
-                        Math.floor(Math.random() * dupskoPrompts.length)
-                      ]
-                    } oraz żeby zrobil to jak najszybciej bo inaczej ${
-                      dupskoPrompts2[
-                        Math.floor(Math.random() * dupskoPrompts2.length)
-                      ]
-                    }, użyj maksymalnie 20 słów`,
-                },
-              ],
-            });
-
-            await api.channels.createMessage("964679871668314212", {
-              content: `<@${ia.user?.id}> ${chatCompletion.choices[0].message.content}`,
-            });
-          } catch (_e) {
-            console.error(_e);
-          }
-        },
-      );
-      this.applicationCommnadsAPI = new ApplicationCommandsAPI(rest);
-
-      this.wsManager.connect().then(resolve).catch(reject);
-
-      this.applicationCommnadsAPI.createGuildCommand(
-        process.env.DISCORD_DEFAULT_APP_ID || "",
-        "934812690390605884",
-        {
-          name: "mclogin",
-          description: "Logowanie do serwera minkraft non prejmium",
-        },
-      );
+        this.applicationCommnadsAPI.createGuildCommand(
+          process.env.DISCORD_DEFAULT_APP_ID || "",
+          "934812690390605884",
+          {
+            name: "mclogin",
+            description: "Logowanie do serwera minkraft non prejmium",
+          },
+        );
+      }
     });
   }
 }
