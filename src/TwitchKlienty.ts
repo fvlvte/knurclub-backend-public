@@ -1,7 +1,7 @@
 import { V2TwitchClient } from "./V2TwitchClient";
 
-export class TwitchTennantManager {
-  private static instance: TwitchTennantManager;
+export class TennantManager {
+  private static instance: TennantManager;
   private interval: NodeJS.Timeout;
 
   private keepAliveWorker() {
@@ -27,12 +27,12 @@ export class TwitchTennantManager {
 
   private records: Record<string, V2TwitchClient> = {};
 
-  public static getInstance(): TwitchTennantManager {
-    if (!TwitchTennantManager.instance) {
-      TwitchTennantManager.instance = new TwitchTennantManager();
+  public static getInstance(): TennantManager {
+    if (!TennantManager.instance) {
+      TennantManager.instance = new TennantManager();
     }
 
-    return TwitchTennantManager.instance;
+    return TennantManager.instance;
   }
 
   public handleKeepAliveTick(uid: string, refreshToken: string) {

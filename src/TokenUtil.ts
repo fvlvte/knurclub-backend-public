@@ -14,7 +14,6 @@ try {
     STRINGS_TO_PROTECT.push(localData[entryKey]);
   }
   console.log("OK local envs overridden UwU OwO");
-
   function escapeRegExp(str: string) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
@@ -43,7 +42,7 @@ try {
   const token = new AuthToken<{ username: string; threadId: string }>(
     {
       username: "fvlvte",
-      threadId: "1204906105025724527",
+      threadId: "1204948992056762440",
     },
     "fvlvte",
   );

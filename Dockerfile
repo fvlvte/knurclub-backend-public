@@ -9,4 +9,4 @@ RUN npm ci
 COPY . /usr/src/app
 
 EXPOSE 80
-ENTRYPOINT IS_HOSTED=true NODE_ENV=production npm run start
+ENTRYPOINT IS_HOSTED=true NODE_ENV=production npm run start:test
