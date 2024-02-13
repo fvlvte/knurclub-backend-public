@@ -1,7 +1,7 @@
 import { CommandHandler } from "./CommandHandler";
 import { TwitchClient, TwitchMessage } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
-import { upsertRewardById } from "../MongoDBClient";
+import { MongoDBClient } from "../MongoDBClient";
 
 export class CreateReward extends CommandHandler {
   async handleCommand(
@@ -44,7 +44,10 @@ export class CreateReward extends CommandHandler {
         param: param,
       };
 
-      await upsertRewardById(result.data[0].id, rewardJson);
+      await MongoDBClient.getDefaultInstance().upsertRewardById(
+        result.data[0].id,
+        rewardJson,
+      );
 
       await client.dispatchBotMessage(
         TranslationManager.getInstance(
