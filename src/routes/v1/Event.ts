@@ -3,6 +3,7 @@ import type { Response } from "express";
 import { HttpStatusCode } from "axios";
 import { type AuthData, ExternalServer } from "../../ExternalServer";
 import { Songrequest } from "../../Songrequest";
+import { ClientManager } from "../../ClientManager";
 
 export class V1Event implements Route<AuthData> {
   async handle(
@@ -14,6 +15,11 @@ export class V1Event implements Route<AuthData> {
       return res.status(HttpStatusCode.Unauthorized).send();
     }
 
+    const userId = req.authData.user_id;
+    const twitchClient = ClientManager.getInstance().getTwitchRecord(userId);
+
+    if (!twitchClient) {
+    }
     const song = await Songrequest.getInstance(
       req.authData.user_id,
     ).getNextSong();
