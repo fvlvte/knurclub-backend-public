@@ -20,7 +20,7 @@ export interface TokenDataPayload {
 }
 
 export class AuthToken<T> {
-  private static readonly algorithm: string = "aes-256-cbc";
+  static readonly algorithm: string = "aes-256-cbc";
   private static readonly iv: Buffer = Buffer.from("1234567812345678", "utf8");
 
   private static revocationList: string[] = [];

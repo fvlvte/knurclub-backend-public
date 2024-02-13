@@ -1,6 +1,8 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
 
-const uri = "mongodb://127.0.0.1:27017/?maxPoolSize=20&w=majority";
+const uri =
+  process.env.MONGODB_CS ??
+  "mongodb://127.0.0.1:27017/?maxPoolSize=20&w=majority";
 
 const client = new MongoClient(uri, {
   serverApi: {
