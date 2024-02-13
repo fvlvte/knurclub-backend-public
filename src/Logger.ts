@@ -10,7 +10,6 @@ export enum LogTypes {
   INFO = "info",
   WARN = "warn",
   ERROR = "error",
-  CRITICAL = "crit",
 }
 
 export class Logger {
@@ -56,6 +55,6 @@ export class Logger {
   }
 
   crit(message: string, ...meta: unknown[]): Logger {
-    return this.log(LogTypes.CRITICAL, message, meta);
+    return this.log(LogTypes.ERROR, message, meta);
   }
 }
