@@ -2,7 +2,7 @@ import { Route, type Request, Method } from "../Route";
 import type { Response } from "express";
 import { HttpStatusCode } from "axios";
 import { type AuthData, ExternalServer } from "../../ExternalServer";
-import { TennantManager } from "../../TwitchKlienty";
+import { ClientManager } from "../../ClientManager";
 
 export class CoreKeepAlive implements Route<AuthData> {
   async handle(
@@ -14,7 +14,7 @@ export class CoreKeepAlive implements Route<AuthData> {
       return res.status(HttpStatusCode.Unauthorized).send();
     }
 
-    TennantManager.getInstance().handleKeepAliveTick(
+    ClientManager.getInstance().handleKeepAliveTick(
       req.authData.user_id,
       req.authData.refresh_token,
     );

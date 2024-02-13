@@ -10,7 +10,7 @@ export enum LogTypes {
   INFO = "info",
   WARN = "warn",
   ERROR = "error",
-  CRITICAL = "critical",
+  CRITICAL = "crit",
 }
 
 export class Logger {

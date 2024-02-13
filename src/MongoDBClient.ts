@@ -12,6 +12,24 @@ const client = new MongoClient(uri, {
   },
 });
 
+export async function upsertUser(id: string, data: unknown): Promise<void> {
+  try {
+    const users = client.db("users");
+    const info = await users.createCollection("info");
+    await info.createIndex({ twitchId: 1 });
+    const ttvId = "";
+    await info.updateOne(
+      { streamerId: { eq: ttvId } },
+      {
+        $set: {
+          data: data,
+        },
+      },
+      { upsert: true },
+    );
+  } catch (e) {}
+}
+
 export async function storeQueue(streamerId: string, q: unknown) {
   try {
     const sr = client.db("sr");
