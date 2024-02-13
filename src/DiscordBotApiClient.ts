@@ -11,7 +11,7 @@ import {
   MessageFlags,
   RESTGetAPIGuildMembersResult,
 } from "@discordjs/core";
-import { HttpServer } from "./HttpServer";
+//import { HttpServer } from "./HttpServer";
 import { ObjectManager } from "./ObjectManager";
 import OpenAI from "openai";
 import {
@@ -84,10 +84,6 @@ export class DiscordApiClient {
       console.error(err);
     }
     try {
-      const httpServer = ObjectManager.getInstance().getObject(
-        HttpServer.name,
-      ) as HttpServer;
-      await httpServer.close();
     } catch (err) {
       console.error(err);
     }

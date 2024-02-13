@@ -2,9 +2,9 @@ import { Route, type Request, Method } from "../Route";
 import type { Response } from "express";
 import { HttpStatusCode } from "axios";
 import { type AuthData, ExternalServer } from "../../ExternalServer";
-import { ClientManager } from "../../ClientManager";
+import { TimerController } from "../../TimerController";
 
-export class V1Event implements Route<AuthData> {
+export class V1Timer implements Route<AuthData> {
   async handle(
     _server: ExternalServer,
     req: Request<AuthData>,
@@ -15,17 +15,10 @@ export class V1Event implements Route<AuthData> {
     }
 
     const userId = req.authData.user_id;
-    const twitchClient = ClientManager.getInstance().getTwitchRecord(userId);
-
-    if (!twitchClient) {
-      return res.status(HttpStatusCode.Ok).send({ event: null });
-    }
-
-    const evt = twitchClient.getEventFromFeed();
-    res.send({ event: evt || null });
+    res.send({ event: TimerController.getInstance(userId).timerTick() });
   }
   path(): RegExp | string {
-    return "/v1/event";
+    return "/v1/timer";
   }
   method(): Method {
     return Method.GET;

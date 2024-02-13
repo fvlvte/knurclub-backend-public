@@ -1,14 +1,14 @@
-import { TwitchClient, TwitchMessage } from "../TwitchClient";
+import { TwitchMessage } from "../types/TwitchTypes";
 import { V2TwitchClient } from "../V2TwitchClient";
 import { TranslationManager } from "../TranslationManager";
 
 export abstract class CommandHandler {
   abstract handleCommand(
-    client: TwitchClient | V2TwitchClient,
+    client: V2TwitchClient,
     message: TwitchMessage,
   ): Promise<void>;
   async preHandleCommand(
-    client: TwitchClient | V2TwitchClient,
+    client: V2TwitchClient,
     message: TwitchMessage,
   ): Promise<void> {
     if (message.message.startsWith("?")) {

@@ -10,8 +10,10 @@ import {
   CoreKeepAlive,
   V1SaQueue,
   V1SrQueue,
+  V1Timer,
 } from "./routes";
 import { V1SrPlayback } from "./routes/v1/sr/Playback";
+import { V1Event } from "./routes/v1/Event";
 
 type RequestWithAuthData = Request & { authData?: Data };
 export type AuthData = { authData?: Data };
@@ -57,6 +59,9 @@ export class ExternalServer {
       new V1SrPlayback(),
       new V1SaQueue(),
       new ApiKnurcampMetrics(),
+
+      new V1Event(),
+      new V1Timer(),
     ];
 
     for (const route of routes) {

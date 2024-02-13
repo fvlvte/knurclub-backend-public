@@ -5,12 +5,7 @@ import { default as axios } from "axios";
 import { readFileSync } from "fs";
 import path from "path";
 import { default as pako } from "pako";
-import { HttpServer } from "../HttpServer";
-import { DB_PartialUser, QueryRunner } from "../QueryRunner";
-import { DBDriver } from "../DBDriver";
 import {
-  Discord_API_V9_User,
-  Discord_API_V9_User_Connection,
   Discord_WS_User_D_Info,
   Discord_WS_User_Info,
 } from "../types/DiscordTypes";
@@ -363,7 +358,7 @@ export class DiscordDataFeed implements DataFeed {
     }
   }
 
-  async scanUserProfile(userId: string) {
+  /*async scanUserProfile(userId: string) {
     if (!this.page) return;
 
     const jsCode = readFileSync(
@@ -382,10 +377,7 @@ export class DiscordDataFeed implements DataFeed {
           .replace("###REQUEST_ID###", requestId),
       );
 
-      const httpServer = ObjectManager.getInstance().getObject(
-        HttpServer.name,
-      ) as HttpServer;
-      let data = (await httpServer.requestCompletionCallback(
+     /* let data = (await httpServer.requestCompletionCallback(
         requestId,
       )) as Discord_API_V9_User;
 
@@ -422,36 +414,9 @@ export class DiscordDataFeed implements DataFeed {
       console.error(`Failed to inject mashallah - ln 370`);
       console.error(e);
     }
-  }
+  }*/
 
-  async processMainTick(): Promise<void> {
-    const dbDriver = ObjectManager.getInstance().getObject(
-      DBDriver.name,
-    ) as DBDriver;
-    const array = Object.values(this.guildMemberListState.bismallahUsers);
-    const runner = new QueryRunner(dbDriver);
-    const usersFromDBToScan = await runner.getUsersToScan();
-    const usersFromDBTotal = await runner.getUsersToScan(true);
-
-    const usersNotScanned = array.filter((user: Discord_WS_User_Info) => {
-      return usersFromDBTotal.find(
-        (dbUser: DB_PartialUser) => dbUser.discord_id === user.id,
-      )
-        ? false
-        : true;
-    });
-
-    let userToScan = "";
-
-    if (usersNotScanned.length > 0) {
-      userToScan = usersNotScanned[0].id;
-    } else {
-      if (usersFromDBToScan.length === 0) return;
-      userToScan = usersFromDBToScan[0].discord_id;
-    }
-
-    await this.scanUserProfile(userToScan);
-  }
+  async processMainTick(): Promise<void> {}
 
   async worker(): Promise<void> {
     try {

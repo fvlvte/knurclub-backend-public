@@ -4,12 +4,10 @@ import { BrowserManager } from "./BrowserManager";
 import { join } from "path";
 import { readFileSync } from "fs";
 import { TwitchDataFeed } from "./dataFeed/TwitchDataFeed";
-import { HttpServer } from "./HttpServer";
 import { DiscordDataFeed } from "./dataFeed/DiscordDataFeed";
 import { DiscordTwichBridge } from "./features/DiscordTwitchBridge";
 import { DBDriver } from "./DBDriver";
 import { CronJobManager } from "./CronJobManager";
-import { TwitchClient } from "./TwitchClient";
 import { ExternalServer } from "./ExternalServer";
 
 export async function initBot(): Promise<void> {
@@ -23,8 +21,6 @@ export async function initBot(): Promise<void> {
     [DBDriver.name]: new DBDriver(),
     [DiscordDataFeed.name]:
       process.env.IS_HOSTED !== "true" ? new DiscordDataFeed() : null,
-    [HttpServer.name]:
-      process.env.IS_HOSTED !== "true" ? new HttpServer() : null,
     [DiscordApiClient.name]:
       process.env.IS_HOSTED !== "true" ? new DiscordApiClient() : null,
     [CronJobManager.name]:
@@ -52,16 +48,6 @@ export async function initBot(): Promise<void> {
   process.env.IS_HOSTED !== "true" &&
     (await (OBJECTS[DiscordApiClient.name] as DiscordApiClient).init());
   console.log("DiscordApiClient initialized!");
-
-  if (process.env.IS_HOSTED !== "true") {
-    const cvL = new TwitchClient();
-    await cvL.guwnoxdLol();
-  }
-
-  console.log("Initializing HttpServer ...");
-  process.env.IS_HOSTED !== "true" &&
-    (await (OBJECTS[HttpServer.name] as HttpServer).init(80));
-  console.log("HttpServer initialized!");
 
   console.log("Initialization done!");
 }

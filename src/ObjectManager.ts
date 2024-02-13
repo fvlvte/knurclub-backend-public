@@ -1,7 +1,6 @@
 import { BrowserManager } from "./BrowserManager";
 import { DBDriver } from "./DBDriver";
 import { DiscordApiClient } from "./DiscordBotApiClient";
-import { HttpServer } from "./HttpServer";
 import { QueryRunner } from "./QueryRunner";
 import { DiscordDataFeed } from "./dataFeed/DiscordDataFeed";
 import { TwitchDataFeed } from "./dataFeed/TwitchDataFeed";
@@ -13,7 +12,6 @@ export type ManagableObjects =
   | DiscordTwichBridge
   | DBDriver
   | QueryRunner
-  | HttpServer
   | BrowserManager
   | DiscordApiClient;
 

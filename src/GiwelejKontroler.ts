@@ -1,5 +1,4 @@
-import { TwitchClient } from "./TwitchClient";
-
+/*
 export class Bambik {
   constructor(name: string, isSub = false) {
     this.name = name;
@@ -189,3 +188,4 @@ export class GiwełejKontroler {
 
   private constructor() {}
 }
+*/

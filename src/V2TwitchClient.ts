@@ -309,7 +309,7 @@ export class V2TwitchClient {
       console.error(e);
     }
 
-    /* try {
+    try {
       await this.subscribeToHelix({
         type: TwitchSubscriptionType.bits,
         version: "1",
@@ -324,7 +324,7 @@ export class V2TwitchClient {
       });
     } catch (e) {
       console.error(e);
-    }*/
+    }
   }
 
   public async getBroadcasterId(): Promise<string> {
