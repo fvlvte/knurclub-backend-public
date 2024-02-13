@@ -39,7 +39,7 @@ import { StaticText } from "./commands/StaticText";
 import { Timer } from "./timers/Timer";
 import { StaticTextTimer } from "./timers/StaticTextTimer";
 import { SongRequestWipe } from "./commands/SongRequestWipe";
-import { getRewardById } from "./MongoDBClient";
+import { MongoDBClient } from "./MongoDBClient";
 import { SongRequestVolumeSet } from "./commands/SongRequestVolumeSet";
 
 export class V2TwitchClient {
@@ -131,7 +131,9 @@ export class V2TwitchClient {
     const data = msg.payload.event;
     const rewardId = data.reward.id;
 
-    const record = await getRewardById(rewardId);
+    const record = await MongoDBClient.getDefaultInstance().getRewardById(
+      rewardId,
+    );
 
     if (record) {
       const dt: FileReward = record as unknown as FileReward;

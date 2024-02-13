@@ -1,11 +1,6 @@
 import ytdl from "@distube/ytdl-core";
 import { default as axios } from "axios";
-import {
-  restoreQueue,
-  restoreRanking,
-  storeQueue,
-  storeRanking,
-} from "./MongoDBClient";
+import { MongoDBClient } from "./MongoDBClient";
 
 type TryAddSongResult = {
   message: string;
@@ -142,7 +137,8 @@ export class Songrequest {
   private constructor(id: string) {
     this.id = id;
 
-    restoreQueue(id)
+    MongoDBClient.getDefaultInstance()
+      .restoreQueue(id)
       .then((d) => {
         if (d) {
           this.queue.push(...JSON.parse(d));
@@ -150,11 +146,13 @@ export class Songrequest {
       })
       .catch(console.error);
 
-    restoreRanking(id).then((d) => {
-      if (d) {
-        this.reputationRanking = JSON.parse(d);
-      }
-    });
+    MongoDBClient.getDefaultInstance()
+      .restoreRanking(id)
+      .then((d) => {
+        if (d) {
+          this.reputationRanking = JSON.parse(d);
+        }
+      });
   }
   private static instances: { [id: string]: Songrequest } = {};
 
@@ -340,7 +338,10 @@ export class Songrequest {
 
         if (!isSoundAlert) {
           this.queue.push(songInfo);
-          await storeQueue(this.id, JSON.stringify(this.queue));
+          await MongoDBClient.getDefaultInstance().storeQueue(
+            this.id,
+            JSON.stringify(this.queue),
+          );
           return {
             message: "SR_ADD_OK",
             error: false,
@@ -421,9 +422,9 @@ export class Songrequest {
 
     this.reputationRanking[to] += amount;
 
-    storeRanking(this.id, JSON.stringify(this.reputationRanking)).catch(
-      console.error,
-    );
+    MongoDBClient.getDefaultInstance()
+      .storeRanking(this.id, JSON.stringify(this.reputationRanking))
+      .catch(console.error);
 
     return this.reputationRanking[to];
   }
@@ -437,7 +438,9 @@ export class Songrequest {
       this.currentSong = song;
       this.currentSongStartedAt = new Date().getTime();
       this.skipCounter = [];
-      storeQueue(this.id, JSON.stringify(this.queue)).catch(console.error);
+      MongoDBClient.getDefaultInstance()
+        .storeQueue(this.id, JSON.stringify(this.queue))
+        .catch(console.error);
       return song;
     }
     return null;
