@@ -29,10 +29,11 @@ function setUpSecretsAndGuard(): boolean {
       SecretsGuard.getInstance().putSecret(localData[entryKey]);
     }
 
-    function escapeRegExp(str: string) {
-      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    }
     const ANTI_LEAK = function (_stream: NodeJS.WriteStream) {
+      function escapeRegExp(str: string) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }
+
       const originalWrite = _stream.write;
 
       const secrets = SecretsGuard.getInstance().getSecrets();
@@ -54,7 +55,13 @@ function setUpSecretsAndGuard(): boolean {
 
     return true;
   } catch (e) {
-    Logger.getInstance().crit("Failed to initialize secrets.", { error: e });
+    if (e instanceof Error) {
+      Logger.getInstance().crit("Failed to initialize secrets.", {
+        message: e.message,
+        name: e.name,
+      });
+    }
+
     return false;
   }
 }
