@@ -1,6 +1,6 @@
-import { V2TwitchClient } from "../V2TwitchClient";
+import { TwitchClient } from "../TwitchClient";
 
 export interface Timer {
-  init(client: V2TwitchClient): void;
+  init(client: TwitchClient): void;
   shut(): void;
 }

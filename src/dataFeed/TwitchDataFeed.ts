@@ -13,7 +13,6 @@ import {
 } from "../types/TwitchTypes";
 import { HeadlessTestable } from "../interfaces/HeadlessTestable";
 import { DataFeed } from "../interfaces/DataFeed";
-import { ObjectManager } from "../ObjectManager";
 import { Plugin } from "../interfaces/Plugin";
 
 interface HealthMarkError {
@@ -99,15 +98,13 @@ export class TwitchDataFeed implements DataFeed, HeadlessTestable, Plugin {
     return true;
   }
 
-  constructor(isTemorary = false) {
+  constructor() {
     this.page = null;
     this.requestIdOfPubSub = null;
     this.requestIdOfChatIrc = null;
     this.messageBuffer = [];
     this.vieverList = [];
     this.refreshInterval = null;
-    if (!isTemorary)
-      ObjectManager.getInstance().registerObject(this.constructor.name, this);
   }
 
   public async deinit(): Promise<void> {
@@ -297,11 +294,8 @@ export class TwitchDataFeed implements DataFeed, HeadlessTestable, Plugin {
   ): Promise<Twitch_Channel_Info> {
     if (this.page != null) throw new Error("Page is already injected");
 
-    this.page = await (
-      ObjectManager.getInstance().getObject(
-        BrowserManager.name,
-      ) as BrowserManager
-    ).spawnBlankPage();
+    const manager = new BrowserManager();
+    this.page = await manager.spawnBlankPage();
 
     await this.page.goto(`https://www.twitch.tv/${username}`, {
       waitUntil: "networkidle0",
@@ -366,11 +360,9 @@ export class TwitchDataFeed implements DataFeed, HeadlessTestable, Plugin {
   public async init(username: string): Promise<void> {
     if (this.page != null) throw new Error("Page is already injected");
 
-    this.page = await (
-      ObjectManager.getInstance().getObject(
-        BrowserManager.name,
-      ) as BrowserManager
-    ).spawnBlankPage();
+    const manager = new BrowserManager();
+
+    this.page = await manager.spawnBlankPage();
 
     await this.page.setRequestInterception(true);
 

@@ -1,4 +1,4 @@
-import { V2TwitchClient } from "./V2TwitchClient";
+import { TwitchClient } from "./TwitchClient";
 
 export class ClientManager {
   private static instance: ClientManager;
@@ -25,7 +25,7 @@ export class ClientManager {
     this.interval = setInterval(this.keepAliveWorker.bind(this), 60000);
   }
 
-  private records: Record<string, V2TwitchClient> = {};
+  private records: Record<string, TwitchClient> = {};
 
   public static getInstance(): ClientManager {
     if (!ClientManager.instance) {
@@ -37,7 +37,7 @@ export class ClientManager {
 
   public handleKeepAliveTick(uid: string, refreshToken: string) {
     if (this.records[uid] === undefined) {
-      const client = new V2TwitchClient(refreshToken, uid);
+      const client = new TwitchClient(refreshToken, uid);
       this.records[uid] = client;
       client.initialize().then().catch(console.error);
     } else {
@@ -45,11 +45,11 @@ export class ClientManager {
     }
   }
 
-  public getTwitchRecord(uid: string): V2TwitchClient | undefined {
+  public getTwitchRecord(uid: string): TwitchClient | undefined {
     return this.records[uid];
   }
 
-  public addTwitchRecord(uid: string, twitchClient: V2TwitchClient): void {
+  public addTwitchRecord(uid: string, twitchClient: TwitchClient): void {
     this.records[uid] = twitchClient;
   }
 }

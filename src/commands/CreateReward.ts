@@ -2,11 +2,11 @@ import { CommandHandler } from "./CommandHandler";
 import { TwitchMessage } from "../types/TwitchTypes";
 import { TranslationManager } from "../TranslationManager";
 import { MongoDBClient } from "../MongoDBClient";
-import { V2TwitchClient } from "../V2TwitchClient";
+import { TwitchClient } from "../TwitchClient";
 
 export class CreateReward extends CommandHandler {
   async handleCommand(
-    client: V2TwitchClient,
+    client: TwitchClient,
     message: TwitchMessage,
   ): Promise<void> {
     try {

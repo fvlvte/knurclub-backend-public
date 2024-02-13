@@ -1,5 +1,5 @@
 import { Timer } from "./Timer";
-import { V2TwitchClient } from "../V2TwitchClient";
+import { TwitchClient } from "../TwitchClient";
 import { TranslationManager } from "../TranslationManager";
 
 export class StaticTextTimer implements Timer {
@@ -10,7 +10,7 @@ export class StaticTextTimer implements Timer {
     this.intervalTime = ivt;
   }
 
-  private client?: V2TwitchClient;
+  private client?: TwitchClient;
   private interval?: NodeJS.Timer;
 
   private async doTick() {
@@ -26,7 +26,7 @@ export class StaticTextTimer implements Timer {
     }
   }
 
-  init(client: V2TwitchClient) {
+  init(client: TwitchClient) {
     this.client = client;
     this.interval = setInterval(this.doTick.bind(this), this.intervalTime);
   }

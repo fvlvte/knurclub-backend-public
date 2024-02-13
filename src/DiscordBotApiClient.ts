@@ -3,21 +3,12 @@ import { WebSocketManager } from "@discordjs/ws";
 import {
   GatewayDispatchEvents,
   GatewayIntentBits,
-  InteractionType,
   Client,
   ApplicationCommandsAPI,
-  APIApplicationCommandInteraction,
   GatewayGuildMemberAddDispatchData,
-  MessageFlags,
   RESTGetAPIGuildMembersResult,
 } from "@discordjs/core";
-//import { HttpServer } from "./HttpServer";
-import { ObjectManager } from "./ObjectManager";
 import OpenAI from "openai";
-import {
-  KeyValueStorageSingleton,
-  MinecraftAuthToken,
-} from "./KeyValueStorage";
 
 /*
 const completion = await openai.createCompletion({
@@ -34,8 +25,6 @@ export class DiscordApiClient {
   private openai: OpenAI;
 
   constructor() {
-    ObjectManager.getInstance().registerObject(this.constructor.name, this);
-
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -146,46 +135,7 @@ export class DiscordApiClient {
       this.client = new Client({ rest, gateway: this.wsManager });
 
       if (isMinimal) return resolve();
-
       if (!isMinimal) {
-        this.client.on(
-          GatewayDispatchEvents.InteractionCreate,
-          async ({ data: interaction, api }) => {
-            try {
-              const ia = interaction as APIApplicationCommandInteraction;
-              if (
-                interaction.type === InteractionType.ApplicationCommand ||
-                ia.data?.name === "mclogin"
-              ) {
-                const authToken = this.generateRandomKey();
-
-                const authData: MinecraftAuthToken = {
-                  discordUser: ia.member?.user?.username || "scierwojad",
-                  discordRole: this.discordRoleToMinecraftRole(
-                    ia.member?.roles[0] || "duxpo",
-                  ),
-                };
-
-                KeyValueStorageSingleton.getInstance().set(
-                  "login_" + authToken,
-                  authData,
-                );
-
-                await api.interactions.reply(
-                  interaction.id,
-                  interaction.token,
-                  {
-                    content: `Wbij na server 141.95.84.97 (1.19.4) uzywajac username ${authData.discordUser} i wklej "${authToken}" ten kod logowania`,
-                    flags: MessageFlags.Ephemeral,
-                  },
-                );
-              }
-            } catch (_e) {
-              console.error(_e);
-            }
-          },
-        );
-
         this.client.on(
           GatewayDispatchEvents.GuildMemberAdd,
           async ({ data: interaction, api }) => {

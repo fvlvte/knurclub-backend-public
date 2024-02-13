@@ -9,7 +9,6 @@ import {
   Discord_WS_User_D_Info,
   Discord_WS_User_Info,
 } from "../types/DiscordTypes";
-import { ObjectManager } from "../ObjectManager";
 
 enum DiscordDataFeedState {
   IDLE,
@@ -41,7 +40,6 @@ export class DiscordDataFeed implements DataFeed {
   constructor() {
     this.page = null;
     console.log(this.constructor.name);
-    ObjectManager.getInstance().registerObject(this.constructor.name, this);
   }
 
   private inflate = new pako.Inflate({
@@ -455,11 +453,8 @@ export class DiscordDataFeed implements DataFeed {
     if (this.page) throw new Error("DiscordDataFeed already initialized");
 
     try {
-      this.page = await (
-        ObjectManager.getInstance().getObject(
-          BrowserManager.name,
-        ) as BrowserManager
-      ).spawnBlankPage();
+      const manager = new BrowserManager();
+      this.page = await manager.spawnBlankPage();
       await this.worker();
     } catch (e) {
       console.error(e);

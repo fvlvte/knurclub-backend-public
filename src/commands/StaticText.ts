@@ -1,7 +1,7 @@
 import { CommandHandler } from "./CommandHandler";
 import { TwitchMessage } from "../types/TwitchTypes";
 import { TranslationManager } from "../TranslationManager";
-import { V2TwitchClient } from "../V2TwitchClient";
+import { TwitchClient } from "../TwitchClient";
 
 export class StaticText extends CommandHandler {
   private readonly translationId: string;
@@ -13,7 +13,7 @@ export class StaticText extends CommandHandler {
     this.regExp = regExp;
   }
   async handleCommand(
-    client: V2TwitchClient,
+    client: TwitchClient,
     message: TwitchMessage,
   ): Promise<void> {
     const translationManager = TranslationManager.getInstance(

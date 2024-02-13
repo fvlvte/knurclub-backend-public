@@ -1,7 +1,6 @@
 import { Browser, launch } from "puppeteer";
 //import { Config } from "./Config";
 import { Page } from "puppeteer";
-import { ObjectManager } from "./ObjectManager";
 
 export type HtmlRedererOutput = {
   type: string;
@@ -28,7 +27,6 @@ export class BrowserManager {
 
   constructor() {
     this.browser = null;
-    ObjectManager.getInstance().registerObject(this.constructor.name, this);
   }
 
   public async init(): Promise<void> {
