@@ -26,7 +26,7 @@ export class MongoDBClient {
   public async upsertUser(id: string, data: unknown): Promise<void> {
     try {
       const users = this.client.db("users");
-      const info = await users.createCollection("info");
+      const info = users.collection("info");
       await info.createIndex({ twitchId: 1 });
       const ttvId = "";
       await info.updateOne(
@@ -44,7 +44,7 @@ export class MongoDBClient {
   public async storeQueue(streamerId: string, q: unknown) {
     try {
       const sr = this.client.db("sr");
-      const queue = await sr.createCollection("queue");
+      const queue = sr.collection("queue");
       await queue.createIndex({
         streamerId: 1,
       });
@@ -65,13 +65,12 @@ export class MongoDBClient {
   public async restoreQueue(streamerId: string): Promise<string | null> {
     try {
       const sr = this.client.db("sr");
-      const queue = await sr.createCollection("queue");
+      const queue = sr.collection("queue");
       await queue.createIndex({
         streamerId: 1,
       });
       const r = await queue.findOne({ streamerId: { eq: streamerId } });
       return r?.queue as string;
-      return null;
     } catch (e) {
       console.error(e);
       return null;
@@ -81,7 +80,7 @@ export class MongoDBClient {
   public async storeRanking(streamerId: string, q: unknown) {
     try {
       const sr = this.client.db("sr");
-      const ranking = await sr.createCollection("ranking");
+      const ranking = sr.collection("ranking");
       await ranking.createIndex({
         streamerId: 1,
       });
@@ -102,13 +101,12 @@ export class MongoDBClient {
   public async restoreRanking(streamerId: string): Promise<string | null> {
     try {
       const sr = this.client.db("sr");
-      const ranking = await sr.createCollection("ranking");
+      const ranking = sr.collection("ranking");
       await ranking.createIndex({
         streamerId: 1,
       });
       const r = await ranking.findOne({ streamerId: { eq: streamerId } });
       return r?.ranking as string;
-      return null;
     } catch (e) {
       console.error(e);
       return null;
@@ -118,13 +116,13 @@ export class MongoDBClient {
   public async getRewardById(id: string) {
     try {
       const sr = this.client.db("sr");
-      const alerts = await sr.createCollection("alerts");
+      const alerts = sr.collection("alerts");
       await alerts.createIndex({
         streamerId: 1,
         rewardId: 1,
       });
-      const alert = await alerts.findOne({ rewardId: { eq: id } });
-      return alert;
+
+      return alerts.findOne({ rewardId: { eq: id } });
     } catch (e) {
       console.error(e);
       return {};
@@ -134,7 +132,7 @@ export class MongoDBClient {
   public async upsertRewardById(id: string, value: Record<string, unknown>) {
     try {
       const sr = this.client.db("sr");
-      const alerts = await sr.createCollection("alerts");
+      const alerts = sr.collection("alerts");
       await alerts.createIndex({
         streamerId: 1,
         rewardId: 1,
