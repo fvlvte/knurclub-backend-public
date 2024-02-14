@@ -15,7 +15,7 @@ export class V1Timer implements Route<AuthData> {
     }
 
     const userId = req.authData.user_id;
-    res.send({ event: TimerController.getInstance(userId).timerTick() });
+    res.send({ seconds: TimerController.getInstance(userId).timerTick() });
   }
   path(): RegExp | string {
     return "/v1/timer";
