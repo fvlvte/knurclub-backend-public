@@ -92,15 +92,17 @@ async function main() {
   Logger.getInstance().info("KNUROBOT/BOARBOT is starting");
   if (process.env.NODE_ENV === "production") {
     initSentry();
-  } else {
-    const discordClient = new DiscordApiClient();
-    discordClient.init().catch(console.error);
   }
-
   Logger.getInstance().info("Setting up secrets and secret's guard.");
   if (!setUpSecretsAndGuard()) {
     process.exit();
   }
+
+  if (process.env.NODE_ENV !== "production") {
+    const discordClient = new DiscordApiClient();
+    discordClient.init().catch(console.error);
+  }
+
   Logger.getInstance().info("Secrets and secret's guard was set up.");
 
   await initializeServer();
@@ -109,9 +111,11 @@ async function main() {
 main()
   .then(() => Logger.getInstance().info("Initial set up complete."))
   .catch((e) => {
-    Logger.getInstance().crit(
-      "Initial set up failed, the process will now exit.",
-      { error: e },
-    );
-    process.exit();
+    if (e instanceof Error) {
+      Logger.getInstance().crit(
+        "Initial set up failed, the process will now exit.",
+        { error: { message: e.message, name: e.name } },
+      );
+      process.exit();
+    }
   });
