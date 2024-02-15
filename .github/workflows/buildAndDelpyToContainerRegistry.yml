@@ -6,11 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.5.3
-      - name: Use Node.js 20.11.0
-        uses: actions/setup-node@v3.7.0
+        uses: actions/checkout@v4.1.1
+      - name: Use Node.js 20.11.1
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.11.0
+          node-version: 20.11.1
       - name: Login, build, tag, and push image to Docker Container Registry
         id: build-image
         run: |

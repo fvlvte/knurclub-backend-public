@@ -10,7 +10,7 @@ COPY . /usr/src/app
 
 ARG BUILD_TS_ARG
 
-ENV BUILD_TS = $BUILD_TS_ARG
+ENV BUILD_TS=$BUILD_TS_ARG
 
 EXPOSE 80
 ENTRYPOINT IS_HOSTED=true NODE_ENV=production npm run start:test
