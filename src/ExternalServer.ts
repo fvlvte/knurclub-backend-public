@@ -14,6 +14,8 @@ import {
 } from "./routes";
 import { V1SrPlayback } from "./routes/v1/sr/Playback";
 import { V1Event } from "./routes/v1/Event";
+import { V1ConfigGet } from "./routes/v1/ConfigGet";
+import { V1ConfigSet } from "./routes/v1/ConfigSet";
 
 type RequestWithAuthData = Request & { authData?: Data };
 export type AuthData = { authData?: Data };
@@ -62,6 +64,8 @@ export class ExternalServer {
 
       new V1Event(),
       new V1Timer(),
+      new V1ConfigGet(),
+      new V1ConfigSet(),
     ];
 
     for (const route of routes) {

@@ -527,7 +527,10 @@ export class TwitchClient {
 
   private async onIrcMessage(msg: Messages): Promise<void> {
     const castedMessage = msg as unknown as TwitchMessage;
+
     if (!castedMessage.message) return;
+
+    console.log(castedMessage.tags.id);
 
     if (
       castedMessage.message.startsWith("!") ||
