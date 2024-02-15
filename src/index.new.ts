@@ -4,6 +4,7 @@ import { Logger } from "./Logger";
 import { readFileSync } from "fs";
 import { SecretsGuard } from "./util/SecretsGuard";
 import { ExternalServer } from "./ExternalServer";
+import { DiscordApiClient } from "./DiscordBotApiClient";
 
 function initSentry() {
   Logger.getInstance().info("Initializing sentry client ...");
@@ -89,8 +90,11 @@ async function initializeServer() {
 
 async function main() {
   Logger.getInstance().info("KNUROBOT/BOARBOT is starting");
-  if (process.env.STAGE === "PRODUCTION") {
+  if (process.env.NODE_ENV === "production") {
     initSentry();
+  } else {
+    const discordClient = new DiscordApiClient();
+    discordClient.init().catch(console.error);
   }
 
   Logger.getInstance().info("Setting up secrets and secret's guard.");

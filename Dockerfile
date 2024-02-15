@@ -8,5 +8,8 @@ COPY package-lock.json /usr/src/app/
 RUN npm ci
 COPY . /usr/src/app
 
+ARG BUILD_SHA
+ARG BUILD_TS
+
 EXPOSE 80
-ENTRYPOINT IS_HOSTED=true NODE_ENV=production npm run start:test
+ENTRYPOINT IS_HOSTED=true NODE_ENV=production BUILD_SHA=$BUILD_SHA BUILD_TS=$BUILD_TS npm run start:test

@@ -1,4 +1,4 @@
-import { Chat, ChatEvents } from "twitch-js";
+import { Chat, ChatEvents, Messages } from "twitch-js";
 import { default as axios } from "axios";
 import {
   TwitchHelix_ChannelPoint_CreateReward,
@@ -41,6 +41,7 @@ import { StaticTextTimer } from "./timers/StaticTextTimer";
 import { SongRequestWipe } from "./commands/SongRequestWipe";
 import { MongoDBClient } from "./MongoDBClient";
 import { SongRequestVolumeSet } from "./commands/SongRequestVolumeSet";
+import { Logger } from "./Logger";
 
 export class TwitchClient {
   constructor(refreshToken: string, userId: string) {
@@ -370,6 +371,7 @@ export class TwitchClient {
       }
     }
   }
+
   async subscribeToHelix(param: TwitchHelix_SubscribeBody): Promise<void> {
     try {
       await axios.post<TwitchHelix_ChannelPoint_CreateReward_Response>(
@@ -523,6 +525,101 @@ export class TwitchClient {
     }
   }
 
+  private async onIrcMessage(msg: Messages): Promise<void> {
+    const castedMessage = msg as unknown as TwitchMessage;
+    if (!castedMessage.message) return;
+
+    if (
+      castedMessage.message.startsWith("!") ||
+      castedMessage.message.startsWith("?")
+    ) {
+      for (const handler of this.commandHandlers) {
+        if (castedMessage.message.match(handler.getMatchingExp()) !== null) {
+          return await handler.preHandleCommand(this, castedMessage);
+        }
+      }
+    }
+  }
+
+  private async printChatMOTD() {
+    if (this.chatClient) {
+      try {
+        await this.chatClient.say(
+          await this.getStreamerUsername(),
+          "czy jakas ladna streamerka mi zamiauczy :3 ????",
+        );
+
+        await this.chatClient.say(
+          await this.getStreamerUsername(),
+          "czuje egirla SNIFFA SNIFFA SNIFFA SNIFFA",
+        );
+
+        await this.chatClient.say(
+          await this.getStreamerUsername(),
+          `KNUROBOT wersja (${process.env.BUILD_SHA ?? "local"} / ${
+            process.env.BUILD_TS ?? "local"
+          })`,
+        );
+      } catch (e) {
+        if (e instanceof Error) {
+          Logger.getInstance().error("Failed to print MOTD.", {
+            class: this.constructor.name,
+            userId: this.streamerId,
+            error: { name: e.name, message: e.message, stack: e.stack },
+          });
+        }
+      }
+    }
+  }
+  private async setUpChatClient() {
+    if (this.chatClient) {
+      try {
+        this.chatClient.removeAllListeners(ChatEvents.ALL);
+        await this.chatClient.disconnect();
+      } catch (e) {
+        if (e instanceof Error) {
+          Logger.getInstance().error(
+            "Failed to clean up existing chat client.",
+            {
+              class: this.constructor.name,
+              userId: this.streamerId,
+              error: { name: e.name, message: e.message, stack: e.stack },
+            },
+          );
+        }
+      }
+    }
+    try {
+      this.chatClient = new Chat({
+        username: await this.getBotUsername(),
+        token: this.TWITCH_BOT_ACCESS_TOKEN,
+        log: { enabled: false },
+      });
+
+      // Connect to TTV IRC.
+      await this.chatClient.connect();
+
+      // Join target streamer's IRC channel.
+      await this.chatClient.join(await this.getStreamerUsername());
+
+      // Set up event listener.
+      this.chatClient.on(ChatEvents.ALL, this.onIrcMessage.bind(this));
+
+      await this.printChatMOTD();
+    } catch (e) {
+      if (e instanceof Error) {
+        Logger.getInstance().error(
+          "Failed to spin up new chat client instance.",
+          {
+            class: this.constructor.name,
+            userId: this.streamerId,
+            error: { name: e.name, message: e.message, stack: e.stack },
+          },
+        );
+      }
+    }
+  }
+
   async initialize() {
     try {
       await this.setUpStreamerCredentials();
@@ -532,43 +629,7 @@ export class TwitchClient {
         1000 * 60 * 30,
       );
 
-      this.chatClient = new Chat({
-        username: await this.getBotUsername(),
-        token: this.TWITCH_BOT_ACCESS_TOKEN,
-        log: { enabled: false },
-      });
-
-      await this.chatClient?.connect();
-
-      await this.chatClient?.join(await this.getStreamerUsername());
-      await this.chatClient?.say(
-        await this.getStreamerUsername(),
-        "czy jakas ladna streamerka mi zamiauczy :3 ????",
-      );
-
-      await this.chatClient?.say(
-        await this.getStreamerUsername(),
-        "czuje egirla SNIFFA SNIFFA SNIFFA SNIFFA",
-      );
-
-      this.chatClient?.on(ChatEvents.ALL, async (msg) => {
-        const castedMessage = msg as unknown as TwitchMessage;
-        if (!castedMessage.message) return;
-
-        if (
-          castedMessage.message.startsWith("!") ||
-          castedMessage.message.startsWith("?")
-        ) {
-          for (const handler of this.commandHandlers) {
-            if (
-              castedMessage.message.match(handler.getMatchingExp()) !== null
-            ) {
-              return await handler.preHandleCommand(this, castedMessage);
-            }
-          }
-        }
-      });
-
+      await this.setUpChatClient();
       await this.setUpWebsockets();
 
       for (const timer of this.timers) {

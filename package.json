@@ -8,7 +8,7 @@
     "lint": "eslint --ext .ts src --fix",
     "start:test": "tsc && node dist/index.new.js",
     "lint:prod": "eslint --max-warnings 0 --ext .ts src",
-    "start": "tsc && node dist/index.local.tmp.js",
+    "start": "tsc && node dist/index.new.js",
     "burnEnv": "node cicdHelpers/burnEnv.js",
     "start:dev": "nodemon --inspect --watch 'src' --exec 'npm run lint && NODE_ENV=development node --inspect -r ts-node/register src/index.local.tmp.ts'",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -39,7 +39,7 @@
     "reflect-metadata": "^0.1.13",
     "sqlite3": "5.1.6",
     "tmi.js": "1.8.5",
-    "twitch-js": "^2.0.0-beta.45",
+    "twitch-js": "2.0.0-beta.45",
     "winston": "^3.10.0",
     "ws": "8.13.0",
     "ytdl-core": "^4.11.5"
