@@ -556,7 +556,7 @@ export class TwitchClient {
 
         await this.chatClient.say(
           await this.getStreamerUsername(),
-          `KNUROBOT wersja (${
+          `KNUROBOT (wersja ${
             process.env.BUILD_TS ?? "local"
           }) sie włonczył :3`,
         );
