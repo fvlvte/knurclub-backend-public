@@ -17,3 +17,4 @@ jobs:
           docker login -u fvlvte -p ${{ secrets.DOCKER_PASSWORD }}
           docker build --build-arg="BUILD_TS_ARG=${{ github.event.repository.pushed_at }}" -q -t fvlvte/knurobot:latest .
           docker push fvlvte/knurobot:latest
+          
