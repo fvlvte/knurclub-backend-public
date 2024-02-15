@@ -556,11 +556,32 @@ export class TwitchClient {
 
         await this.chatClient.say(
           await this.getStreamerUsername(),
-          `KNUROBOT wersja (${process.env.BUILD_TS ?? "local"})`,
+          `KNUROBOT wersja (${
+            process.env.BUILD_TS ?? "local"
+          }) sie włonczył :3`,
         );
       } catch (e) {
         if (e instanceof Error) {
           Logger.getInstance().error("Failed to print MOTD.", {
+            class: this.constructor.name,
+            userId: this.streamerId,
+            error: { name: e.name, message: e.message, stack: e.stack },
+          });
+        }
+      }
+    }
+  }
+
+  private async printChatShutdown() {
+    if (this.chatClient) {
+      try {
+        await this.chatClient.say(
+          await this.getStreamerUsername(),
+          `KNUROBOT sie wyłonczył :3`,
+        );
+      } catch (e) {
+        if (e instanceof Error) {
+          Logger.getInstance().error("Failed to print shutdown notice.", {
             class: this.constructor.name,
             userId: this.streamerId,
             error: { name: e.name, message: e.message, stack: e.stack },
@@ -644,6 +665,8 @@ export class TwitchClient {
 
   async shutdown() {
     this.isClosing = true;
+
+    await this.printChatShutdown();
 
     this.chatClient?.disconnect();
     this.wsClientPubSub?.close();
