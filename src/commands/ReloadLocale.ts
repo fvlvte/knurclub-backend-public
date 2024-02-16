@@ -1,7 +1,7 @@
 import { CommandHandler } from "./CommandHandler";
 import { TwitchMessage } from "../types/TwitchTypes";
-import { TranslationManager } from "../TranslationManager";
-import { TwitchClient } from "../TwitchClient";
+import { TranslationManager } from "../managers/TranslationManager";
+import { TwitchClient } from "../clients/TwitchClient";
 
 export class ReloadLocale extends CommandHandler {
   async handleCommand(

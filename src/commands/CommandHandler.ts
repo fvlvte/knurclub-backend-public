@@ -1,6 +1,6 @@
 import { TwitchMessage } from "../types/TwitchTypes";
-import { TwitchClient } from "../TwitchClient";
-import { TranslationManager } from "../TranslationManager";
+import { TwitchClient } from "../clients/TwitchClient";
+import { TranslationManager } from "../managers/TranslationManager";
 
 export abstract class CommandHandler {
   abstract handleCommand(

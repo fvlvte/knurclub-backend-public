@@ -1,4 +1,4 @@
-import { MongoDBClient } from "./MongoDBClient";
+import { MongoDBClient } from "../clients/MongoDBClient";
 import { readFileSync } from "fs";
 
 const TRANSLATION_TEMPLATE = JSON.parse(

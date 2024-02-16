@@ -2,7 +2,7 @@ import { Route, type Request, Method } from "../../Route";
 import type { Response } from "express";
 import { HttpStatusCode } from "axios";
 import { type AuthData, ExternalServer } from "../../../ExternalServer";
-import { Songrequest } from "../../../Songrequest";
+import { Songrequest } from "../../../features/Songrequest";
 
 export class V1SrQueue implements Route<AuthData> {
   async handle(

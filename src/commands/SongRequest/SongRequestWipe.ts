@@ -1,8 +1,8 @@
-import { CommandHandler } from "./CommandHandler";
-import { TwitchMessage } from "../types/TwitchTypes";
-import { TranslationManager } from "../TranslationManager";
-import { Songrequest } from "../Songrequest";
-import { TwitchClient } from "../TwitchClient";
+import { CommandHandler } from "../CommandHandler";
+import { TwitchMessage } from "../../types/TwitchTypes";
+import { TranslationManager } from "../../managers/TranslationManager";
+import { Songrequest } from "../../features/Songrequest";
+import { TwitchClient } from "../../clients/TwitchClient";
 
 export class SongRequestWipe extends CommandHandler {
   async handleCommand(

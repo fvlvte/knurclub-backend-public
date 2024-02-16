@@ -1,6 +1,6 @@
 import { writeFileSync, existsSync, readFileSync } from "fs";
 
-export class TimerController {
+export class Timer {
   private id: string;
   private secondsRemaining: number;
   private constructor(id: string) {
@@ -16,7 +16,7 @@ export class TimerController {
     } catch (_e) {}
   }
 
-  private static instances: { [id: string]: TimerController } = {};
+  private static instances: { [id: string]: Timer } = {};
 
   public incrementTimer(seconds: number) {
     this.secondsRemaining += seconds;
@@ -33,9 +33,9 @@ export class TimerController {
     return this.secondsRemaining;
   }
 
-  public static getInstance(id?: string): TimerController {
+  public static getInstance(id?: string): Timer {
     if (!this.instances[id ?? "default"]) {
-      this.instances[id ?? "default"] = new TimerController(id ?? "default");
+      this.instances[id ?? "default"] = new Timer(id ?? "default");
     }
     return this.instances[id ?? "default"];
   }

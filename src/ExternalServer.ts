@@ -1,9 +1,9 @@
 import { default as express, NextFunction, Request, Response } from "express";
 import * as http from "http";
-import { TwitchAuthGuard, Data } from "./TwitchAuthGuard";
+import { TwitchAuthGuard, Data } from "./util/TwitchAuthGuard";
 import * as cors from "cors";
 import { default as bodyParser } from "body-parser";
-import { Logger } from "./Logger";
+import { Logger } from "./util/Logger";
 import {
   ApiKnurcampMetrics,
   AuthTwitchLogin,

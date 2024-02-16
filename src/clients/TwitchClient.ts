@@ -3,16 +3,16 @@ import { default as axios } from "axios";
 import {
   TwitchHelix_ChannelPoint_CreateReward,
   TwitchHelix_ChannelPoint_CreateReward_Response,
-} from "./types/TwitchHelixTypes";
+} from "../types/TwitchHelixTypes";
 import WebSocket from "ws";
-import { AlertInfo, AlertTypes } from "./types/API";
-import { SecretsGuard } from "./util/SecretsGuard";
-import { Songrequest } from "./Songrequest";
-import { CommandHandler } from "./commands/CommandHandler";
-import { CreateReward } from "./commands/CreateReward";
-import { ReloadLocale } from "./commands/ReloadLocale";
-import { FileReward } from "./types/FileReward";
-import { SongRequestReputationVote } from "./commands/SongRequestReputationVote";
+import { AlertInfo, AlertTypes } from "../types/API";
+import { SecretsGuard } from "../util/SecretsGuard";
+import { Songrequest } from "../features/Songrequest";
+import { CommandHandler } from "../commands/CommandHandler";
+import { CreateReward } from "../commands/CreateReward";
+import { ReloadLocale } from "../commands/ReloadLocale";
+import { FileReward } from "../types/FileReward";
+import { SongRequestReputationVote } from "../commands/SongRequest/SongRequestReputationVote";
 import {
   Entitsy,
   TransportMethods,
@@ -28,20 +28,20 @@ import {
   TwitchWebsocketSubscribeMessage,
   TwitchWelcomeWebsocketMessage,
   TwitchWS_FollowEvent,
-} from "./types/TwitchTypes";
-import { SongRequestAdd } from "./commands/SongRequestAdd";
-import { SongRequestQueue } from "./commands/SongRequestQueue";
-import { SongRequestCurrent } from "./commands/SongRequestCurrent";
-import { SongRequestSkipVote } from "./commands/SongRequestSkipVote";
-import { SongRequestWrongSong } from "./commands/SongRequestWrongSong";
-import { SongRequestMySong } from "./commands/SongRequestMySong";
-import { StaticText } from "./commands/StaticText";
-import { Timer } from "./timers/Timer";
-import { StaticTextTimer } from "./timers/StaticTextTimer";
-import { SongRequestWipe } from "./commands/SongRequestWipe";
+} from "../types/TwitchTypes";
+import { SongRequestAdd } from "../commands/SongRequest/SongRequestAdd";
+import { SongRequestQueue } from "../commands/SongRequest/SongRequestQueue";
+import { SongRequestCurrent } from "../commands/SongRequest/SongRequestCurrent";
+import { SongRequestSkipVote } from "../commands/SongRequest/SongRequestSkipVote";
+import { SongRequestWrongSong } from "../commands/SongRequest/SongRequestWrongSong";
+import { SongRequestMySong } from "../commands/SongRequest/SongRequestMySong";
+import { StaticText } from "../commands/StaticText";
+import { Timer } from "../timers/Timer";
+import { StaticTextTimer } from "../timers/StaticTextTimer";
+import { SongRequestWipe } from "../commands/SongRequest/SongRequestWipe";
 import { MongoDBClient } from "./MongoDBClient";
-import { SongRequestVolumeSet } from "./commands/SongRequestVolumeSet";
-import { Logger } from "./Logger";
+import { SongRequestVolumeSet } from "../commands/SongRequest/SongRequestVolumeSet";
+import { Logger } from "../util/Logger";
 
 export class TwitchClient {
   constructor(refreshToken: string, userId: string) {

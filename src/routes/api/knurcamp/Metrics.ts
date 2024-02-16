@@ -2,9 +2,9 @@ import { Route, type Request, Method } from "../../Route";
 import type { Response } from "express";
 import { HttpStatusCode } from "axios";
 import { ExternalServer } from "../../../ExternalServer";
-import { AuthToken } from "../../../AuthToken";
-import { DiscordApiClient } from "../../../DiscordBotApiClient";
-import { Logger } from "../../../Logger";
+import { AuthToken } from "../../../util/AuthToken";
+import { DiscordClient } from "../../../clients/DiscordClient";
+import { Logger } from "../../../util/Logger";
 
 export class ApiKnurcampMetrics implements Route<unknown> {
   async handle(
@@ -40,7 +40,7 @@ export class ApiKnurcampMetrics implements Route<unknown> {
         message += `${key} = ${data[key]}\n`;
       }
 
-      const client = new DiscordApiClient();
+      const client = new DiscordClient();
       await client.init(true);
       await client.sendMessageToChannel(threadId, message, data, file);
 

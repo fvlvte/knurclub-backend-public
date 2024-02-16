@@ -1,8 +1,8 @@
-import { Logger } from "./Logger";
+import { Logger } from "./util/Logger";
 import { readFileSync } from "fs";
 import { SecretsGuard } from "./util/SecretsGuard";
 import { ExternalServer } from "./ExternalServer";
-import { DiscordApiClient } from "./DiscordBotApiClient";
+import { DiscordClient } from "./clients/DiscordClient";
 
 function setUpSecretsAndGuard(): boolean {
   try {
@@ -84,7 +84,7 @@ async function main() {
   }
 
   if (process.env.NODE_ENV !== "production") {
-    const discordClient = new DiscordApiClient();
+    const discordClient = new DiscordClient();
     discordClient.init().catch(console.error);
   }
 

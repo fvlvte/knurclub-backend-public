@@ -1,6 +1,6 @@
 import { Document, MongoClient, ServerApiVersion } from "mongodb";
-import { Logger } from "./Logger";
-import { ConfigContainer } from "./ConfigManager";
+import { Logger } from "../util/Logger";
+import { ConfigContainer } from "../managers/ConfigManager";
 
 export class MongoDBClient {
   private client: MongoClient;

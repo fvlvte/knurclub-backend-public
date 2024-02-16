@@ -1,7 +1,7 @@
 import { Route, type Request, Method } from "../../Route";
 import type { Response } from "express";
 import { HttpStatusCode } from "axios";
-import { TwitchAuthGuard } from "../../../TwitchAuthGuard";
+import { TwitchAuthGuard } from "../../../util/TwitchAuthGuard";
 import { ExternalServer } from "../../../ExternalServer";
 
 export class AuthTwitchLogin implements Route<unknown> {

@@ -18,7 +18,7 @@ const completion = await openai.createCompletion({
 console.log(completion.data.choices[0].text);
 */
 
-export class DiscordApiClient {
+export class DiscordClient {
   private client?: Client;
   private applicationCommnadsAPI?: ApplicationCommandsAPI;
   private wsManager?: WebSocketManager;

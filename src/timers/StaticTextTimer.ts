@@ -1,6 +1,6 @@
 import { Timer } from "./Timer";
-import { TwitchClient } from "../TwitchClient";
-import { TranslationManager } from "../TranslationManager";
+import { TwitchClient } from "../clients/TwitchClient";
+import { TranslationManager } from "../managers/TranslationManager";
 
 export class StaticTextTimer implements Timer {
   private translationId: string;

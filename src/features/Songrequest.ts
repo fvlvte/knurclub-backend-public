@@ -1,8 +1,8 @@
 import ytdl from "@distube/ytdl-core";
 import { default as axios } from "axios";
-import { MongoDBClient } from "./MongoDBClient";
-import { ConfigManager } from "./ConfigManager";
-import { TwitchMessage } from "./types/TwitchTypes";
+import { MongoDBClient } from "../clients/MongoDBClient";
+import { ConfigManager } from "../managers/ConfigManager";
+import { TwitchMessage } from "../types/TwitchTypes";
 
 type TryAddSongResult = {
   message: string;

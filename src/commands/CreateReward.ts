@@ -1,8 +1,8 @@
 import { CommandHandler } from "./CommandHandler";
 import { TwitchMessage } from "../types/TwitchTypes";
-import { TranslationManager } from "../TranslationManager";
-import { MongoDBClient } from "../MongoDBClient";
-import { TwitchClient } from "../TwitchClient";
+import { TranslationManager } from "../managers/TranslationManager";
+import { MongoDBClient } from "../clients/MongoDBClient";
+import { TwitchClient } from "../clients/TwitchClient";
 
 export class CreateReward extends CommandHandler {
   async handleCommand(

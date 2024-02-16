@@ -2,7 +2,7 @@ import { Route, type Request, Method } from "../Route";
 import type { Response } from "express";
 import { HttpStatusCode } from "axios";
 import { type AuthData, ExternalServer } from "../../ExternalServer";
-import { ClientManager } from "../../ClientManager";
+import { ClientManager } from "../../managers/ClientManager";
 
 export class CoreKeepAlive implements Route<AuthData> {
   async handle(

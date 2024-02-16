@@ -2,7 +2,7 @@ import { Route, type Request, Method } from "../Route";
 import type { Response } from "express";
 import { HttpStatusCode } from "axios";
 import { type AuthData, ExternalServer } from "../../ExternalServer";
-import { ConfigManager } from "../../ConfigManager";
+import { ConfigManager } from "../../managers/ConfigManager";
 
 export class V1ConfigSet implements Route<AuthData> {
   async handle(

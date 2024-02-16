@@ -1,4 +1,4 @@
-import { TwitchClient } from "../TwitchClient";
+import { TwitchClient } from "../clients/TwitchClient";
 
 export interface Timer {
   init(client: TwitchClient): void;

@@ -2,7 +2,7 @@ import { Route, type Request, Method } from "../Route";
 import type { Response } from "express";
 import { HttpStatusCode } from "axios";
 import { type AuthData, ExternalServer } from "../../ExternalServer";
-import { TimerController } from "../../TimerController";
+import { Timer } from "../../features/Timer";
 
 export class V1Timer implements Route<AuthData> {
   async handle(
@@ -15,7 +15,7 @@ export class V1Timer implements Route<AuthData> {
     }
 
     const userId = req.authData.user_id;
-    res.send({ seconds: TimerController.getInstance(userId).timerTick() });
+    res.send({ seconds: Timer.getInstance(userId).timerTick() });
   }
   path(): RegExp | string {
     return "/v1/timer";

@@ -1,4 +1,4 @@
-import { TwitchClient } from "./TwitchClient";
+import { TwitchClient } from "../clients/TwitchClient";
 
 export class ClientManager {
   private static instance: ClientManager;
