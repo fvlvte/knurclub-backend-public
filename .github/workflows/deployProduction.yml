@@ -12,6 +12,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.11.1
+      - name: Run tests
+        run: |
+          npm ci
+          npm run test
       - name: Login, build, tag, and push image to Docker Container Registry
         id: build-image
         run: |
