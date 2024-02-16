@@ -81,6 +81,10 @@ export class TwitchClient {
       "SOCIALS_PROJECT",
       /^(!projekt)|(!project)|(!cotykurwarobisz)|(!github)|(!gh)\s*$/i,
     ),
+    new StaticText(
+      "INFO_KNURCAMP",
+      /^(!knurcamp)|(!camp)|(!butkamp)|(!bootcamp)\s*$/i,
+    ),
   ];
 
   private timers: Timer[] = [

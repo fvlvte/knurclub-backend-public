@@ -32,6 +32,7 @@
   "SR_MY_SONG_INFO": "@{{invokedBy}} '{{title}}' {{url}} jest na pozycji {{index}} grana za ok. {{when}})",
   "SR_MY_SONG_NOT_FOUND":  "@{{invokedBy}} nie masz żadnej piosengi dodaj jakomś przez !ksr",
 
+  "INFO_KNURCAMP": "aktualnie trwa knurcamp z fronted - reacta, możesz wziąć udział biernie - więcej info na DC https://discord.gg/BnRNzSzcv9",
   "SOCIALS_DISCORD": "@{{invokedBy}} elo eskorta wsiadaj na diskorta https://discord.gg/BnRNzSzcv9",
   "SOCIALS_YT": "@{{invokedBy}} elo daj suba na jutuba https://www.youtube.com/@fvlvte",
   "SOCIALS_PROJECT": "@{{invokedBy}} robimy teraz songruesta backend: https://github.com/fvlvte/knurobotOG / frontend https://github.com/fvlvte/knurlements-widgtet",
