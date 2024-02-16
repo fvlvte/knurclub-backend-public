@@ -1,6 +1,8 @@
 import ytdl from "@distube/ytdl-core";
 import { default as axios } from "axios";
 import { MongoDBClient } from "./MongoDBClient";
+import { ConfigManager } from "./ConfigManager";
+import { TwitchMessage } from "./types/TwitchTypes";
 
 type TryAddSongResult = {
   message: string;
@@ -228,14 +230,17 @@ export class Songrequest {
 
   public async tryAddSong(
     query: string,
-    userMetadata: { subLevel: number; username: string },
+    userMetadata: { subLevel: number; isMod?: boolean; username: string },
     isSoundAlert: boolean = false,
+    messageTrigger?: TwitchMessage,
   ): Promise<TryAddSongResult> {
-    if (this.queue.length >= this.QUEUE_MAX) {
+    const config = await ConfigManager.getUserInstance(this.id).getConfig();
+
+    if (this.queue.length >= config.data.songRequest.queueMax) {
       return {
         message: "SR_QUEUE_LIMIT",
         error: true,
-        param: { limit: this.QUEUE_MAX },
+        param: { limit: config.data.songRequest.queueMax },
       };
     }
 
@@ -248,11 +253,22 @@ export class Songrequest {
       }
     }
 
-    if (malpiaPentla + 1 > this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0]) {
+    let userLimit = this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0];
+    if (messageTrigger) {
+      if (messageTrigger.tags.isModerator) {
+        userLimit = 999;
+      } else if (userMetadata.subLevel > 0) {
+        userLimit = config.data.songRequest.queueLimit.paid;
+      } else {
+        userLimit = config.data.songRequest.queueLimit.all;
+      }
+    }
+
+    if (malpiaPentla + 1 > userLimit) {
       return {
         message: "SR_QUEUE_SONG_LIMIT",
         error: true,
-        param: { limit: this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0] },
+        param: { limit: userLimit },
       };
     }
     if (query.includes("youtube.com") || query.includes("youtu.be")) {
