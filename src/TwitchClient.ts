@@ -132,9 +132,8 @@ export class TwitchClient {
     const data = msg.payload.event;
     const rewardId = data.reward.id;
 
-    const record = await MongoDBClient.getDefaultInstance().getRewardById(
-      rewardId,
-    );
+    const record =
+      await MongoDBClient.getDefaultInstance().getRewardById(rewardId);
 
     if (record) {
       const dt: FileReward = record as unknown as FileReward;
@@ -486,11 +485,7 @@ export class TwitchClient {
     this.wsClientPubSub.on("open", () => {
       this.isWebSocketRestarting = false;
       console.log(
-        `${
-          this.constructor.name
-        }: WSS ${"wss://eventsub.wss.twitch.tv/ws"} opened for ${
-          this.streamerId
-        }`,
+        `${this.constructor.name}: WSS ${"wss://eventsub.wss.twitch.tv/ws"} opened for ${this.streamerId}`,
       );
     });
 

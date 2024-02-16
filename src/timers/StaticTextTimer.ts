@@ -11,7 +11,7 @@ export class StaticTextTimer implements Timer {
   }
 
   private client?: TwitchClient;
-  private interval?: NodeJS.Timer;
+  private interval?: number;
 
   private async doTick() {
     try {
@@ -28,9 +28,12 @@ export class StaticTextTimer implements Timer {
 
   init(client: TwitchClient) {
     this.client = client;
-    this.interval = setInterval(this.doTick.bind(this), this.intervalTime);
+    this.interval = window.setInterval(
+      this.doTick.bind(this),
+      this.intervalTime,
+    );
   }
   shut() {
-    clearInterval(this.interval);
+    if (this.interval) window.clearInterval(this.interval);
   }
 }

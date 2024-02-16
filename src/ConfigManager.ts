@@ -90,8 +90,6 @@ export class ConfigManager {
     const cfg = await MongoDBClient.getDefaultInstance().fetchUserConfig(
       this.userId,
     );
-    console.log("aaaa");
-    console.log(cfg);
     if (!cfg) {
       const newConfig: ConfigContainer = {
         version: 1,
@@ -135,4 +133,6 @@ export class ConfigManager {
 
     this.config = { ...this.config, ...newCfg };
   }
+
+  //public async queryWithFallback(path: string): unknown {}
 }
