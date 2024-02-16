@@ -9,4 +9,7 @@ COPY . /usr/src/app
 ARG BUILD_TS_ARG
 ENV BUILD_TS=$BUILD_TS_ARG
 
-ENTRYPOINT IS_HOSTED=true NODE_ENV=production npm run start:test
+ENV NODE_ENV=production
+ENV IS_HOSTED=true
+
+ENTRYPOINT npm run start:test
