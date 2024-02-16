@@ -1,6 +1,7 @@
 import { Document, MongoClient, ServerApiVersion } from "mongodb";
 import { Logger } from "../util/Logger";
 import { ConfigContainer } from "../managers/ConfigManager";
+import { UserInfo } from "../types/UserInfo";
 
 export class MongoDBClient {
   private client: MongoClient;
@@ -25,22 +26,25 @@ export class MongoDBClient {
     });
   }
 
-  public async upsertUser(id: string, data: unknown): Promise<void> {
-    try {
-      const users = this.client.db("users");
-      const info = users.collection("info");
-      await info.createIndex({ twitchId: 1 });
-      const ttvId = "";
-      await info.updateOne(
-        { streamerId: { eq: ttvId } },
-        {
-          $set: {
-            data: data,
-          },
+  public async upsertUser(id: string, data: Partial<UserInfo>): Promise<void> {
+    const users = this.client.db("users");
+    const info = users.collection("info");
+    await info.createIndex({ twitchUserId: 1 });
+    await info.updateOne(
+      { twitchUserId: id },
+      {
+        $set: {
+          ...data,
         },
-        { upsert: true },
-      );
-    } catch (e) {}
+      },
+      { upsert: true },
+    );
+  }
+
+  public async getUserInfoByTwitchId(id: string): Promise<UserInfo | null> {
+    const users = this.client.db("users");
+    const info = users.collection<UserInfo>("info");
+    return await info.findOne({ twitchUserId: id });
   }
 
   public async fetchUserConfig(id: string) {

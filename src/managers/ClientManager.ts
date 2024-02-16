@@ -1,4 +1,7 @@
 import { TwitchClient } from "../clients/TwitchClient";
+import { Logger } from "../util/Logger";
+import { MongoDBClient } from "../clients/MongoDBClient";
+import { QuickCrypt } from "../util/QuickCrypt";
 
 export class ClientManager {
   private static instance: ClientManager;
@@ -36,6 +39,18 @@ export class ClientManager {
   }
 
   public handleKeepAliveTick(uid: string, refreshToken: string) {
+    MongoDBClient.getDefaultInstance()
+      .upsertUser(uid, {
+        twitchRefreshToken: QuickCrypt.wrap(refreshToken),
+        twitchUserId: uid,
+      })
+      .catch((e) => {
+        if (e instanceof Error) {
+          Logger.getInstance().error("Failed to save user info.", {
+            error: { message: e.message, name: e.name, stack: e.stack },
+          });
+        }
+      });
     if (this.records[uid] === undefined) {
       const client = new TwitchClient(refreshToken, uid);
       this.records[uid] = client;
