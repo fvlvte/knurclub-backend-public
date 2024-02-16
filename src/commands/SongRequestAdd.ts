@@ -24,10 +24,15 @@ export class SongRequestAdd extends CommandHandler {
 
     const result = await Songrequest.getInstance(
       await client.getBroadcasterId(),
-    ).tryAddSong(ytLink, {
-      subLevel,
-      username,
-    });
+    ).tryAddSong(
+      ytLink,
+      {
+        subLevel,
+        username,
+      },
+      false,
+      message,
+    );
 
     await client.dispatchBotMessage(
       translationManager.translate(result.message, {

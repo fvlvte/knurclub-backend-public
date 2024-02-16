@@ -244,12 +244,12 @@ export class Songrequest {
       };
     }
 
-    let malpiaPentla = 0;
+    let songsInQueuePerUser = 0;
     for (const item of this.queue) {
       if (
         item.requestedBy.toLowerCase() === userMetadata.username.toLowerCase()
       ) {
-        malpiaPentla++;
+        songsInQueuePerUser++;
       }
     }
 
@@ -264,7 +264,7 @@ export class Songrequest {
       }
     }
 
-    if (malpiaPentla + 1 > userLimit) {
+    if (songsInQueuePerUser + 1 > userLimit) {
       return {
         message: "SR_QUEUE_SONG_LIMIT",
         error: true,
