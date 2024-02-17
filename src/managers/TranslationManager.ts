@@ -36,7 +36,9 @@ export class TranslationManager {
         );
 
         for (const key in data) {
-          this.translationTable[key] = Handlebars.compile(data[key]);
+          this.translationTable[key] = Handlebars.compile(data[key], {
+            noEscape: true,
+          });
         }
       }
     } catch (e) {
