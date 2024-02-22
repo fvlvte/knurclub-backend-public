@@ -6,9 +6,9 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .ts src --fix",
-    "start:test": "tsc && node dist/main.js",
+    "start:test": "tsc && node --noexpose_wasm dist/main.js",
     "lint:prod": "eslint --max-warnings 0 --ext .ts src",
-    "start": "tsc && node dist/main.js",
+    "start": "tsc && node --noexpose_wasm dist/main.js",
     "test": "jest",
     "prepare": "husky install"
   },
@@ -30,6 +30,7 @@
     "ws": "8.16.0"
   },
   "devDependencies": {
+    "@shelf/jest-mongodb": "^4.2.0",
     "@tsconfig/node20": "20.1.2",
     "@types/cors": "2.8.17",
     "@types/express": "4.17.21",
