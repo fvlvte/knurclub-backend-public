@@ -6,9 +6,9 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .ts src --fix",
-    "start:test": "tsc && node --noexpose_wasm dist/main.js",
+    "start:test": "tsc && node dist/main.js",
     "lint:prod": "eslint --max-warnings 0 --ext .ts src",
-    "start": "tsc && node --noexpose_wasm dist/main.js",
+    "start": "tsc && node dist/main.js",
     "test": "jest",
     "prepare": "husky install"
   },
