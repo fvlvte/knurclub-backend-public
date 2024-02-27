@@ -1,7 +1,8 @@
-import { Document, MongoClient, ServerApiVersion } from "mongodb";
+import { Document, MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 import { Logger } from "../util/Logger";
 import { ConfigContainer } from "../managers/ConfigManager";
 import { UserInfo } from "../types/UserInfo";
+import { AuthToken } from "../types/Auth";
 
 export class MongoDBClient {
   private client: MongoClient;
@@ -13,17 +14,20 @@ export class MongoDBClient {
     return this.default;
   }
 
-  constructor(
-    uri = process.env.MONGODB_CS ??
-      "mongodb://127.0.0.1:27017/?maxPoolSize=20&w=majority",
-  ) {
-    this.client = new MongoClient(uri, {
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: false,
-        deprecationErrors: true,
-      },
-    });
+  constructor(c?: MongoClient) {
+    this.client =
+      c ??
+      new MongoClient(
+        process.env.MONGODB_CS ??
+          "mongodb://127.0.0.1:27017/?maxPoolSize=20&w=majority",
+        {
+          serverApi: {
+            version: ServerApiVersion.v1,
+            strict: false,
+            deprecationErrors: true,
+          },
+        },
+      );
   }
 
   public async upsertUser(id: string, data: Partial<UserInfo>): Promise<void> {
@@ -39,6 +43,30 @@ export class MongoDBClient {
       },
       { upsert: true },
     );
+  }
+
+  public close(): Promise<void> {
+    return this.client.close();
+  }
+
+  public async createToken(token: AuthToken) {
+    const users = this.client.db("users");
+    const tokens = users.collection<AuthToken>("tokens");
+    return await tokens.insertOne(token);
+  }
+
+  public async getTokenById(id: string) {
+    const users = this.client.db("users");
+    const tokens = users.collection<AuthToken>("tokens");
+    const data = await tokens.findOne({
+      _id: ObjectId.createFromHexString(id),
+    });
+
+    if (data) {
+      data.id = data._id.toString("hex");
+    }
+
+    return data;
   }
 
   public async getUserInfoByTwitchId(id: string): Promise<UserInfo | null> {
@@ -133,21 +161,6 @@ export class MongoDBClient {
             ];
           }
         }
-
-        console.log(diff);
-
-        console.log(
-          await config.updateOne(
-            { userId: id },
-            {
-              $set: {
-                version: newObject.version,
-                updatedAt: new Date().getTime(),
-                ...diff,
-              },
-            },
-          ),
-        );
       }
       return await config.findOne({ userId: id });
     } catch (e) {

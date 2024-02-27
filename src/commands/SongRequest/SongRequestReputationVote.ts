@@ -47,7 +47,6 @@ export class SongRequestReputationVote extends CommandHandler {
         }),
       );
     } catch (e) {
-      console.log(e);
       await client.dispatchBotMessage(
         translationManager.translate((e as Error).message, {
           invokedBy: message.username,

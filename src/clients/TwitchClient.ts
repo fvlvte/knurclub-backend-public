@@ -529,8 +529,6 @@ export class TwitchClient {
 
     if (!castedMessage.message) return;
 
-    console.log(castedMessage.tags.id);
-
     if (
       castedMessage.message.startsWith("!") ||
       castedMessage.message.startsWith("?")

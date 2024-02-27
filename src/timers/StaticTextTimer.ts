@@ -28,12 +28,12 @@ export class StaticTextTimer implements Timer {
 
   init(client: TwitchClient) {
     this.client = client;
-    this.interval = window.setInterval(
+    this.interval = setInterval(
       this.doTick.bind(this),
       this.intervalTime,
-    );
+    ) as unknown as number;
   }
   shut() {
-    if (this.interval) window.clearInterval(this.interval);
+    if (this.interval) clearInterval(this.interval);
   }
 }

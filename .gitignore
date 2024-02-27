@@ -3,3 +3,6 @@ dist/
 logs/
 db/
 DS_Store/
+coverage/
+.idea/
+kupskoTables.js

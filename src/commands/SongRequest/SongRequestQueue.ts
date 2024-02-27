@@ -30,8 +30,6 @@ export class SongRequestQueue extends CommandHandler {
       }
     }
 
-    console.log(songInfo);
-
     if (songInfo.length === 0) {
       return await client.dispatchBotMessage(
         translationManager.translate("SR_EMPTY_QUEUE", {
