@@ -37,7 +37,7 @@ import { SongRequestWrongSong } from "../commands/SongRequest/SongRequestWrongSo
 import { SongRequestMySong } from "../commands/SongRequest/SongRequestMySong";
 import { StaticText } from "../commands/StaticText";
 import { Timer } from "../timers/Timer";
-import { StaticTextTimer } from "../timers/StaticTextTimer";
+//import { StaticTextTimer } from "../timers/StaticTextTimer";
 import { SongRequestWipe } from "../commands/SongRequest/SongRequestWipe";
 import { MongoDBClient } from "./MongoDBClient";
 import { SongRequestVolumeSet } from "../commands/SongRequest/SongRequestVolumeSet";
@@ -88,8 +88,8 @@ export class TwitchClient {
   ];
 
   private timers: Timer[] = [
-    new StaticTextTimer("TIMER_DISCORD", 1000 * 60 * 15),
-    new StaticTextTimer("TIMER_YT", 1000 * 60 * 33),
+    //new StaticTextTimer("TIMER_DISCORD", 1000 * 60 * 15),
+    //new StaticTextTimer("TIMER_YT", 1000 * 60 * 33),
   ];
 
   private chatClient?: Chat;

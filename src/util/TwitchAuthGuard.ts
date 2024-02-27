@@ -74,6 +74,7 @@ export class TwitchAuthGuard {
       "883479198",
       "589037322",
       "268563714",
+      "27187817", // lewus aok
     ];
 
     if (!whitelistedUserIDs.includes(userId)) {
