@@ -24,16 +24,6 @@ type TokenInfoType = {
   expires_in: number;
 };
 
-/*type TwitchData = {
-  data: {
-    broadcaster_id: string;
-    broadcaster_name: string;
-    broadcaster_login: string;
-    is_gift: boolean;
-    tier: string;
-  }[];
-};*/
-
 export class TwitchAuthGuard {
   public static async generateToken(code: string, redirect?: string) {
     const data = {
@@ -69,12 +59,11 @@ export class TwitchAuthGuard {
     const userId = vr.data.user_id;
 
     const whitelistedUserIDs = [
-      "1024010545",
-      "197171878",
-      "883479198",
-      "589037322",
-      "268563714",
+      "197171878", // hyba hyba
+      "883479198", // tortilka
+      "268563714", // fulufte
       "27187817", // lewus aok
+      "54234510", // juriko
     ];
 
     if (!whitelistedUserIDs.includes(userId)) {
