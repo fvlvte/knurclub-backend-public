@@ -67,7 +67,7 @@ interface YoutubeSearchResult {
   };
 }
 
-const ytDlBufferBase64 = (url: string): Promise<string> => {
+/*const ytDlBufferBase64 = (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const stream = ytdl(url, { filter: "audio" });
     const buffers: Buffer[] = [];
@@ -79,6 +79,20 @@ const ytDlBufferBase64 = (url: string): Promise<string> => {
       resolve(data.toString("base64"));
     });
     stream.on("error", reject);
+  });
+};*/
+
+const ytDlBufferBase64 = (url: string): Promise<string> => {
+  return new Promise(async (resolve) => {
+    const s = await ytdl.getInfo(url);
+    const f = s.formats
+      .filter((a) => a.hasAudio && !a.hasVideo)
+      .sort(
+        (a, b) =>
+          (b as unknown as Record<string, number>).audioBitrate -
+          (a as unknown as Record<string, number>).audioBitrate,
+      )[0];
+    resolve(f.url);
   });
 };
 
