@@ -68,17 +68,10 @@ interface YoutubeSearchResult {
 }
 
 const ytDlBufferBase64 = (url: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const stream = ytdl(url, { filter: "audio" });
-    const buffers: Buffer[] = [];
-    stream.on("data", function (buf: Buffer) {
-      buffers.push(buf);
-    });
-    stream.on("end", function () {
-      const data = Buffer.concat(buffers);
-      resolve(data.toString("base64"));
-    });
-    stream.on("error", reject);
+  return new Promise(async (resolve) => {
+    const s = await ytdl.getInfo(url);
+
+    resolve(s.formats[s.formats.length - 1].url);
   });
 };
 
@@ -348,7 +341,7 @@ export class Songrequest {
           coverImage: data.videoDetails.thumbnails[0].url,
           requestedBy: userMetadata.username,
           mediaBase64: "",
-          url: data.videoDetails.video_url.replace("&#x3D;", "="),
+          url: data.videoDetails.video_url,
           duration: length,
         };
 
@@ -364,7 +357,7 @@ export class Songrequest {
             param: {
               title: title,
               ...this.when(songInfo),
-              url: data.videoDetails.video_url.replace("&#x3D;", "="),
+              url: data.videoDetails.video_url,
             },
           };
         } else {
