@@ -139,6 +139,8 @@ export class Songrequest {
   private readonly alertQueue: SongInfo[] = [];
   private readonly id: string;
 
+  private currentPlayerMark = 0;
+
   private volume = 0.2;
 
   private currentSong: SongInfo | null = null;
@@ -179,6 +181,11 @@ export class Songrequest {
     return this.instances[id || "default"];
   }
 
+  public handlePlaybackFeedback(time: number, songInfo: unknown) {
+    if (!this.currentSong) this.currentSong = songInfo as SongInfo;
+    this.currentPlayerMark = time;
+  }
+
   public getSongStartTimestamp() {
     return this.currentSongStartedAt ?? 0;
   }
@@ -213,22 +220,6 @@ export class Songrequest {
   }
 
   public when(si: SongInfo) {
-    const index = this.queue.indexOf(si);
-
-    let durationUntilSong = 0;
-    for (let i = 0; i < index; i++) {
-      durationUntilSong += this.queue[i].duration;
-    }
-
-    const tmp =
-      (this.currentSong?.duration ?? 0) -
-      Math.floor(
-        (new Date().getTime() -
-          Songrequest.getInstance().getSongStartTimestamp()) /
-          1000,
-      );
-    if (tmp > 0) durationUntilSong += tmp;
-
     const convertToHumanFormxD = (d: number) => {
       const minutePart = Math.floor(d / 60);
       const secondsPart = Math.floor(d % 60);
@@ -238,6 +229,22 @@ export class Songrequest {
         minutePart > 0 ? "m" : ""
       }${secondsPartString}s`;
     };
+    const index = this.queue.indexOf(si);
+
+    if (index === -1) {
+      return {
+        when: convertToHumanFormxD(1),
+        index: index + 1,
+      };
+    }
+
+    let durationUntilSong = 0;
+    for (let i = 0; i < index; i++) {
+      durationUntilSong += this.queue[i].duration;
+    }
+
+    const tmp = (this.currentSong?.duration ?? 0) - this.currentPlayerMark;
+    if (tmp > 0) durationUntilSong += tmp;
 
     return { when: convertToHumanFormxD(durationUntilSong), index: index + 1 };
   }

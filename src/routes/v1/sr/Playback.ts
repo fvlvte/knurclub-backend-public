@@ -14,6 +14,20 @@ export class V1SrPlayback implements Route<AuthData> {
       return res.status(HttpStatusCode.Unauthorized).send();
     }
 
+    const time =
+      typeof req.query.time === "string" ? parseInt(req.query.time) : null;
+    const si =
+      typeof req.query.song === "string"
+        ? JSON.parse(decodeURIComponent(req.query.song))
+        : null;
+
+    if (time && si) {
+      Songrequest.getInstance(req.authData.user_id).handlePlaybackFeedback(
+        time,
+        si,
+      );
+    }
+
     res.status(HttpStatusCode.Ok).send({
       skip: Songrequest.getInstance(req.authData.user_id).getAndUnsetSkipFlag(),
       volume: Songrequest.getInstance(req.authData.user_id).getVolume(),
