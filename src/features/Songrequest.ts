@@ -249,6 +249,11 @@ export class Songrequest {
     return { when: convertToHumanFormxD(durationUntilSong), index: index + 1 };
   }
 
+  public getCurrentSongUserReputation(): number {
+    if (!this.currentSong) return 0;
+    return this.reputationRanking[this.currentSong?.requestedBy] ?? 0;
+  }
+
   public async tryAddSong(
     query: string,
     userMetadata: { subLevel: number; isMod?: boolean; username: string },

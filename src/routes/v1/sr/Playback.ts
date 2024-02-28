@@ -31,6 +31,9 @@ export class V1SrPlayback implements Route<AuthData> {
     res.status(HttpStatusCode.Ok).send({
       skip: Songrequest.getInstance(req.authData.user_id).getAndUnsetSkipFlag(),
       volume: Songrequest.getInstance(req.authData.user_id).getVolume(),
+      reputation: Songrequest.getInstance(
+        req.authData.user_id,
+      ).getCurrentSongUserReputation(),
     });
   }
   path(): RegExp | string {
