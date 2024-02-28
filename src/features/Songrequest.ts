@@ -68,10 +68,17 @@ interface YoutubeSearchResult {
 }
 
 const ytDlBufferBase64 = (url: string): Promise<string> => {
-  return new Promise(async (resolve) => {
-    const s = await ytdl.getInfo(url);
-
-    resolve(s.formats[s.formats.length - 1].url);
+  return new Promise((resolve, reject) => {
+    const stream = ytdl(url, { filter: "audio" });
+    const buffers: Buffer[] = [];
+    stream.on("data", function (buf: Buffer) {
+      buffers.push(buf);
+    });
+    stream.on("end", function () {
+      const data = Buffer.concat(buffers);
+      resolve(data.toString("base64"));
+    });
+    stream.on("error", reject);
   });
 };
 
