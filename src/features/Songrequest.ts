@@ -67,7 +67,7 @@ interface YoutubeSearchResult {
   };
 }
 
-/*const ytDlBufferBase64 = (url: string): Promise<string> => {
+const ytDlBufferBase64 = (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const stream = ytdl(url, { filter: "audio" });
     const buffers: Buffer[] = [];
@@ -76,13 +76,13 @@ interface YoutubeSearchResult {
     });
     stream.on("end", function () {
       const data = Buffer.concat(buffers);
-      resolve(data.toString("base64"));
+      resolve(`data:audio/mp3;base64,${data.toString("base64")}`);
     });
     stream.on("error", reject);
   });
-};*/
+};
 
-const ytDlBufferBase64 = (url: string): Promise<string> => {
+/*const ytDlBufferBase64 = (url: string): Promise<string> => {
   return new Promise(async (resolve) => {
     const s = await ytdl.getInfo(url);
     const f = s.formats
@@ -94,7 +94,7 @@ const ytDlBufferBase64 = (url: string): Promise<string> => {
       )[0];
     resolve(f.url);
   });
-};
+};*/
 
 const findYtVideoByTitle = async (title: string): Promise<string | null> => {
   try {
