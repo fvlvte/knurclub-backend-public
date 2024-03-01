@@ -115,7 +115,7 @@ const findYtVideoByTitle = async (title: string): Promise<string | null> => {
 };
 
 export class Songrequest {
-  private readonly BANNED_USERS = ["shadoweeee"];
+  private readonly BANNED_USERS: string[] = [];
 
   /*private readonly ALLOWED_CATEGORIES = [
     "Gaming",
