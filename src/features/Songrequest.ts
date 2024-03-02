@@ -362,12 +362,7 @@ export class Songrequest {
           this.reputationRanking[userMetadata.username] ?? 0,
         );
 
-        if (
-          !isSoundAlert &&
-          userReputation <= -25 &&
-          this.queue.find((si) => si.requestedBy === userMetadata.username) !==
-            undefined
-        ) {
+        if (!isSoundAlert && userReputation <= -25) {
           return {
             message: "SR_NEGATIVE_REPUTATION_LIMIT",
             error: true,
