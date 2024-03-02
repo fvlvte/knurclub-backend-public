@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { SecretsGuard } from "./util/SecretsGuard";
 import { ExternalServer } from "./ExternalServer";
 import { DiscordClient } from "./clients/DiscordClient";
+import { WebSocketManager } from "./managers/WebSocketManager";
 
 function setUpSecretsAndGuard(): boolean {
   try {
@@ -89,6 +90,9 @@ async function main() {
   }
 
   Logger.getInstance().info("Secrets and secret's guard was set up.");
+
+  const wsm = new WebSocketManager();
+  wsm.init();
 
   await initializeServer();
 }

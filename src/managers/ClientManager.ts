@@ -38,7 +38,7 @@ export class ClientManager {
     return ClientManager.instance;
   }
 
-  public handleKeepAliveTick(uid: string, refreshToken: string) {
+  public handleKeepAliveTick(uid: string, refreshToken: string, tmp?: boolean) {
     MongoDBClient.getDefaultInstance()
       .upsertUser(uid, {
         twitchRefreshToken: QuickCrypt.wrap(refreshToken),
@@ -54,9 +54,11 @@ export class ClientManager {
     if (this.records[uid] === undefined) {
       const client = new TwitchClient(refreshToken, uid);
       this.records[uid] = client;
-      client.initialize().then().catch(console.error);
+      if (!tmp) client.initialize().then().catch(console.error);
+      return this.records[uid];
     } else {
       this.records[uid].keepAliveTick();
+      return this.records[uid];
     }
   }
 

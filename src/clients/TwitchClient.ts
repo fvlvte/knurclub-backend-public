@@ -42,6 +42,7 @@ import { SongRequestWipe } from "../commands/SongRequest/SongRequestWipe";
 import { MongoDBClient } from "./MongoDBClient";
 import { SongRequestVolumeSet } from "../commands/SongRequest/SongRequestVolumeSet";
 import { Logger } from "../util/Logger";
+import { WebSocketSession } from "../managers/WebSocketManager";
 
 export class TwitchClient {
   constructor(refreshToken: string, userId: string) {
@@ -104,6 +105,8 @@ export class TwitchClient {
 
   private refreshInterval?: NodeJS.Timeout;
 
+  private eventListeners: WebSocketSession[] = [];
+
   // internal id
   private streamerId?: string;
   // login
@@ -114,6 +117,14 @@ export class TwitchClient {
   private eventQueue: { [queueId: string]: AlertInfo[] } = {
     default: [],
   };
+
+  public registerEventListenerSession(ses: WebSocketSession) {
+    this.eventListeners.push(ses);
+  }
+
+  public removeEventListener(ses: WebSocketSession) {
+    this.eventListeners = this.eventListeners.filter((s) => s !== ses);
+  }
 
   private async handlePasza(msg: TwitchWebsocketSubOdPaszy) {
     const { user_name, total } = msg.payload.event;
@@ -672,6 +683,10 @@ export class TwitchClient {
     this.wsClientPubSub?.close();
 
     clearInterval(this.refreshInterval);
+
+    for (const item of this.eventListeners) {
+      item.getWebSocket().close();
+    }
 
     for (const timer of this.timers) timer.shut();
   }
