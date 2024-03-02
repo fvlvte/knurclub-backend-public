@@ -22,17 +22,19 @@ export class SongRequestSkipVote extends CommandHandler {
       return;
     }
 
-    /*if (message.message.includes("sskip")) {
-      const ret = sr.handleVote(message.username, song.requestedBy, -1);
-      await client.dispatchBotMessage(
-        translationManager.translate("SR_VOTE_BAD_SUCCESS", {
-          invokedBy: message.username,
-          targetUser: song.requestedBy,
-          change: -1,
-          currentValue: ret,
-        }),
-      );
-    }*/
+    if (message.message.includes("sskip")) {
+      try {
+        const ret = sr.handleVote(message.username, song.requestedBy, -1);
+        await client.dispatchBotMessage(
+          translationManager.translate("SR_VOTE_BAD_SUCCESS", {
+            invokedBy: message.username,
+            targetUser: song.requestedBy,
+            change: -1,
+            currentValue: ret,
+          }),
+        );
+      } catch (_e) {}
+    }
 
     if (
       message.tags.isModerator ||
