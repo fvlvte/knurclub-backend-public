@@ -262,11 +262,11 @@ export class Songrequest {
   ): Promise<TryAddSongResult> {
     const config = await ConfigManager.getUserInstance(this.id).getConfig();
 
-    if (this.queue.length >= config.data.songRequest.queueMax) {
+    if (this.queue.length >= Math.round(config.data.songRequest.queueMax)) {
       return {
         message: "SR_QUEUE_LIMIT",
         error: true,
-        param: { limit: config.data.songRequest.queueMax },
+        param: { limit: Math.round(config.data.songRequest.queueMax) },
       };
     }
 
@@ -279,7 +279,7 @@ export class Songrequest {
       }
     }
 
-    let userLimit = this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0];
+    let userLimit = Math.round(this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0]);
     if (messageTrigger) {
       if (messageTrigger.tags.isModerator) {
         userLimit = 999;
@@ -290,11 +290,11 @@ export class Songrequest {
       }
     }
 
-    if (songsInQueuePerUser + 1 > userLimit) {
+    if (songsInQueuePerUser + 1 > Math.round(userLimit)) {
       return {
         message: "SR_QUEUE_SONG_LIMIT",
         error: true,
-        param: { limit: userLimit },
+        param: { limit: Math.round(userLimit) },
       };
     }
     if (query.includes("youtube.com") || query.includes("youtu.be")) {
@@ -334,27 +334,33 @@ export class Songrequest {
           };
         }*/
 
-        if (!isSoundAlert && views < this.VIEW_LIMIT[userMetadata.subLevel]) {
+        if (
+          !isSoundAlert &&
+          views < Math.round(this.VIEW_LIMIT[userMetadata.subLevel])
+        ) {
           return {
             message: "SR_VIEW_LIMIT",
             error: true,
-            param: { min: this.VIEW_LIMIT[userMetadata.subLevel] },
+            param: { min: Math.round(this.VIEW_LIMIT[userMetadata.subLevel]) },
           };
         }
 
         if (
           !isSoundAlert &&
-          length > this.LENGTH_LIMIT[userMetadata.subLevel]
+          length > Math.round(this.LENGTH_LIMIT[userMetadata.subLevel])
         ) {
           return {
             message: "SR_LENGTH_LIMIT",
             error: true,
-            param: { max: this.LENGTH_LIMIT[userMetadata.subLevel] },
+            param: {
+              max: Math.round(this.LENGTH_LIMIT[userMetadata.subLevel]),
+            },
           };
         }
 
-        const userReputation =
-          this.reputationRanking[userMetadata.username] ?? 0;
+        const userReputation = Math.round(
+          this.reputationRanking[userMetadata.username] ?? 0,
+        );
 
         if (
           !isSoundAlert &&
