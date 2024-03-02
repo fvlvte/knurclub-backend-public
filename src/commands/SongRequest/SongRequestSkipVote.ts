@@ -16,6 +16,24 @@ export class SongRequestSkipVote extends CommandHandler {
 
     const sr = Songrequest.getInstance(await client.getBroadcasterId());
 
+    const song = sr.getCurrentSong();
+
+    if (!song) {
+      return;
+    }
+
+    if (message.message.includes("sskip")) {
+      const ret = sr.handleVote(message.username, song.requestedBy, -1);
+      await client.dispatchBotMessage(
+        translationManager.translate("SR_VOTE_BAD_SUCCESS", {
+          invokedBy: message.username,
+          targetUser: song.requestedBy,
+          change: -1,
+          currentValue: ret,
+        }),
+      );
+    }
+
     if (
       message.tags.isModerator ||
       message.username.toLowerCase() ===
@@ -49,6 +67,6 @@ export class SongRequestSkipVote extends CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^(!knurskip)|(!kskip)|(!skip)\s*$/i;
+    return /^(!knurskip)|(!kskip)|(!skip)|(!sskip)\s*$/i;
   }
 }
