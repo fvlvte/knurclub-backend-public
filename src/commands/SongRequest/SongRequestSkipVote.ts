@@ -22,7 +22,7 @@ export class SongRequestSkipVote extends CommandHandler {
       return;
     }
 
-    if (message.message.includes("sskip")) {
+    /*if (message.message.includes("sskip")) {
       const ret = sr.handleVote(message.username, song.requestedBy, -1);
       await client.dispatchBotMessage(
         translationManager.translate("SR_VOTE_BAD_SUCCESS", {
@@ -32,7 +32,7 @@ export class SongRequestSkipVote extends CommandHandler {
           currentValue: ret,
         }),
       );
-    }
+    }*/
 
     if (
       message.tags.isModerator ||
