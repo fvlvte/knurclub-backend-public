@@ -262,6 +262,9 @@ export class Songrequest {
   ): Promise<TryAddSongResult> {
     const config = await ConfigManager.getUserInstance(this.id).getConfig();
 
+    if (query.length < 2)
+      return { message: "SR_ADD_UNKNOWN_ERROR", error: false, param: {} };
+
     if (this.queue.length >= Math.round(config.data.songRequest.queueMax)) {
       return {
         message: "SR_QUEUE_LIMIT",
