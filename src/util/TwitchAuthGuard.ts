@@ -67,6 +67,9 @@ export class TwitchAuthGuard {
       "68174363", // xbladejojo
       "25452828", // smaczny
       "416146818", // julka kulka
+      "811034930", // minio
+      "204137613", // kacperacy
+      "229434903", // xyzmelio
     ];
 
     if (!whitelistedUserIDs.includes(userId)) {
