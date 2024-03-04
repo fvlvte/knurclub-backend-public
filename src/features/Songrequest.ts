@@ -141,6 +141,8 @@ export class Songrequest {
 
   private currentPlayerMark = 0;
 
+  private isPlaying = true;
+
   private volume = 0.2;
 
   private currentSong: SongInfo | null = null;
@@ -188,6 +190,18 @@ export class Songrequest {
 
   public getSongStartTimestamp() {
     return this.currentSongStartedAt ?? 0;
+  }
+
+  public getPlayingState() {
+    return this.isPlaying;
+  }
+
+  public stop() {
+    this.isPlaying = false;
+  }
+
+  public play() {
+    this.isPlaying = true;
   }
 
   public async tryAppendSongNoVerify(

@@ -47,6 +47,9 @@
   "SR_INVALID_VOLUME_VALUE": "@{{invokedBy}} sory nieprawidlowa wartosc 0 - 100",
   "SR_VOLUME_SET": "@{{invokedBy}} ok ustawioned volume ok",
 
+  "SR_ADMIN_STOP": "@{{invokedBy}} ok sr stop ok",
+  "SR_ADMIN_PLAY": "@{{invokedBy}} ok sr play ok",
+
   "CMD_CreateReward_HELP": "pomoc do komendy aha ok",
   "CMD_ReloadLocale_HELP": "pomoc do komendy aha ok",
   "CMD_SongRequestAdd_HELP": "pomoc do komendy aha ok",
