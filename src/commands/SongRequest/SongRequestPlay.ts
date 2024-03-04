@@ -31,6 +31,6 @@ export class SongRequestPlay extends CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^!(play)|(!resume)\s*$/i;
+    return /^!(play)|(!resume)|(!start)\s*$/i;
   }
 }
