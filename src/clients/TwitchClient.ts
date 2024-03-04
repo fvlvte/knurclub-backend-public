@@ -43,6 +43,8 @@ import { MongoDBClient } from "./MongoDBClient";
 import { SongRequestVolumeSet } from "../commands/SongRequest/SongRequestVolumeSet";
 import { Logger } from "../util/Logger";
 import { WebSocketSession } from "../managers/WebSocketManager";
+import { SongRequestPlay } from "../commands/SongRequest/SongRequestPlay";
+import { SongRequestStop } from "../commands/SongRequest/SongRequestStop";
 
 export class TwitchClient {
   constructor(refreshToken: string, userId: string) {
@@ -64,6 +66,8 @@ export class TwitchClient {
     new SongRequestReputationVote(),
     new SongRequestAdd(),
     new SongRequestQueue(),
+    new SongRequestPlay(),
+    new SongRequestStop(),
     new SongRequestCurrent(),
     new SongRequestSkipVote(),
     new SongRequestWrongSong(),
