@@ -10,7 +10,7 @@ export class ReloadLocale extends CommandHandler {
   ): Promise<void> {
     const translationManager = TranslationManager.getInstance(
       await client.getStreamLanguage(),
-      await client.getStreamerUsername(),
+      await client.getBroadcasterId(),
     );
     try {
       if (message.username !== (await client.getStreamerUsername())) {

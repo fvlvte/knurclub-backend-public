@@ -18,7 +18,7 @@ export class StaticTextTimer implements Timer {
       await this.client?.dispatchBotMessage(
         TranslationManager.getInstance(
           await this.client?.getStreamLanguage(),
-          await this.client?.getStreamerUsername(),
+          await this.client?.getBroadcasterId(),
         ).translate(this.translationId, {}),
       );
     } catch (e) {

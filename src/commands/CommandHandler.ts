@@ -15,7 +15,7 @@ export abstract class CommandHandler {
       await client.dispatchBotMessage(
         TranslationManager.getInstance(
           await client.getStreamLanguage(),
-          await client.getStreamerUsername(),
+          await client.getBroadcasterId(),
         ).translate(`CMD_${this.constructor.name}_HELP`, {
           invokedBy: message.username,
         }),

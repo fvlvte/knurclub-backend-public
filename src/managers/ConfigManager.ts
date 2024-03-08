@@ -1,8 +1,9 @@
 import { MongoDBClient } from "../clients/MongoDBClient";
 import { readFileSync } from "node:fs";
+import { TranslationManager } from "./TranslationManager";
 
 const TRANSLATION_TEMPLATE = JSON.parse(
-  readFileSync("./locale/locale_pl_fvlvte.json", "utf-8"),
+  readFileSync("./locale/template_pl.json", "utf-8"),
 );
 
 type TieredLimit = { all: number; follower: number; paid: number };
@@ -139,6 +140,8 @@ export class ConfigManager {
     );
 
     this.config = { ...this.config, ...newCfg };
+
+    await TranslationManager.getInstance("pl", this.userId).reloadLocale();
   }
 
   //public async queryWithFallback(path: string): unknown {}

@@ -14,7 +14,7 @@ export class CreateReward extends CommandHandler {
         await client.dispatchBotMessage(
           TranslationManager.getInstance(
             await client.getStreamLanguage(),
-            await client.getStreamerUsername(),
+            await client.getBroadcasterId(),
           ).translate("UNAUTHORIZED_COMMAND_CALL", {
             invokedBy: message.username,
           }),
@@ -53,7 +53,7 @@ export class CreateReward extends CommandHandler {
       await client.dispatchBotMessage(
         TranslationManager.getInstance(
           await client.getStreamLanguage(),
-          await client.getStreamerUsername(),
+          await client.getBroadcasterId(),
         ).translate("SUCCESS", { invokedBy: message.username }),
       );
     } catch (e) {
@@ -61,7 +61,7 @@ export class CreateReward extends CommandHandler {
       await client.dispatchBotMessage(
         TranslationManager.getInstance(
           await client.getStreamLanguage(),
-          await client.getStreamerUsername(),
+          await client.getBroadcasterId(),
         ).translate("UNKNOWN_ERROR", { invokedBy: message.username, error: e }),
       );
     }

@@ -11,7 +11,7 @@ export class SongRequestQueue extends CommandHandler {
   ): Promise<void> {
     const translationManager = TranslationManager.getInstance(
       await client.getStreamLanguage(),
-      await client.getStreamerUsername(),
+      await client.getBroadcasterId(),
     );
 
     const queue = [

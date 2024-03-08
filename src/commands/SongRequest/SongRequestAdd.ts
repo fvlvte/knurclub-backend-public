@@ -11,7 +11,7 @@ export class SongRequestAdd extends CommandHandler {
   ): Promise<void> {
     const translationManager = TranslationManager.getInstance(
       await client.getStreamLanguage(),
-      await client.getStreamerUsername(),
+      await client.getBroadcasterId(),
     );
 
     const username = message.username;
