@@ -316,6 +316,8 @@ export class Songrequest {
     }
     if (query.includes("youtube.com") || query.includes("youtu.be")) {
       try {
+        const cfg = await ConfigManager.getUserInstance(this.id).getConfig();
+
         const data = await ytdl.getInfo(query);
 
         const views = parseInt(data.videoDetails.viewCount);
@@ -351,9 +353,16 @@ export class Songrequest {
           };
         }*/
 
+        const viewLimits = [
+          cfg.data.songRequest.viewLimit.follower,
+          cfg.data.songRequest.viewLimit.paid,
+          cfg.data.songRequest.viewLimit.paid,
+          cfg.data.songRequest.viewLimit.paid,
+        ];
+
         if (
           !isSoundAlert &&
-          views < Math.round(this.VIEW_LIMIT[userMetadata.subLevel])
+          views < Math.round(viewLimits[userMetadata.subLevel])
         ) {
           return {
             message: "SR_VIEW_LIMIT",
