@@ -129,9 +129,7 @@ export class Songrequest {
 
   // SUB 0, 1, 2, 3
   private readonly SONGS_IN_QUEUE = [1, 3, 4, 5];
-  private readonly VIEW_LIMIT = [21370, 21370 / 1.5, 21370 / 2, 2137];
   private readonly LENGTH_LIMIT = [5 * 60, 8 * 60, 10 * 60, 15 * 60];
-  private readonly QUEUE_MAX = 25;
 
   private readonly VOTES_TO_SKIP = 10;
 
@@ -367,7 +365,7 @@ export class Songrequest {
           return {
             message: "SR_VIEW_LIMIT",
             error: true,
-            param: { min: Math.round(this.VIEW_LIMIT[userMetadata.subLevel]) },
+            param: { min: Math.round(viewLimits[userMetadata.subLevel]) },
           };
         }
 
