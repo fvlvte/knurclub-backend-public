@@ -1,5 +1,5 @@
 import { Logger } from "./util/Logger";
-import { readFileSync } from "fs";
+import { readFileSync } from "node:fs";
 import { SecretsGuard } from "./util/SecretsGuard";
 import { ExternalServer } from "./ExternalServer";
 import { DiscordClient } from "./clients/DiscordClient";

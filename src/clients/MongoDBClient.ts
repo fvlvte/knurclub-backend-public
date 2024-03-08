@@ -3,6 +3,7 @@ import { Logger } from "../util/Logger";
 import { ConfigContainer } from "../managers/ConfigManager";
 import { UserInfo } from "../types/UserInfo";
 import { AuthToken } from "../types/Auth";
+import { deepEqualHelper } from "../util/Common";
 
 export class MongoDBClient {
   private client: MongoClient;
@@ -100,72 +101,30 @@ export class MongoDBClient {
       const users = this.client.db("users");
       const config = users.collection("config");
 
-      function deepEqualHelper(a: unknown, b: unknown) {
-        if (typeof a === "number" || typeof b === "string") {
-          return a === b;
-        } else if (typeof a === "object") {
-          if (Array.isArray(a)) {
-            if (!Array.isArray(b)) return false;
-            if (a.length !== b.length) {
-              return false;
-            }
-            for (let i = 0; i < a.length; i++) {
-              if (!deepEqualHelper(a[i], b[i])) return false;
-            }
-            return true;
-          } else {
-            if (a === null && b === null) return true;
-            if (a) {
-              if (!b) return false;
-              const aKeys = Object.keys(a);
-              const bKeys = Object.keys(b);
-
-              if (aKeys.length !== bKeys.length) return false;
-
-              for (const key of aKeys) {
-                if (
-                  !deepEqualHelper(
-                    (a as Record<string, unknown>)[key],
-                    (b as Record<string, unknown>)[key],
-                  )
-                )
-                  return false;
-              }
-              return true;
-            }
-          }
-        } else if (typeof a === "undefined") {
-          return typeof b === "undefined";
-        } else if (typeof a === "string") {
-          return a === b;
-        } else if (typeof a === "boolean") {
-          return a === b;
-        } else {
-          throw new Error("Unsupported equality check:" + typeof a);
-        }
-      }
-
       if (!diffObject) {
-        await config.insertOne({ userId: id, ...newObject });
-      } else {
-        const diff: Record<string, unknown> = {};
-        for (const key in newObject.data) {
-          if (
-            !deepEqualHelper(
-              (newObject.data as Record<string, unknown>)[key],
-              (diffObject.data as Record<string, unknown>)[key],
-            )
-          ) {
-            diff[`data.${key}`] = (newObject.data as Record<string, unknown>)[
-              key
-            ];
-          }
+        diffObject = { data: {} } as ConfigContainer;
+      }
+      const diff: Record<string, unknown> = {};
+      for (const key in newObject.data) {
+        if (
+          !deepEqualHelper(
+            (newObject.data as Record<string, unknown>)[key],
+            (diffObject.data as Record<string, unknown>)[key],
+          )
+        ) {
+          diff[`data.${key}`] = (newObject.data as Record<string, unknown>)[
+            key
+          ];
         }
       }
-      return await config.findOne({ userId: id });
+      return await config.updateOne(
+        { userId: id },
+        { $set: diff },
+        { upsert: true },
+      );
     } catch (e) {
       if (e instanceof Error) {
-        Logger.getInstance().error("Failed to fetch user config.", {
+        Logger.getInstance().error("Failed to save user config.", {
           error: { message: e.message, name: e.name },
         });
       }

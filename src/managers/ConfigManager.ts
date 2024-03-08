@@ -1,5 +1,5 @@
 import { MongoDBClient } from "../clients/MongoDBClient";
-import { readFileSync } from "fs";
+import { readFileSync } from "node:fs";
 
 const TRANSLATION_TEMPLATE = JSON.parse(
   readFileSync("./locale/locale_pl_fvlvte.json", "utf-8"),
@@ -86,7 +86,7 @@ export class ConfigManager {
     return this.config;
   }
 
-  public async loadConfig() {
+  public async loadConfig(): Promise<ConfigContainer> {
     const cfg = await MongoDBClient.getDefaultInstance().fetchUserConfig(
       this.userId,
     );
@@ -111,15 +111,22 @@ export class ConfigManager {
 
       return newConfig;
     }
-    const upgradedConfig = { ...V1DefaultConfig, ...cfg };
+    const upgradedConfig = {
+      ...V1DefaultConfig,
+      ...cfg.data,
+    };
 
-    this.config = upgradedConfig;
+    this.config = {
+      version: 1,
+      updatedAt: new Date().getTime(),
+      data: upgradedConfig,
+    };
 
-    upgradedConfig.data.translations = Object.assign(
+    this.config.data.translations = Object.assign(
       TRANSLATION_TEMPLATE,
-      upgradedConfig.data.translations,
+      upgradedConfig.translations,
     );
-    return upgradedConfig;
+    return this.config;
   }
 
   public async saveConfig(newCfg: ConfigContainer) {

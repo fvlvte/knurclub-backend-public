@@ -1,5 +1,5 @@
 import { default as express, NextFunction, Request, Response } from "express";
-import * as http from "http";
+import * as http from "node:http";
 import { TwitchAuthGuard, Data } from "./util/TwitchAuthGuard";
 import * as cors from "cors";
 import { default as bodyParser } from "body-parser";

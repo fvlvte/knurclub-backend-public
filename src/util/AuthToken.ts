@@ -3,8 +3,8 @@ import {
   createDecipheriv,
   createHash,
   createHmac,
-} from "crypto";
-import { readFile, writeFile } from "fs";
+} from "node:crypto";
+import { readFile, writeFile } from "node:fs";
 
 export interface TokenData {
   payload: string;

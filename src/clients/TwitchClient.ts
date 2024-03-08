@@ -109,7 +109,7 @@ export class TwitchClient {
 
   private refreshInterval?: NodeJS.Timeout;
 
-  private eventListeners: WebSocketSession[] = [];
+  private wsClientEventListener?: WebSocketSession;
 
   // internal id
   private streamerId?: string;
@@ -122,12 +122,18 @@ export class TwitchClient {
     default: [],
   };
 
-  public registerEventListenerSession(ses: WebSocketSession) {
-    this.eventListeners.push(ses);
+  public async registerEventListenerSession(ses: WebSocketSession) {
+    if (this.wsClientEventListener) {
+      await this.wsClientEventListener.cleanShutdownSession();
+    }
+    this.wsClientEventListener = ses;
   }
 
-  public removeEventListener(ses: WebSocketSession) {
-    this.eventListeners = this.eventListeners.filter((s) => s !== ses);
+  public async removeEventListener(ses: WebSocketSession) {
+    await ses.cleanShutdownSession();
+    if (this.wsClientEventListener === ses) {
+      this.wsClientEventListener = undefined;
+    }
   }
 
   private async handlePasza(msg: TwitchWebsocketSubOdPaszy) {
@@ -688,8 +694,8 @@ export class TwitchClient {
 
     clearInterval(this.refreshInterval);
 
-    for (const item of this.eventListeners) {
-      item.getWebSocket().close();
+    if (this.wsClientEventListener) {
+      await this.wsClientEventListener.cleanShutdownSession();
     }
 
     for (const timer of this.timers) timer.shut();

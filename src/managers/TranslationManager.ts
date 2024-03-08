@@ -1,5 +1,5 @@
 import { default as Handlebars } from "handlebars";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
 
 export class TranslationManager {
   private translationTable: Record<string, HandlebarsTemplateDelegate> = {};

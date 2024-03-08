@@ -5,6 +5,7 @@ import { TwitchClient } from "../clients/TwitchClient";
 import internal from "node:stream";
 import { TwitchAuthGuard } from "../util/TwitchAuthGuard";
 import { ClientManager } from "./ClientManager";
+import { Songrequest } from "../features/Songrequest";
 
 type WebSocketFrame = {
   type: string;
@@ -40,6 +41,18 @@ export class WebSocketSession {
   public deregisterEventListener(event: string) {
     this.eventListeners = this.eventListeners.filter((e) => e !== event);
     console.log(this.eventListeners);
+  }
+
+  public async cleanShutdownSession(): Promise<void> {
+    return new Promise((resolve) => {
+      this.ws.send(
+        JSON.stringify({ type: "session", status: "closed" }),
+        () => {
+          this.ws.close();
+          resolve();
+        },
+      );
+    });
   }
 }
 export class WebSocketManager {
@@ -147,6 +160,34 @@ export class WebSocketManager {
                 .getWebSocket()
                 .send(JSON.stringify({ type: "ack", success: true }));
               break;
+            }
+            case "sr.init": {
+              const sr = Songrequest.getInstance(
+                await client.getClient().getBroadcasterId(),
+              );
+
+              if (sr.getPlayingState()) {
+                const song = await sr.getNextSong();
+                if (song) {
+                  client.getWebSocket().send(
+                    JSON.stringify({
+                      type: "sr.v1.playback.start",
+                      params: {
+                        title: song.title,
+                        subtitle: "mockup",
+                        playerIconSource: song.coverImage,
+                        playerAudioSource: song.mediaBase64,
+                        duration: song.duration,
+                        user: {
+                          id: "mockup",
+                          name: song.requestedBy,
+                          reputation: song.userReputation,
+                        },
+                      },
+                    }),
+                  );
+                }
+              }
             }
           }
 
