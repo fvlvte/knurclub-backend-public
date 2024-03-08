@@ -37,7 +37,6 @@ import { SongRequestWrongSong } from "../commands/SongRequest/SongRequestWrongSo
 import { SongRequestMySong } from "../commands/SongRequest/SongRequestMySong";
 import { StaticText } from "../commands/StaticText";
 import { Timer } from "../timers/Timer";
-//import { StaticTextTimer } from "../timers/StaticTextTimer";
 import { SongRequestWipe } from "../commands/SongRequest/SongRequestWipe";
 import { MongoDBClient } from "./MongoDBClient";
 import { SongRequestVolumeSet } from "../commands/SongRequest/SongRequestVolumeSet";

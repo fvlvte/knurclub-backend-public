@@ -29,9 +29,9 @@ export class SongRequestAdd extends CommandHandler {
       {
         subLevel,
         username,
+        isMod: message.tags.isModerator ?? false,
       },
       false,
-      message,
     );
 
     await client.dispatchBotMessage(

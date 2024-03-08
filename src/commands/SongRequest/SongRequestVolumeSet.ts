@@ -3,12 +3,16 @@ import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { Songrequest } from "../../features/Songrequest";
 import { TwitchClient } from "../../clients/TwitchClient";
+import { ConfigManager } from "../../managers/ConfigManager";
 
 export class SongRequestVolumeSet extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,
   ): Promise<void> {
+    const config = await ConfigManager.getUserInstance(
+      await client.getBroadcasterId(),
+    ).getConfig();
     const translationManager = TranslationManager.getInstance(
       await client.getStreamLanguage(),
       await client.getBroadcasterId(),
@@ -16,7 +20,8 @@ export class SongRequestVolumeSet extends CommandHandler {
 
     if (
       !(
-        message.tags.isModerator ||
+        (message.tags.isModerator &&
+          config.data.songRequest.allowModsControlVolume) ||
         message.username.toLowerCase() ===
           (await client.getStreamerUsername()).toLowerCase()
       )

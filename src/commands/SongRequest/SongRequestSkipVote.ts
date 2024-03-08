@@ -3,6 +3,7 @@ import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { Songrequest } from "../../features/Songrequest";
 import { TwitchClient } from "../../clients/TwitchClient";
+import { ConfigManager } from "../../managers/ConfigManager";
 
 export class SongRequestSkipVote extends CommandHandler {
   async handleCommand(
@@ -13,6 +14,10 @@ export class SongRequestSkipVote extends CommandHandler {
       await client.getStreamLanguage(),
       await client.getBroadcasterId(),
     );
+
+    const config = await ConfigManager.getUserInstance(
+      await client.getBroadcasterId(),
+    ).getConfig();
 
     const sr = Songrequest.getInstance(await client.getBroadcasterId());
 
@@ -50,7 +55,11 @@ export class SongRequestSkipVote extends CommandHandler {
       return;
     }
 
-    const counter = sr.voteSkip(message.username);
+    if (!config.data.songRequest.allowSkipVote) {
+      return;
+    }
+
+    const counter = await sr.voteSkip(message.username);
 
     if (counter > 0) {
       await client.dispatchBotMessage(

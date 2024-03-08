@@ -2,7 +2,6 @@ import ytdl from "@distube/ytdl-core";
 import { default as axios } from "axios";
 import { MongoDBClient } from "../clients/MongoDBClient";
 import { ConfigManager } from "../managers/ConfigManager";
-import { TwitchMessage } from "../types/TwitchTypes";
 
 type TryAddSongResult = {
   message: string;
@@ -115,23 +114,7 @@ const findYtVideoByTitle = async (title: string): Promise<string | null> => {
 };
 
 export class Songrequest {
-  private readonly BANNED_USERS: string[] = [];
-
-  /*private readonly ALLOWED_CATEGORIES = [
-    "Gaming",
-    "Music",
-    "People & Blogs",
-    "Entertainment",
-    "Education",
-  ];*/
-
   private readonly BANNED_KEYWORDS = ["earrape"];
-
-  // SUB 0, 1, 2, 3
-  private readonly SONGS_IN_QUEUE = [1, 3, 4, 5];
-  private readonly LENGTH_LIMIT = [5 * 60, 8 * 60, 10 * 60, 15 * 60];
-
-  private readonly VOTES_TO_SKIP = 10;
 
   private readonly queue: SongInfo[] = [];
   private readonly alertQueue: SongInfo[] = [];
@@ -270,18 +253,29 @@ export class Songrequest {
     query: string,
     userMetadata: { subLevel: number; isMod?: boolean; username: string },
     isSoundAlert: boolean = false,
-    messageTrigger?: TwitchMessage,
   ): Promise<TryAddSongResult> {
     const config = await ConfigManager.getUserInstance(this.id).getConfig();
 
-    if (query.length < 2)
+    const tier =
+      typeof userMetadata.subLevel === "number" && userMetadata.subLevel > 0
+        ? 1
+        : 0;
+    const isModerator = userMetadata.isMod;
+
+    const skipChecks = isModerator
+      ? config.data.songRequest.modSkipLimits
+      : false;
+
+    // Too short title.
+    if (!skipChecks && query.length < 2)
       return { message: "SR_ADD_UNKNOWN_ERROR", error: false, param: {} };
 
-    if (this.queue.length >= Math.round(config.data.songRequest.queueMax)) {
+    const queueLimitConfig = Math.round(config.data.songRequest.queueMax);
+    if (!skipChecks && this.queue.length >= queueLimitConfig) {
       return {
         message: "SR_QUEUE_LIMIT",
         error: true,
-        param: { limit: Math.round(config.data.songRequest.queueMax) },
+        param: { limit: queueLimitConfig },
       };
     }
 
@@ -294,28 +288,22 @@ export class Songrequest {
       }
     }
 
-    let userLimit = Math.round(this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0]);
-    if (messageTrigger) {
-      if (messageTrigger.tags.isModerator) {
-        userLimit = 999;
-      } else if (userMetadata.subLevel > 0) {
-        userLimit = config.data.songRequest.queueLimit.paid;
-      } else {
-        userLimit = config.data.songRequest.queueLimit.all;
-      }
-    }
+    const userLimit = Math.round(
+      tier === 1
+        ? config.data.songRequest.queueLimit.paid
+        : config.data.songRequest.queueLimit.all,
+    );
 
-    if (songsInQueuePerUser + 1 > Math.round(userLimit)) {
+    if (!skipChecks && songsInQueuePerUser > userLimit) {
       return {
         message: "SR_QUEUE_SONG_LIMIT",
         error: true,
-        param: { limit: Math.round(userLimit) },
+        param: { limit: userLimit },
       };
     }
+
     if (query.includes("youtube.com") || query.includes("youtu.be")) {
       try {
-        const cfg = await ConfigManager.getUserInstance(this.id).getConfig();
-
         const data = await ytdl.getInfo(query);
 
         const views = parseInt(data.videoDetails.viewCount);
@@ -332,65 +320,62 @@ export class Songrequest {
           };
         }
 
-        if (
+        /*if (
+          !skipChecks &&
           !isSoundAlert &&
-          this.BANNED_USERS.includes(userMetadata.username)
+          this.BANNED_USERS.includes(userMetadata.username) // TODO: add to config
         ) {
           return { message: "SR_BANNED_USER", error: true, param: {} };
-        }
+        }*/
 
-        if (!isSoundAlert && this.BANNED_KEYWORDS.includes(titleProcessed)) {
+        if (
+          !skipChecks &&
+          !isSoundAlert &&
+          this.BANNED_KEYWORDS.includes(titleProcessed) // TODO: add to config
+        ) {
           return { message: "SR_BANNED_KEYWORD", error: true, param: {} };
         }
 
-        /*if (!isSoundAlert && !this.ALLOWED_CATEGORIES.includes(category)) {
-          return {
-            message: "SR_NON_ALLOWED_CATEGORY",
-            error: true,
-            param: { category: category },
-          };
-        }*/
+        const viewLimit = Math.round(
+          tier === 1
+            ? config.data.songRequest.viewLimit.paid
+            : config.data.songRequest.viewLimit.all,
+        );
 
-        const viewLimits = [
-          cfg.data.songRequest.viewLimit.follower,
-          cfg.data.songRequest.viewLimit.paid,
-          cfg.data.songRequest.viewLimit.paid,
-          cfg.data.songRequest.viewLimit.paid,
-        ];
-
-        if (
-          !isSoundAlert &&
-          views < Math.round(viewLimits[userMetadata.subLevel])
-        ) {
+        if (!skipChecks && !isSoundAlert && views < viewLimit) {
           return {
             message: "SR_VIEW_LIMIT",
             error: true,
-            param: { min: Math.round(viewLimits[userMetadata.subLevel]) },
+            param: { min: viewLimit },
           };
         }
 
-        if (
-          !isSoundAlert &&
-          length > Math.round(this.LENGTH_LIMIT[userMetadata.subLevel])
-        ) {
+        const lengthLimit = Math.round(
+          tier === 1
+            ? config.data.songRequest.lengthLimit.paid
+            : config.data.songRequest.lengthLimit.all,
+        );
+
+        if (!skipChecks && !isSoundAlert && length > lengthLimit) {
           return {
             message: "SR_LENGTH_LIMIT",
             error: true,
             param: {
-              max: Math.round(this.LENGTH_LIMIT[userMetadata.subLevel]),
+              max: lengthLimit,
             },
           };
         }
 
-        const userReputation = Math.round(
-          this.reputationRanking[userMetadata.username] ?? 0,
-        );
+        const repLimit = config.data.songRequest.badVoteLimit;
 
-        if (!isSoundAlert && userReputation <= -25) {
+        const userReputation =
+          this.reputationRanking[userMetadata.username] ?? 0;
+
+        if (!isSoundAlert && userReputation <= repLimit) {
           return {
             message: "SR_NEGATIVE_REPUTATION_LIMIT",
             error: true,
-            param: {},
+            param: { limit: repLimit },
           };
         }
 
@@ -439,12 +424,14 @@ export class Songrequest {
     }
   }
 
-  public voteSkip(username: string): number {
+  public async voteSkip(username: string): Promise<number> {
     if (!this.skipCounter.includes(username)) {
       this.skipCounter.push(username);
     }
 
-    const skipCounter = this.VOTES_TO_SKIP - this.skipCounter.length;
+    const config = await ConfigManager.getUserInstance(this.id).getConfig();
+    const requiredVotes = config.data.songRequest.requiredVotesToSkip;
+    const skipCounter = requiredVotes - this.skipCounter.length;
 
     if (skipCounter < 1) {
       this.skipFlag = true;
