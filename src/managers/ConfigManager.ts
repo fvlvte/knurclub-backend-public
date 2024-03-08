@@ -6,13 +6,13 @@ const TRANSLATION_TEMPLATE = JSON.parse(
   readFileSync("./locale/template_pl.json", "utf-8"),
 );
 
-type TieredLimit = { all: number; follower: number; paid: number };
+type TieredLimit = { all: number; paid: number };
 
 export type SongRequestV1Config = {
-  vipSkipLimits: boolean;
+  //vipSkipLimits: boolean;
   modSkipLimits: boolean;
 
-  allowNonFollowers: boolean;
+  //allowNonFollowers: boolean;
 
   queueMax: number;
 
@@ -26,7 +26,7 @@ export type SongRequestV1Config = {
   requiredVotesToSkip: number;
 
   badVoteLimit: number;
-  badVoteDecay: number;
+  //badVoteDecay: number;
 };
 
 export type ConfigV1 = {
@@ -42,24 +42,20 @@ export type ConfigContainer = {
 
 const V1DefaultConfig: ConfigV1 = {
   songRequest: {
-    vipSkipLimits: false,
     modSkipLimits: true,
-
-    allowNonFollowers: false,
 
     queueMax: 50,
 
     allowModsControlVolume: false,
 
-    viewLimit: { all: 300000, follower: 21370, paid: 21370 / 2 },
-    lengthLimit: { all: 3 * 60, follower: 5 * 60, paid: 7 * 60 },
-    queueLimit: { all: 1, follower: 2, paid: 4 },
+    viewLimit: { all: 21370, paid: 21370 / 2 },
+    lengthLimit: { all: 5 * 60, paid: 7 * 60 },
+    queueLimit: { all: 3, paid: 5 },
 
     allowSkipVote: true,
     requiredVotesToSkip: 10,
 
     badVoteLimit: 25,
-    badVoteDecay: 10,
   },
   translations: {},
 };
@@ -73,7 +69,7 @@ export class ConfigManager {
     return this.userInstances[userId];
   }
 
-  private userId: string;
+  private readonly userId: string;
   constructor(userId: string) {
     this.userId = userId;
   }
@@ -143,6 +139,4 @@ export class ConfigManager {
 
     await TranslationManager.getInstance("pl", this.userId).reloadLocale();
   }
-
-  //public async queryWithFallback(path: string): unknown {}
 }
