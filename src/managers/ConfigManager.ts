@@ -55,7 +55,7 @@ const V1DefaultConfig: ConfigV1 = {
     allowSkipVote: true,
     requiredVotesToSkip: 10,
 
-    badVoteLimit: 25,
+    badVoteLimit: -25,
   },
   translations: {},
 };

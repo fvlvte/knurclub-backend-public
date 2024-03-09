@@ -371,7 +371,7 @@ export class Songrequest {
         const userReputation =
           this.reputationRanking[userMetadata.username] ?? 0;
 
-        if (!isSoundAlert && userReputation >= repLimit) {
+        if (!isSoundAlert && userReputation <= repLimit) {
           return {
             message: "SR_NEGATIVE_REPUTATION_LIMIT",
             error: true,
