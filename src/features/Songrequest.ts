@@ -294,7 +294,7 @@ export class Songrequest {
         : config.data.songRequest.queueLimit.all,
     );
 
-    if (!skipChecks && songsInQueuePerUser > userLimit) {
+    if (!skipChecks && songsInQueuePerUser >= userLimit) {
       return {
         message: "SR_QUEUE_SONG_LIMIT",
         error: true,

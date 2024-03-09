@@ -22,7 +22,7 @@ export class ReloadLocale extends CommandHandler {
       }
     } catch (e) {}
 
-    translationManager.reloadLocale();
+    await translationManager.reloadLocale();
     await client.dispatchBotMessage(
       translationManager.translate("SUCCESS", { invokedBy: message.username }),
     );
