@@ -3,9 +3,9 @@ import { createServer } from "http";
 import { IncomingMessage, Server } from "node:http";
 import { TwitchClient } from "../clients/TwitchClient";
 import internal from "node:stream";
-import { TwitchAuthGuard } from "../util/TwitchAuthGuard";
+import { Data, TwitchAuthGuard } from "../util/TwitchAuthGuard";
 import { ClientManager } from "./ClientManager";
-import { Songrequest } from "../features/Songrequest";
+import { NewSongrequest, PlayerTickData } from "../features/NewSongrequest";
 
 type WebSocketFrame = {
   type: string;
@@ -58,6 +58,7 @@ export class WebSocketSession {
 export class WebSocketManager {
   private wss?: WebSocketServer;
   private server?: Server;
+  private data?: Data;
 
   constructor() {}
 
@@ -67,10 +68,10 @@ export class WebSocketManager {
     const token = request.url?.split("token=")[1];
     if (typeof token === "string") {
       const t = await TwitchAuthGuard.decodeToken(token);
+      this.data = t;
       return ClientManager.getInstance().handleKeepAliveTick(
         t.user_id,
         t.refresh_token,
-        true,
       );
     } else {
       return null;
@@ -106,7 +107,9 @@ export class WebSocketManager {
           new WebSocketSession(ws, result),
         );
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   init(): void {
@@ -114,6 +117,9 @@ export class WebSocketManager {
     this.wss = new WebSocketServer({
       noServer: true,
     });
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
 
     this.server.on("upgrade", this.upgrade.bind(this));
 
@@ -137,7 +143,12 @@ export class WebSocketManager {
 
         client.getClient().registerEventListenerSession(client);
 
-        ws.on("message", async function message(data) {
+        ws.on("message", async (data) => {
+          ClientManager.getInstance().handleKeepAliveTick(
+            self.data?.user_id as string,
+            self.data?.refresh_token as string,
+          );
+
           const parsedData = (
             data instanceof Buffer
               ? JSON.parse(data.toString("utf-8"))
@@ -161,8 +172,18 @@ export class WebSocketManager {
                 .send(JSON.stringify({ type: "ack", success: true }));
               break;
             }
+            case "sr.v1.player.status": {
+              const sr = NewSongrequest.getInstance(
+                await client.getClient().getBroadcasterId(),
+              );
+              await sr.handlePlayerPingTick(
+                parsedData.param as unknown as PlayerTickData,
+                client,
+              );
+              break;
+            }
             case "sr.init": {
-              const sr = Songrequest.getInstance(
+              const sr = NewSongrequest.getInstance(
                 await client.getClient().getBroadcasterId(),
               );
 
@@ -178,6 +199,7 @@ export class WebSocketManager {
                         playerIconSource: song.coverImage,
                         playerAudioSource: song.mediaBase64,
                         duration: song.duration,
+                        startFrom: song.startFrom,
                         user: {
                           id: "mockup",
                           name: song.requestedBy,

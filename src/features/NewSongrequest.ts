@@ -2,7 +2,7 @@ import ytdl from "@distube/ytdl-core";
 import { default as axios } from "axios";
 import { MongoDBClient } from "../clients/MongoDBClient";
 import { ConfigManager } from "../managers/ConfigManager";
-import { TwitchMessage } from "../types/TwitchTypes";
+import { WebSocketSession } from "../managers/WebSocketManager";
 
 type TryAddSongResult = {
   message: string;
@@ -18,6 +18,7 @@ type SongInfo = {
   coverImage: string;
   url: string;
   duration: number;
+  startFrom?: number;
 };
 
 interface YoutubeSearchListResponse {
@@ -114,18 +115,23 @@ const findYtVideoByTitle = async (title: string): Promise<string | null> => {
   }
 };
 
+export type AudioState = {
+  isPlaying: boolean;
+  volume: number;
+  time: {
+    current: number;
+    duration: number;
+  };
+};
+
+export type PlayerTickData = {
+  status: "idle" | "playing" | "error";
+  song?: SongInfo;
+  audioState?: AudioState;
+};
+
 export class NewSongrequest {
-  private readonly BANNED_USERS: string[] = [];
-
   private readonly BANNED_KEYWORDS = ["earrape"];
-
-  // SUB 0, 1, 2, 3
-  private readonly SONGS_IN_QUEUE = [1, 3, 4, 5];
-  private readonly VIEW_LIMIT = [21370, 21370 / 1.5, 21370 / 2, 2137];
-  private readonly LENGTH_LIMIT = [5 * 60, 8 * 60, 10 * 60, 15 * 60];
-  private readonly QUEUE_MAX = 25;
-
-  private readonly VOTES_TO_SKIP = 10;
 
   private readonly queue: SongInfo[] = [];
   private readonly alertQueue: SongInfo[] = [];
@@ -140,25 +146,13 @@ export class NewSongrequest {
   private currentSong: SongInfo | null = null;
   private currentSongStartedAt: number | null = null;
   private currentSongVotes: string[] = [];
+  private audioState: AudioState | null = null;
 
   private skipCounter: string[] = [];
   private skipFlag: boolean = false;
   private reputationRanking: { [username: string]: number } = {};
   private voteCounter: { [username: string]: number } = {};
-
-  /** Song seeking controller */
-
-  private currentTime: number = 0;
-  private playbackStartedAt: number = 0;
-
-  /** Control flags */
-
-  // Determines if the player widget could be displayed (if hidden it still can play without player).
-  private flagShowPlayer: boolean = true;
-  // Determines if the song could be played.
-  private flagPlay: boolean = true;
-  // Determines if connection with WebSocket client is healthy.
-  private flagConnectedSocket: boolean = false;
+  private session?: WebSocketSession;
 
   private constructor(id: string) {
     this.id = id;
@@ -168,6 +162,7 @@ export class NewSongrequest {
       .then((d) => {
         if (d) {
           this.queue.push(...JSON.parse(d));
+          this.handleQueueUpdate();
         }
       })
       .catch(console.error);
@@ -187,6 +182,104 @@ export class NewSongrequest {
       this.instances[id || "default"] = new NewSongrequest(id || "default");
     }
     return this.instances[id || "default"];
+  }
+
+  private async handleQueueUpdate() {
+    if (this.currentSong === null || this.audioState === null) {
+      const song = await this.getNextSong();
+      if (song) {
+        this.currentSong = song;
+        this.currentSongStartedAt = new Date().getTime();
+
+        if (song) {
+          this.session?.getWebSocket().send(
+            JSON.stringify({
+              type: "sr.v1.playback.start",
+              params: {
+                title: song.title,
+                subtitle: "mockup",
+                playerIconSource: song.coverImage,
+                playerAudioSource: song.mediaBase64,
+                duration: song.duration,
+                user: {
+                  id: "mockup",
+                  name: song.requestedBy,
+                  reputation: song.userReputation,
+                },
+              },
+            }),
+          );
+        }
+      }
+    }
+  }
+
+  public async handlePlayerPingTick(
+    tickData: PlayerTickData,
+    session: WebSocketSession,
+  ): Promise<void> {
+    this.session = session;
+
+    if (tickData.status === "idle") {
+      if (
+        !this.audioState ||
+        this.audioState.time.duration - this.audioState.time.current < 3
+      ) {
+        this.currentSong = null;
+        this.currentSongStartedAt = null;
+        this.currentPlayerMark = 0;
+      }
+
+      const song = await this.getNextSong();
+      if (song) {
+        session.getWebSocket().send(
+          JSON.stringify({
+            type: "sr.v1.playback.start",
+            params: {
+              title: song.title,
+              subtitle: "mockup",
+              playerIconSource: song.coverImage,
+              playerAudioSource: song.mediaBase64,
+              duration: song.duration,
+              startFrom: song.startFrom,
+              user: {
+                id: "mockup",
+                name: song.requestedBy,
+                reputation: song.userReputation,
+              },
+            },
+          }),
+        );
+      }
+    } else if (tickData.status === "playing") {
+      if (
+        !this.currentSong ||
+        this.currentSong?.title !== tickData.song?.title
+      ) {
+        if (tickData.song) {
+          this.currentSong = tickData.song;
+        }
+      }
+      this.audioState = tickData.audioState ?? null;
+
+      if (this.audioState) {
+        if (
+          typeof this.audioState.time.duration === "number" &&
+          typeof this.audioState.time.current === "number" &&
+          !isNaN(this.audioState.time.duration) &&
+          !isNaN(this.audioState.time.current)
+        ) {
+          if (
+            this.audioState.time.duration - this.audioState.time.current <
+            1
+          ) {
+            this.currentSong = null;
+            this.audioState = null;
+            return this.handleQueueUpdate();
+          }
+        }
+      }
+    }
   }
 
   public handlePlaybackFeedback(time: number, songInfo: unknown) {
@@ -278,18 +371,29 @@ export class NewSongrequest {
     query: string,
     userMetadata: { subLevel: number; isMod?: boolean; username: string },
     isSoundAlert: boolean = false,
-    messageTrigger?: TwitchMessage,
   ): Promise<TryAddSongResult> {
     const config = await ConfigManager.getUserInstance(this.id).getConfig();
 
-    if (query.length < 2)
+    const tier =
+      typeof userMetadata.subLevel === "number" && userMetadata.subLevel > 0
+        ? 1
+        : 0;
+    const isModerator = userMetadata.isMod;
+
+    const skipChecks = isModerator
+      ? config.data.songRequest.modSkipLimits
+      : false;
+
+    // Too short title.
+    if (!skipChecks && query.length < 2)
       return { message: "SR_ADD_UNKNOWN_ERROR", error: false, param: {} };
 
-    if (this.queue.length >= Math.round(config.data.songRequest.queueMax)) {
+    const queueLimitConfig = Math.round(config.data.songRequest.queueMax);
+    if (!skipChecks && this.queue.length >= queueLimitConfig) {
       return {
         message: "SR_QUEUE_LIMIT",
         error: true,
-        param: { limit: Math.round(config.data.songRequest.queueMax) },
+        param: { limit: queueLimitConfig },
       };
     }
 
@@ -302,24 +406,20 @@ export class NewSongrequest {
       }
     }
 
-    let userLimit = Math.round(this.SONGS_IN_QUEUE[userMetadata.subLevel ?? 0]);
-    if (messageTrigger) {
-      if (messageTrigger.tags.isModerator) {
-        userLimit = 999;
-      } else if (userMetadata.subLevel > 0) {
-        userLimit = config.data.songRequest.queueLimit.paid;
-      } else {
-        userLimit = config.data.songRequest.queueLimit.all;
-      }
-    }
+    const userLimit = Math.round(
+      tier === 1
+        ? config.data.songRequest.queueLimit.paid
+        : config.data.songRequest.queueLimit.all,
+    );
 
-    if (songsInQueuePerUser + 1 > Math.round(userLimit)) {
+    if (!skipChecks && songsInQueuePerUser >= userLimit) {
       return {
         message: "SR_QUEUE_SONG_LIMIT",
         error: true,
-        param: { limit: Math.round(userLimit) },
+        param: { limit: userLimit },
       };
     }
+
     if (query.includes("youtube.com") || query.includes("youtu.be")) {
       try {
         const data = await ytdl.getInfo(query);
@@ -338,58 +438,62 @@ export class NewSongrequest {
           };
         }
 
-        if (
+        /*if (
+          !skipChecks &&
           !isSoundAlert &&
-          this.BANNED_USERS.includes(userMetadata.username)
+          this.BANNED_USERS.includes(userMetadata.username) // TODO: add to config
         ) {
           return { message: "SR_BANNED_USER", error: true, param: {} };
-        }
-
-        if (!isSoundAlert && this.BANNED_KEYWORDS.includes(titleProcessed)) {
-          return { message: "SR_BANNED_KEYWORD", error: true, param: {} };
-        }
-
-        /*if (!isSoundAlert && !this.ALLOWED_CATEGORIES.includes(category)) {
-          return {
-            message: "SR_NON_ALLOWED_CATEGORY",
-            error: true,
-            param: { category: category },
-          };
         }*/
 
         if (
+          !skipChecks &&
           !isSoundAlert &&
-          views < Math.round(this.VIEW_LIMIT[userMetadata.subLevel])
+          this.BANNED_KEYWORDS.includes(titleProcessed) // TODO: add to config
         ) {
+          return { message: "SR_BANNED_KEYWORD", error: true, param: {} };
+        }
+
+        const viewLimit = Math.round(
+          tier === 1
+            ? config.data.songRequest.viewLimit.paid
+            : config.data.songRequest.viewLimit.all,
+        );
+
+        if (!skipChecks && !isSoundAlert && views < viewLimit) {
           return {
             message: "SR_VIEW_LIMIT",
             error: true,
-            param: { min: Math.round(this.VIEW_LIMIT[userMetadata.subLevel]) },
+            param: { min: viewLimit },
           };
         }
 
-        if (
-          !isSoundAlert &&
-          length > Math.round(this.LENGTH_LIMIT[userMetadata.subLevel])
-        ) {
+        const lengthLimit = Math.round(
+          tier === 1
+            ? config.data.songRequest.lengthLimit.paid
+            : config.data.songRequest.lengthLimit.all,
+        );
+
+        if (!skipChecks && !isSoundAlert && length > lengthLimit) {
           return {
             message: "SR_LENGTH_LIMIT",
             error: true,
             param: {
-              max: Math.round(this.LENGTH_LIMIT[userMetadata.subLevel]),
+              max: lengthLimit,
             },
           };
         }
 
-        const userReputation = Math.round(
-          this.reputationRanking[userMetadata.username] ?? 0,
-        );
+        const repLimit = config.data.songRequest.badVoteLimit;
 
-        if (!isSoundAlert && userReputation <= -25) {
+        const userReputation =
+          this.reputationRanking[userMetadata.username] ?? 0;
+
+        if (!isSoundAlert && userReputation <= repLimit) {
           return {
             message: "SR_NEGATIVE_REPUTATION_LIMIT",
             error: true,
-            param: {},
+            param: { limit: repLimit },
           };
         }
 
@@ -404,10 +508,10 @@ export class NewSongrequest {
 
         if (!isSoundAlert) {
           this.queue.push(songInfo);
-          await MongoDBClient.getDefaultInstance().storeQueue(
+          /*await MongoDBClient.getDefaultInstance().storeQueue(
             this.id,
             JSON.stringify(this.queue),
-          );
+          );*/
           return {
             message: "SR_ADD_OK",
             error: false,
@@ -419,6 +523,7 @@ export class NewSongrequest {
           };
         } else {
           this.alertQueue.push(songInfo);
+          await this.handleQueueUpdate();
           return {
             message: "SA_ADD_OK",
             error: false,
@@ -438,12 +543,14 @@ export class NewSongrequest {
     }
   }
 
-  public voteSkip(username: string): number {
+  public async voteSkip(username: string): Promise<number> {
     if (!this.skipCounter.includes(username)) {
       this.skipCounter.push(username);
     }
 
-    const skipCounter = this.VOTES_TO_SKIP - this.skipCounter.length;
+    const config = await ConfigManager.getUserInstance(this.id).getConfig();
+    const requiredVotes = config.data.songRequest.requiredVotesToSkip;
+    const skipCounter = requiredVotes - this.skipCounter.length;
 
     if (skipCounter < 1) {
       this.skipFlag = true;
@@ -496,6 +603,14 @@ export class NewSongrequest {
   }
 
   public async getNextSong(): Promise<SongInfo | null> {
+    if (
+      this.currentSong &&
+      this.audioState &&
+      this.audioState.time.duration - this.audioState.time.current > 1
+    ) {
+      this.currentSong.startFrom = this.audioState.time.current;
+      return this.currentSong;
+    }
     if (this.queue.length > 0) {
       const song = this.queue.splice(0, 1)[0];
       this.currentSongVotes = [];
@@ -504,9 +619,9 @@ export class NewSongrequest {
       this.currentSong = song;
       this.currentSongStartedAt = new Date().getTime();
       this.skipCounter = [];
-      MongoDBClient.getDefaultInstance()
+      /*MongoDBClient.getDefaultInstance()
         .storeQueue(this.id, JSON.stringify(this.queue))
-        .catch(console.error);
+        .catch(console.error);*/
       return song;
     }
     return null;
