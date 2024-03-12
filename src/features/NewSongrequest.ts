@@ -221,15 +221,6 @@ export class NewSongrequest {
     this.session = session;
 
     if (tickData.status === "idle") {
-      if (
-        !this.audioState ||
-        this.audioState.time.duration - this.audioState.time.current < 3
-      ) {
-        this.currentSong = null;
-        this.currentSongStartedAt = null;
-        this.currentPlayerMark = 0;
-      }
-
       const song = await this.getNextSong();
       if (song) {
         session.getWebSocket().send(
