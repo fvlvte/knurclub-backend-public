@@ -31,6 +31,22 @@ export class ExternalServer {
     this.app = express();
   }
 
+  private timeoutLoggerMiddleware(
+    req: RequestWithAuthData,
+    _res: Response,
+    next: NextFunction,
+  ) {
+    const timeout = setTimeout(() => {
+      Logger.getInstance().warn(
+        `Request to ${req.url} took too long to respond ${req.url} ${req.method} ${req.query} ${req.body}`,
+      );
+    }, 7500);
+    req.on("end", () => {
+      clearTimeout(timeout);
+    });
+    next();
+  }
+
   private authMiddleware(
     req: RequestWithAuthData,
     _res: Response,
@@ -92,6 +108,7 @@ export class ExternalServer {
       this.app.use(cors.default());
 
       this.app.use(bodyParser.json());
+      this.app.use(this.timeoutLoggerMiddleware.bind(this));
 
       this.bindRoutes();
 
