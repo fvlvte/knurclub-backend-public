@@ -2,6 +2,8 @@ import ytdl from "@distube/ytdl-core";
 import { default as axios } from "axios";
 import { MongoDBClient } from "../clients/MongoDBClient";
 import { ConfigManager } from "../managers/ConfigManager";
+import { FeatureFlag, isFeatureEnabled } from "../util/FeatureFlag";
+import { NewSongrequest } from "./NewSongrequest";
 
 type TryAddSongResult = {
   message: string;
@@ -158,6 +160,10 @@ export class Songrequest {
   private static instances: { [id: string]: Songrequest } = {};
 
   public static getInstance(id?: string): Songrequest {
+    if (isFeatureEnabled(FeatureFlag.FF_NEW_PLAYER, id as string)) {
+      return NewSongrequest.getInstance(id) as unknown as Songrequest;
+    }
+
     if (!this.instances[id || "default"]) {
       this.instances[id || "default"] = new Songrequest(id || "default");
     }

@@ -508,10 +508,13 @@ export class NewSongrequest {
 
         if (!isSoundAlert) {
           this.queue.push(songInfo);
-          /*await MongoDBClient.getDefaultInstance().storeQueue(
+          await MongoDBClient.getDefaultInstance().storeQueue(
             this.id,
             JSON.stringify(this.queue),
-          );*/
+          );
+
+          await this.handleQueueUpdate();
+
           return {
             message: "SR_ADD_OK",
             error: false,
@@ -523,7 +526,7 @@ export class NewSongrequest {
           };
         } else {
           this.alertQueue.push(songInfo);
-          await this.handleQueueUpdate();
+
           return {
             message: "SA_ADD_OK",
             error: false,
@@ -554,12 +557,27 @@ export class NewSongrequest {
 
     if (skipCounter < 1) {
       this.skipFlag = true;
+      this.session?.getWebSocket().send(
+        JSON.stringify({
+          type: "sr.v1.playback.skip",
+          params: null,
+        }),
+      );
     }
 
     return skipCounter >= 0 ? skipCounter : 0;
   }
 
   public skip(): void {
+    this.currentSong = null;
+    this.audioState = null;
+
+    this.session?.getWebSocket().send(
+      JSON.stringify({
+        type: "sr.v1.playback.skip",
+        params: null,
+      }),
+    );
     this.skipFlag = true;
   }
 
@@ -619,9 +637,9 @@ export class NewSongrequest {
       this.currentSong = song;
       this.currentSongStartedAt = new Date().getTime();
       this.skipCounter = [];
-      /*MongoDBClient.getDefaultInstance()
+      MongoDBClient.getDefaultInstance()
         .storeQueue(this.id, JSON.stringify(this.queue))
-        .catch(console.error);*/
+        .catch(console.error);
       return song;
     }
     return null;
@@ -629,6 +647,15 @@ export class NewSongrequest {
 
   public wipeQueue() {
     this.queue.length = 0;
+    this.currentSong = null;
+    this.audioState = null;
+
+    this.session?.getWebSocket().send(
+      JSON.stringify({
+        type: "sr.v1.playback.skip",
+        params: null,
+      }),
+    );
   }
 
   public async getNextAlert(): Promise<SongInfo | null> {
