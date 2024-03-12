@@ -70,6 +70,7 @@ export class TwitchAuthGuard {
       "811034930", // minio
       "204137613", // kacperacy
       "229434903", // xyzmelio
+      "1024010545", // fvlvteBOT
     ];
 
     if (!whitelistedUserIDs.includes(userId)) {
