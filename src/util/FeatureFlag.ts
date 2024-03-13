@@ -7,6 +7,7 @@ export const isFeatureEnabled = (
   flag: FeatureFlag,
   streamerId: string,
 ): boolean => {
+  return false;
   if (
     flag === FeatureFlag.FF_NEW_PLAYER &&
     newPlayerEnabledIds.includes(streamerId)
