@@ -159,6 +159,10 @@ export class WebSocketManager {
 
           switch (parsedData.type) {
             case "event.subscribe": {
+              const sr = NewSongrequest.getInstance(
+                await client.getClient().getBroadcasterId(),
+              );
+              sr.bindSession(client);
               client.registerEventListener(parsedData.param[0]);
               client
                 .getWebSocket()
@@ -170,6 +174,44 @@ export class WebSocketManager {
               client
                 .getWebSocket()
                 .send(JSON.stringify({ type: "ack", success: true }));
+              break;
+            }
+            case "sr.v1.cache.query.bulk.result": {
+              for (let i = 0; i < parsedData.param.length; i++) {
+                const sr = NewSongrequest.getInstance(
+                  await client.getClient().getBroadcasterId(),
+                );
+                const entry = parsedData.param[i] as unknown as {
+                  url: string;
+                  hit: boolean;
+                };
+                if (!entry.hit) {
+                  const data = await sr.fetch(entry.url);
+
+                  client.getWebSocket().send(
+                    JSON.stringify({
+                      type: "sr.v1.cache.store",
+                      param: [entry.url, data],
+                    }),
+                  );
+                  // cache hit
+                }
+              }
+              break;
+            }
+            case "sr.v1.fetch": {
+              const sr = NewSongrequest.getInstance(
+                await client.getClient().getBroadcasterId(),
+              );
+              const data = await sr.fetch(parsedData.param[0]);
+              for (let i = 0; i < parsedData.param.length; i++) {
+                client.getWebSocket().send(
+                  JSON.stringify({
+                    type: "sr.v1.cache.store",
+                    param: [parsedData.param[0], data],
+                  }),
+                );
+              }
               break;
             }
             case "sr.v1.player.status": {

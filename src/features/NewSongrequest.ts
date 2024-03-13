@@ -3,6 +3,10 @@ import { default as axios } from "axios";
 import { MongoDBClient } from "../clients/MongoDBClient";
 import { ConfigManager } from "../managers/ConfigManager";
 import { WebSocketSession } from "../managers/WebSocketManager";
+import { createHash } from "node:crypto";
+import { exists, mkdir, readFile, writeFile } from "node:fs";
+import { existsSync } from "fs";
+import { QuickCrypt } from "../util/QuickCrypt";
 
 type TryAddSongResult = {
   message: string;
@@ -68,8 +72,86 @@ interface YoutubeSearchResult {
   };
 }
 
-const ytDlBufferBase64 = (url: string): Promise<string> => {
+const promisedHddRead = (
+  path: string,
+  encoding: BufferEncoding,
+): Promise<string> => {
   return new Promise((resolve, reject) => {
+    readFile(path, encoding, (err, data) => {
+      if (err) reject(err);
+      resolve(data);
+    });
+  });
+};
+
+const promisedHddWrite = (
+  path: string,
+  data: string,
+  encoding: BufferEncoding,
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    writeFile(path, data, encoding, (err: unknown) => {
+      if (err) reject(err);
+      resolve();
+    });
+  });
+};
+
+const promisedMkdir = (path: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    exists(path, (exists) => {
+      if (!exists) {
+        mkdir(path, { recursive: true }, (err) => {
+          if (err) reject(err);
+          resolve();
+        });
+      }
+    });
+  });
+};
+
+const hddCacheQuery = async (url: string): Promise<string | null> => {
+  const hash = createHash("sha256").update(url).digest("hex");
+
+  if (existsSync(`./cache/${hash}/content.bin`)) {
+    const data = await promisedHddRead(`./cache/${hash}/content.txt`, "utf-8");
+    await promisedHddWrite(
+      `./cache/${hash}/lastHit.txt`,
+      new Date().getTime().toString(),
+      "utf-8",
+    );
+
+    return QuickCrypt.unwrap(data, url);
+  }
+
+  return null;
+};
+
+const hddCacheWrite = async (url: string, data: string): Promise<void> => {
+  const hash = createHash("sha256").update(url).digest("hex");
+
+  await promisedMkdir(`./cache/${hash}`);
+
+  await promisedHddWrite(
+    `./cache/${hash}/content.txt`,
+    QuickCrypt.wrap(data, url),
+    "utf-8",
+  );
+
+  await promisedHddWrite(
+    `./cache/${hash}/lastHit.txt`,
+    new Date().getTime().toString(),
+    "utf-8",
+  );
+};
+
+const ytDlBufferBase64 = (url: string): Promise<string> => {
+  return new Promise(async (resolve, reject) => {
+    const d = await hddCacheQuery(url);
+    if (d) {
+      resolve(d);
+      return;
+    }
     const stream = ytdl(url, { filter: "audio" });
     const buffers: Buffer[] = [];
     stream.on("data", function (buf: Buffer) {
@@ -77,7 +159,9 @@ const ytDlBufferBase64 = (url: string): Promise<string> => {
     });
     stream.on("end", function () {
       const data = Buffer.concat(buffers);
-      resolve(`data:audio/mp3;base64,${data.toString("base64")}`);
+      const armoredData = `data:audio/mp3;base64,${data.toString("base64")}`;
+      hddCacheWrite(url, armoredData).catch(console.error);
+      resolve(armoredData);
     });
     stream.on("error", reject);
   });
@@ -184,7 +268,17 @@ export class NewSongrequest {
     return this.instances[id || "default"];
   }
 
+  public bindSession(session: WebSocketSession) {
+    this.session = session;
+  }
+
   private async handleQueueUpdate() {
+    this.session?.getWebSocket().send(
+      JSON.stringify({
+        type: "sr.v1.cache.query.bulk",
+        param: this.queue.map((s) => s.url),
+      }),
+    );
     if (this.currentSong === null || this.audioState === null) {
       const song = await this.getNextSong();
       if (song) {
@@ -492,7 +586,7 @@ export class NewSongrequest {
           title: title,
           coverImage: data.videoDetails.thumbnails[0].url,
           requestedBy: userMetadata.username,
-          mediaBase64: "",
+          mediaBase64: await ytDlBufferBase64(data.videoDetails.video_url),
           url: data.videoDetails.video_url,
           duration: length,
         };
@@ -636,6 +730,8 @@ export class NewSongrequest {
     return null;
   }
 
+  public async playerController() {}
+
   public wipeQueue() {
     this.queue.length = 0;
     this.currentSong = null;
@@ -657,6 +753,10 @@ export class NewSongrequest {
       return this.alertQueue.splice(0, 1)[0];
     }
     return null;
+  }
+
+  public async fetch(url: string): Promise<string> {
+    return ytDlBufferBase64(url);
   }
 
   public getQueue(): SongInfo[] {
