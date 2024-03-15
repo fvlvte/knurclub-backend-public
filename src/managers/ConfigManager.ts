@@ -70,7 +70,7 @@ export class ConfigManager {
   }
 
   private readonly userId: string;
-  constructor(userId: string) {
+  private constructor(userId: string) {
     this.userId = userId;
   }
 
