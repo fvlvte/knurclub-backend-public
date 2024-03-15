@@ -87,7 +87,7 @@ export class TwitchAuthGuard {
       userId,
     );
 
-    return tkn.encrypt();
+    return { token: tkn.encrypt(), id: vr.data.user_id };
   }
 
   public static async decodeToken(token: string) {

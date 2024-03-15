@@ -17,12 +17,15 @@ export class AuthTwitchLogin implements Route<unknown> {
     }
 
     try {
-      const token = await TwitchAuthGuard.generateToken(authCode, redirectUrl);
+      const { token, id } = await TwitchAuthGuard.generateToken(
+        authCode,
+        redirectUrl,
+      );
       if (!token) {
         return res.status(HttpStatusCode.Unauthorized).send();
       }
 
-      res.status(HttpStatusCode.Ok).send({ token });
+      res.status(HttpStatusCode.Ok).send({ token, id });
     } catch (e) {
       console.error(e);
       res.status(HttpStatusCode.Unauthorized).send();
