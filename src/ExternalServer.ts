@@ -60,17 +60,18 @@ export class ExternalServer {
         const token = req.header("X-Knur-Key");
         if (token) {
           TwitchAuthGuard.decodeToken(token)
-            .then(
-              ((d: Data) => {
-                const r = this as unknown as RequestWithAuthData;
-                r.authData = d;
-                next();
-              }).bind(req),
-            )
+            .then((d: Data) => {
+              const r = req as RequestWithAuthData;
+              r.authData = d;
+              next();
+            })
             .catch(next);
+        } else {
+          return next();
         }
       } catch (e) {
         console.error(e);
+        next();
       }
     } else next();
   }
