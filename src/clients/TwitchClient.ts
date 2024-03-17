@@ -536,6 +536,10 @@ export class TwitchClient {
     return "pl";
   }
 
+  async getRefreshToken(): Promise<string> {
+    return this.TWITCH_REFRESH_TOKEN;
+  }
+
   async dispatchBotMessage(message: string) {
     try {
       await this.chatClient?.say(await this.getStreamerUsername(), message);

@@ -4,6 +4,7 @@ import { ConfigManager } from "../managers/ConfigManager";
 import { WebSocketSession } from "../managers/websocket/WebSocketSession";
 import { findYtVideoByTitle, ytDlBufferBase64New } from "../util/SRUtils";
 import { SRChecks } from "./SRChecks";
+import { BackendSong, WSNetworkFrameType } from "../types/WSShared";
 
 export type QueueEntry = {
   title: string;
@@ -39,9 +40,20 @@ export class SRRewritten {
 
   private readonly mongo: MongoDBClient;
 
-  private queue: QueueEntry[] = [];
+  private queue: QueueEntry[] = [
+    {
+      title: "Hemp Gru - Droga",
+      coverImage:
+        "https://www.google.com/url?sa=i&url=https%3A%2F%2Fsoundcloud.com%2Fdundrzej%2Fwilku-wii-shop&psig=AOvVaw3R_akTme3Af-kI4XaWaP2r&ust=1710799555375000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJC7_o-n_IQDFQAAAAAdAAAAABAE",
+      requestedBy: "test",
+      mediaBase64: "",
+      url: "https://www.youtube.com/watch?v=oqzTignky58",
+      duration: 246,
+    },
+  ];
   private session: WebSocketSession | null = null;
   private isPlaying: boolean = false;
+  private isPaused: boolean = false;
 
   private configManager: ConfigManager;
 
@@ -55,10 +67,65 @@ export class SRRewritten {
 
   private volume: number = 21; //.37
 
+  private controllerInterval: NodeJS.Timeout | null = null;
+
   private constructor(id: string) {
     this.id = id;
     this.mongo = MongoDBClient.getDefaultInstance();
     this.configManager = ConfigManager.getUserInstance(this.id);
+  }
+
+  private async tryPlayNextSong() {
+    if (this.queue.length > 0) {
+      this.currentSong = this.queue.shift() ?? null;
+      this.isPlaying = true;
+      this.isPaused = false;
+      this.currentSongVotes = [];
+      this.skipCounter.length = 0;
+
+      this.session?.sendFrameNoResponse({
+        type: WSNetworkFrameType.SR_V1_CHANGE_CURRENT_SONG,
+        params: {
+          title: this.currentSong?.title,
+          audioSourceURL: this.currentSong?.url,
+          iconSource: this.currentSong?.coverImage,
+          user: {
+            id: "watykaniak2137",
+            name: this.currentSong?.requestedBy,
+            reputation: 2137,
+          },
+          duration: this.currentSong?.duration,
+          playing: true,
+        } as BackendSong,
+      });
+    }
+  }
+  private async shouldPlayNextSong(): Promise<boolean> {
+    // TODO: Implement player health check
+    return false;
+  }
+
+  private async worker() {
+    try {
+      if (await this.shouldPlayNextSong()) {
+      } else if (!this.isPlaying && !this.isPaused) {
+        await this.tryPlayNextSong();
+      }
+    } catch (e) {
+    } finally {
+    }
+  }
+
+  private async initWorker() {
+    this.controllerInterval = setInterval(this.worker.bind(this), 1000);
+  }
+
+  public async restart() {
+    if (this.controllerInterval) {
+      clearInterval(this.controllerInterval);
+      this.controllerInterval = null;
+    }
+    await this.initWorker();
   }
 
   public async init(): Promise<void> {

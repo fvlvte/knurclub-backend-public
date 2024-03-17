@@ -5,13 +5,7 @@ import { TwitchClient } from "../../clients/TwitchClient";
 import internal from "node:stream";
 import { Data, TwitchAuthGuard } from "../../util/TwitchAuthGuard";
 import { ClientManager } from "../ClientManager";
-import { SRRewritten } from "../../features/SRRewritten";
-import {
-  SR_V1_CACHE_QUERY_BULK_RESULT,
-  SR_V1_FETCH,
-  WSNetworkFrame,
-  WSNetworkFrameType,
-} from "../../types/WSShared";
+import { WSNetworkFrameType } from "../../types/WSShared";
 import { WebSocketSession } from "./WebSocketSession";
 
 export class WebSocketManager {
@@ -81,60 +75,6 @@ export class WebSocketManager {
 
     this.server.listen(8080);
 
-    const processRawFrame = async (data: string, client: WebSocketSession) => {
-      try {
-        if (this.data?.user_id && this.data?.refresh_token) {
-          ClientManager.getInstance().handleKeepAliveTick(
-            this.data.user_id,
-            this.data.refresh_token,
-          );
-        }
-
-        const parsedData = JSON.parse(data.toString()) as WSNetworkFrame;
-
-        switch (parsedData.type) {
-          case WSNetworkFrameType.SR_V1_CACHE_QUERY_BULK_RESULT: {
-            const packetData = parsedData as SR_V1_CACHE_QUERY_BULK_RESULT;
-            for (let i = 0; i < packetData.params.length; i++) {
-              const sr = SRRewritten.getInstance(
-                await client.getClient().getBroadcasterId(),
-              );
-              const entry = packetData.params[i];
-              if (!entry.hit) {
-                const data = await sr.fetch(entry.url);
-
-                client.sendFrameNoResponse({
-                  isReply: true,
-                  id: parsedData.id,
-                  type: WSNetworkFrameType.SR_V1_CACHE_STORE,
-                  params: [entry.url, JSON.stringify(data)],
-                });
-              }
-            }
-            break;
-          }
-          case WSNetworkFrameType.SR_V1_FETCH: {
-            const { params } = parsedData as SR_V1_FETCH;
-            const sr = SRRewritten.getInstance(
-              await client.getClient().getBroadcasterId(),
-            );
-
-            for (let i = 0; i < params.length; i++) {
-              const data = await sr.fetch(params[i]);
-              client.sendFrameNoResponse({
-                id: parsedData.id,
-                type: WSNetworkFrameType.SR_V1_CACHE_STORE,
-                params: [params[i], data],
-              });
-            }
-            break;
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
     this.wss.on(
       "connection",
       async function connection(
@@ -164,7 +104,13 @@ export class WebSocketManager {
 
           ws.on("message", async (message) => {
             try {
-              await processRawFrame(message.toString(), client);
+              const refreshToken = await client.getClient().getRefreshToken();
+              const userId = await client.getClient().getBroadcasterId();
+              ClientManager.getInstance().handleKeepAliveTick(
+                userId,
+                refreshToken,
+              );
+              await client.getHandler().processRawFrame(message.toString());
             } catch (e) {
               console.error(e);
             }

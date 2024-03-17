@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import { TwitchClient } from "../../clients/TwitchClient";
 import { WSNetworkFrame } from "../../types/WSShared";
+import { WebSocketHandler } from "./WebSocketHandler";
 
 const EVENT_LIST = ["songrequest.queue"];
 
@@ -14,6 +15,7 @@ export class WebSocketSession {
   private eventListeners: string[] = [];
   private readonly ws: WebSocket;
   private readonly client: TwitchClient;
+  private readonly handler: WebSocketHandler = new WebSocketHandler(this);
 
   public sendFrameNoResponse(frame: WSNetworkFrame) {
     if (!frame.id) {
@@ -27,6 +29,10 @@ export class WebSocketSession {
     } else {
       throw new Error("WebSocket not open");
     }
+  }
+
+  public getHandler(): WebSocketHandler {
+    return this.handler;
   }
 
   public getClient(): TwitchClient {
