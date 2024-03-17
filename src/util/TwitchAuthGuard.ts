@@ -24,6 +24,21 @@ type TokenInfoType = {
   expires_in: number;
 };
 
+const whitelistedUserIDs = [
+  "197171878", // hyba hyba
+  "883479198", // tortilka
+  "268563714", // fulufte
+  "27187817", // lewus aok
+  //"54234510", // juriko
+  "68174363", // xbladejojo [git]
+  "25452828", // smaczny [git]
+  "416146818", // julka kulka [prawie git]
+  //"811034930", // minio
+  //"204137613", // kacperacy
+  //"229434903", // xyzmelio
+  process.env.NODE_ENV !== "production" ? "1024010545" : undefined, // fvlvteBOT
+];
+
 export class TwitchAuthGuard {
   public static async generateToken(code: string, redirect?: string) {
     const data = {
@@ -58,21 +73,6 @@ export class TwitchAuthGuard {
     );
     const userId = vr.data.user_id;
 
-    const whitelistedUserIDs = [
-      "197171878", // hyba hyba
-      "883479198", // tortilka
-      "268563714", // fulufte
-      "27187817", // lewus aok
-      "54234510", // juriko
-      "68174363", // xbladejojo
-      "25452828", // smaczny
-      "416146818", // julka kulka
-      "811034930", // minio
-      "204137613", // kacperacy
-      "229434903", // xyzmelio
-      "1024010545", // fvlvteBOT
-    ];
-
     if (!whitelistedUserIDs.includes(userId)) {
       throw new Error("not whitelisted user");
     }
@@ -91,6 +91,10 @@ export class TwitchAuthGuard {
   }
 
   public static async decodeToken(token: string) {
-    return await AuthToken.getPayloadFromToken<Data>(token);
+    const data = await AuthToken.getPayloadFromToken<Data>(token);
+    if (!whitelistedUserIDs.includes(data.user_id)) {
+      throw new Error("not whitelisted user");
+    }
+    return data;
   }
 }
