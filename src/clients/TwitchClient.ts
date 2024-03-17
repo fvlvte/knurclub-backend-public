@@ -41,7 +41,7 @@ import { SongRequestWipe } from "../commands/SongRequest/SongRequestWipe";
 import { MongoDBClient } from "./MongoDBClient";
 import { SongRequestVolumeSet } from "../commands/SongRequest/SongRequestVolumeSet";
 import { Logger } from "../util/Logger";
-import { WebSocketSession } from "../managers/WebSocketManager";
+import { WebSocketSession } from "../managers/websocket/WebSocketSession";
 import { SongRequestPlay } from "../commands/SongRequest/SongRequestPlay";
 import { SongRequestStop } from "../commands/SongRequest/SongRequestStop";
 

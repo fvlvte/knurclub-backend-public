@@ -9,6 +9,7 @@
     "start:test": "tsc && node dist/main.js",
     "start:dbg": "node ./src/main.ts",
     "lint:prod": "eslint --max-warnings 0 --ext .ts src",
+    "prettier:fix": "prettier src/** --write",
     "start": "tsc && node dist/main.js",
     "test": "jest",
     "prepare": "husky install"

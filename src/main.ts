@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { SecretsGuard } from "./util/SecretsGuard";
 import { ExternalServer } from "./ExternalServer";
 import { DiscordClient } from "./clients/DiscordClient";
-import { WebSocketManager } from "./managers/WebSocketManager";
+import { WebSocketManager } from "./managers/websocket/WebSocketManager";
 
 function setUpSecretsAndGuard(): boolean {
   try {

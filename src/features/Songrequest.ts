@@ -3,7 +3,7 @@ import { default as axios } from "axios";
 import { MongoDBClient } from "../clients/MongoDBClient";
 import { ConfigManager } from "../managers/ConfigManager";
 import { FeatureFlag, isFeatureEnabled } from "../util/FeatureFlag";
-import { NewSongrequest } from "./NewSongrequest";
+import { SRRewritten } from "./SRRewritten";
 
 type TryAddSongResult = {
   message: string;
@@ -161,7 +161,7 @@ export class Songrequest {
 
   public static getInstance(id?: string): Songrequest {
     if (isFeatureEnabled(FeatureFlag.FF_NEW_PLAYER, id as string)) {
-      return NewSongrequest.getInstance(id) as unknown as Songrequest;
+      return SRRewritten.getInstance(id ?? "dupa") as unknown as Songrequest;
     }
 
     if (!this.instances[id || "default"]) {
