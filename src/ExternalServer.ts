@@ -19,7 +19,6 @@ import { V1ConfigSet } from "./routes/v1/ConfigSet";
 
 /*
   LOCAL TEST ACC CREDENTIALS
-  http://localhost:3000/new/player?token=BSEGDvcvmZaA5yk277ynPxH81eH5hPsR%2BqHc4b33Zek3SW7CePqOzl%2F9nxJRZyV%2BgZNtSTIoxz4Q8CBgMqbBQukEr3t5ZcIGXEviPURMM%2F0rXaE7zbBXtsOn8AsQa3%2BXVo6wtagDZOnmHMdo6CV%2BE1BjdnQBSRbIvgM4oMwuBcKXQJpwhhT%2BJnJ1qdYLx5li26s7JCIYVJwh7SB3zjf0NvuilU0wcsm5bYRjhcKlCEXaP0COEc2ZkBTa2AFBAZlGP0GscihIpJ%2F1lmZrXMuvXryVzW4ei7r%2Fc2d2%2BCFkBREhB%2B5J6NgDzH0%2FCIhN7wSmW5mCr72uultEodNeT%2F8moO8OTQa0HvBEAct3YU1Ba2fvnXL1tGZvLQ6I8WjsqNUGOtEWNEbjJpqZlZLqYwhnxQ%3D%3D
 */
 
 import { WebSocketServer } from "ws";

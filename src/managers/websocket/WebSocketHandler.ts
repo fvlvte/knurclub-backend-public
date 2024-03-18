@@ -2,6 +2,7 @@ import { WebSocketSession } from "./WebSocketSession";
 import {
   SR_V1_CACHE_QUERY_BULK_RESULT,
   SR_V1_FETCH,
+  SR_V1_PLAYBACK_STATE,
   WSNetworkFrame,
   WSNetworkFrameType,
 } from "../../types/WSShared";
@@ -20,6 +21,7 @@ export class WebSocketHandler {
       this.clientHelloExchange = true;
       const id = await this.session.getClient().getBroadcasterId();
       SRRewritten.getInstance(id).bindWS(this.session);
+      console.log("client hello", id);
       await SRRewritten.getInstance(id).restart();
     }
   }
@@ -62,8 +64,15 @@ export class WebSocketHandler {
           }
           break;
         }
+        case WSNetworkFrameType.SR_V1_PLAYBACK_STATE: {
+          const { params } = parsedData as SR_V1_PLAYBACK_STATE;
+
+          const sr = SRRewritten.getInstance(userId);
+          await sr.handlePlaybackStateChange(params);
+          break;
+        }
         case WSNetworkFrameType.CLIENT_HELLO: {
-          this.handleClientHello();
+          await this.handleClientHello();
           break;
         }
       }

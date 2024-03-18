@@ -4,7 +4,11 @@ import { ConfigManager } from "../managers/ConfigManager";
 import { WebSocketSession } from "../managers/websocket/WebSocketSession";
 import { findYtVideoByTitle, ytDlBufferBase64New } from "../util/SRUtils";
 import { SRChecks } from "./SRChecks";
-import { BackendSong, WSNetworkFrameType } from "../types/WSShared";
+import {
+  BackendSong,
+  PlaybackState,
+  WSNetworkFrameType,
+} from "../types/WSShared";
 
 export type QueueEntry = {
   title: string;
@@ -44,10 +48,19 @@ export class SRRewritten {
     {
       title: "Hemp Gru - Droga",
       coverImage:
-        "https://www.google.com/url?sa=i&url=https%3A%2F%2Fsoundcloud.com%2Fdundrzej%2Fwilku-wii-shop&psig=AOvVaw3R_akTme3Af-kI4XaWaP2r&ust=1710799555375000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJC7_o-n_IQDFQAAAAAdAAAAABAE",
+        "https://i.ytimg.com/vi/oqzTignky58/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLD415ITaef9Uo-oiMgh4flj2eMnFw",
       requestedBy: "test",
       mediaBase64: "",
       url: "https://www.youtube.com/watch?v=oqzTignky58",
+      duration: 246,
+    },
+    {
+      title: "Hemp Gru - DJ DŻOINT",
+      coverImage:
+        "https://i.ytimg.com/vi/OlPzZ_lxL00/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBmJB5V9tHhE5Ba6ZqBUgoGW68lNw",
+      requestedBy: "test",
+      mediaBase64: "",
+      url: "https://www.youtube.com/watch?v=308V19M77i8",
       duration: 246,
     },
   ];
@@ -66,49 +79,92 @@ export class SRRewritten {
   private currentSongVotes: string[] = [];
 
   private volume: number = 21; //.37
+  private idleTicks = 0;
+  private playbackState: PlaybackState = {
+    playing: false,
+  };
 
   private controllerInterval: NodeJS.Timeout | null = null;
-
   private constructor(id: string) {
     this.id = id;
     this.mongo = MongoDBClient.getDefaultInstance();
     this.configManager = ConfigManager.getUserInstance(this.id);
   }
 
+  public async handlePlaybackStateChange(state: PlaybackState) {
+    this.playbackState = state;
+  }
+
   private async tryPlayNextSong() {
     if (this.queue.length > 0) {
-      this.currentSong = this.queue.shift() ?? null;
-      this.isPlaying = true;
-      this.isPaused = false;
-      this.currentSongVotes = [];
-      this.skipCounter.length = 0;
-
-      this.session?.sendFrameNoResponse({
-        type: WSNetworkFrameType.SR_V1_CHANGE_CURRENT_SONG,
-        params: {
-          title: this.currentSong?.title,
-          audioSourceURL: this.currentSong?.url,
-          iconSource: this.currentSong?.coverImage,
-          user: {
-            id: "watykaniak2137",
-            name: this.currentSong?.requestedBy,
-            reputation: 2137,
-          },
-          duration: this.currentSong?.duration,
+      const cs = this.queue.shift() ?? null;
+      await this.changeCurrentSong(cs);
+      if (cs) {
+        this.isPlaying = true;
+        this.isPaused = false;
+        this.currentSongVotes = [];
+        this.skipCounter.length = 0;
+        this.playbackState = {
           playing: true,
-        } as BackendSong,
-      });
+          playerState: {
+            currentTime: 0,
+            duration: this.currentSong?.duration ?? 0,
+          },
+          songId: this.currentSong?.url,
+        };
+      }
     }
   }
   private async shouldPlayNextSong(): Promise<boolean> {
-    // TODO: Implement player health check
-    return false;
+    const psDuration = this.playbackState.playerState?.duration;
+    const psCurrentTime = this.playbackState.playerState?.currentTime;
+    if (psDuration && psCurrentTime) {
+      if (psDuration - psCurrentTime < 1) return Promise.resolve(true);
+    }
+
+    if (this.currentSong === null) return Promise.resolve(true);
+    if (!this.playbackState.playing && !this.isPaused)
+      return Promise.resolve(true);
+    return Promise.resolve(false);
+  }
+
+  private async changeCurrentSong(song: QueueEntry | null) {
+    this.currentSong = song;
+    this.session?.sendFrameNoResponse({
+      type: WSNetworkFrameType.SR_V1_CHANGE_CURRENT_SONG,
+      params: song
+        ? ({
+            title: song.title,
+            audioSourceURL: song.url,
+            iconSource: song.coverImage,
+            user: {
+              id: "watykaniak2137",
+              name: song.requestedBy,
+              reputation: 2137,
+            },
+            duration: song.duration,
+            playing: true,
+          } as BackendSong)
+        : null,
+    });
+    if (song === null) {
+      this.isPlaying = false;
+      this.playbackState = {
+        playing: false,
+      };
+    }
   }
 
   private async worker() {
     try {
       if (await this.shouldPlayNextSong()) {
-      } else if (!this.isPlaying && !this.isPaused) {
+        await this.tryPlayNextSong();
+      } else if (
+        (this.playbackState.playerState?.duration ?? 10) -
+          (this.playbackState.playerState?.currentTime ?? 0) <
+        1
+      ) {
+        await this.changeCurrentSong(null);
         await this.tryPlayNextSong();
       }
     } catch (e) {
