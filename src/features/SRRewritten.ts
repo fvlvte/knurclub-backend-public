@@ -44,26 +44,7 @@ export class SRRewritten {
 
   private readonly mongo: MongoDBClient;
 
-  private queue: QueueEntry[] = [
-    {
-      title: "Hemp Gru - Droga",
-      coverImage:
-        "https://i.ytimg.com/vi/oqzTignky58/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLD415ITaef9Uo-oiMgh4flj2eMnFw",
-      requestedBy: "test",
-      mediaBase64: "",
-      url: "https://www.youtube.com/watch?v=oqzTignky58",
-      duration: 246,
-    },
-    {
-      title: "Hemp Gru - DJ DŻOINT",
-      coverImage:
-        "https://i.ytimg.com/vi/OlPzZ_lxL00/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBmJB5V9tHhE5Ba6ZqBUgoGW68lNw",
-      requestedBy: "test",
-      mediaBase64: "",
-      url: "https://www.youtube.com/watch?v=308V19M77i8",
-      duration: 246,
-    },
-  ];
+  private queue: QueueEntry[] = [];
   private session: WebSocketSession | null = null;
   private isPlaying: boolean = false;
   private isPaused: boolean = false;
@@ -113,19 +94,9 @@ export class SRRewritten {
           songId: this.currentSong?.url,
         };
       }
+    } else {
+      await this.changeCurrentSong(null);
     }
-  }
-  private async shouldPlayNextSong(): Promise<boolean> {
-    const psDuration = this.playbackState.playerState?.duration;
-    const psCurrentTime = this.playbackState.playerState?.currentTime;
-    if (psDuration && psCurrentTime) {
-      if (psDuration - psCurrentTime < 1) return Promise.resolve(true);
-    }
-
-    if (this.currentSong === null) return Promise.resolve(true);
-    if (!this.playbackState.playing && !this.isPaused)
-      return Promise.resolve(true);
-    return Promise.resolve(false);
   }
 
   private async changeCurrentSong(song: QueueEntry | null) {
@@ -157,8 +128,14 @@ export class SRRewritten {
 
   private async worker() {
     try {
-      if (await this.shouldPlayNextSong()) {
+      if (!this.isPlaying && this.queue.length > 0) {
         await this.tryPlayNextSong();
+        return;
+      } else if (this.isPaused) return;
+      else if (this.playbackState.playing) {
+        return;
+      } else if (!this.playbackState.playing && !this.isPlaying) {
+        return;
       } else if (
         (this.playbackState.playerState?.duration ?? 10) -
           (this.playbackState.playerState?.currentTime ?? 0) <
@@ -330,7 +307,7 @@ export class SRRewritten {
           }
         }
 
-        return { message: "SR_ADD_OK", error: false, params: {} };
+        return this.tryAppendSongNoVerify(audioSource, user.username, false);
       } catch (e) {
         console.error(e);
         return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
