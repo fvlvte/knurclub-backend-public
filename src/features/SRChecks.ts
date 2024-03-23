@@ -1,6 +1,7 @@
 import { QueueEntry, SRAddResult, SRUser } from "./SRRewritten";
 import { type videoInfo } from "@distube/ytdl-core";
 import { ConfigContainer } from "../managers/ConfigManager";
+import { MongoDBClient } from "../clients/MongoDBClient";
 
 type SRCheckParam = {
   source?: string;
@@ -40,7 +41,7 @@ const srCheck_limitPerUser: SRCheck = async ({ config, queue, user }) => {
 
   let songsInQueuePerUser = 0;
   for (const item of queue) {
-    if (item.requestedBy.toLowerCase() === user.id) {
+    if (item.user.username.toLowerCase() === user.id) {
       songsInQueuePerUser++;
     }
   }
@@ -123,7 +124,11 @@ const srCheck_reputation: SRCheck = async ({ user, config }) => {
   if (!user || !config) return Promise.resolve(null);
   const repLimit = Math.round(config.data.songRequest.badVoteLimit);
 
-  if (user.reputation <= repLimit) {
+  if (
+    (await MongoDBClient.getDefaultInstance().getRankingPoints(
+      user.username,
+    )) <= repLimit
+  ) {
     return Promise.resolve({
       message: "SR_NEGATIVE_REPUTATION_LIMIT",
       error: true,

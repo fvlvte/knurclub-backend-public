@@ -7,17 +7,9 @@ import { SRChecks } from "./SRChecks";
 import {
   BackendSong,
   PlaybackState,
+  SR_V1_PLAYBACK_CONTROL_UPDATE,
   WSNetworkFrameType,
 } from "../types/WSShared";
-
-export type QueueEntry = {
-  title: string;
-  coverImage: string;
-  requestedBy: string;
-  mediaBase64: string;
-  url: string;
-  duration: number;
-};
 
 export type SRAddResult = {
   message: string;
@@ -28,11 +20,19 @@ export type SRAddResult = {
 export type SRUser = {
   id: string;
   username: string;
-  reputation: number;
+  reputation?: number;
   isSub: boolean;
   isModerator: boolean;
   subLevel: number;
   isVIP: boolean;
+};
+
+export type QueueEntry = {
+  title: string;
+  coverImage: string;
+  url: string;
+  user: SRUser;
+  duration: number;
 };
 
 export class SRRewritten {
@@ -53,14 +53,16 @@ export class SRRewritten {
 
   private currentSong: QueueEntry | null = null;
 
-  private reputationRanking: { [username: string]: number } = {};
-
   private skipCounter: string[] = [];
 
   private currentSongVotes: string[] = [];
 
-  private volume: number = 21; //.37
-  private idleTicks = 0;
+  private currentSongDiff: number = 0;
+
+  private userTrap: { [id: string]: boolean } = {};
+
+  private volume: number = 0.21; //.37
+  // TODO: implement idle health checks
   private playbackState: PlaybackState = {
     playing: false,
   };
@@ -85,6 +87,7 @@ export class SRRewritten {
         this.isPaused = false;
         this.currentSongVotes = [];
         this.skipCounter.length = 0;
+        this.currentSongDiff = 0;
         this.playbackState = {
           playing: true,
           playerState: {
@@ -109,15 +112,16 @@ export class SRRewritten {
             audioSourceURL: song.url,
             iconSource: song.coverImage,
             user: {
-              id: "watykaniak2137",
-              name: song.requestedBy,
-              reputation: 2137,
+              id: song.user.id,
+              name: song.user.username,
+              reputation: await this.mongo.getRankingPoints(song.user.id),
             },
             duration: song.duration,
             playing: true,
           } as BackendSong)
         : null,
     });
+    this.transmitPlaybackControlUpdate();
     if (song === null) {
       this.isPlaying = false;
       this.playbackState = {
@@ -128,11 +132,11 @@ export class SRRewritten {
 
   private async worker() {
     try {
+      if (this.isPaused) return;
       if (!this.isPlaying && this.queue.length > 0) {
         await this.tryPlayNextSong();
         return;
-      } else if (this.isPaused) return;
-      else if (this.playbackState.playing) {
+      } else if (this.playbackState.playing) {
         return;
       } else if (!this.playbackState.playing && !this.isPlaying) {
         return;
@@ -170,15 +174,6 @@ export class SRRewritten {
     } catch (e) {
       console.error("Failed to restore queue", e);
     }
-
-    try {
-      const storedRanking = await this.mongo.restoreRanking(this.id);
-      if (storedRanking) {
-        // TODO: Restore ranking.
-      }
-    } catch (e) {
-      console.error("Failed to restore ranking", e);
-    }
   }
 
   public static getInstance(id: string): SRRewritten {
@@ -197,48 +192,41 @@ export class SRRewritten {
   }
 
   public stop() {
-    this.isPlaying = false;
+    this.isPaused = true;
+    this.transmitPlaybackControlUpdate();
   }
 
   public play() {
-    this.isPlaying = true;
+    this.isPaused = false;
+    this.transmitPlaybackControlUpdate();
   }
 
-  public async tryAppendSongNoVerify(
-    audioSourceUrl: string,
-    requestedBy: string,
+  async tryAppendSongNoVerify(
+    data: ytdl.videoInfo,
+    user: SRUser,
     front: boolean = false,
   ): Promise<SRAddResult> {
-    try {
-      const data = await ytdl.getInfo(audioSourceUrl);
+    const title = data.videoDetails.title;
+    const length = parseInt(data.videoDetails.lengthSeconds);
 
-      const title = data.videoDetails.title;
-      const length = parseInt(data.videoDetails.lengthSeconds);
+    const songData = {
+      title: title,
+      coverImage: data.videoDetails.thumbnails[0].url,
+      user,
+      url: data.videoDetails.video_url,
+      duration: length,
+    };
 
-      const base64Data = await ytDlBufferBase64New(audioSourceUrl);
-      const songData = {
-        title: title,
-        coverImage: data.videoDetails.thumbnails[0].url,
-        requestedBy: requestedBy,
-        mediaBase64: base64Data,
-        url: audioSourceUrl,
-        duration: length,
-      };
-
-      if (front) {
-        this.queue.unshift(songData);
-      } else {
-        this.queue.push(songData);
-      }
-
-      return { message: "SR_ADD_OK", error: false, params: {} };
-    } catch (e) {
-      console.error(e);
-      return { message: "SR_ADD_UNKNOWN_ERROR", error: false, params: {} };
+    if (front) {
+      this.queue.unshift(songData);
+    } else {
+      this.queue.push(songData);
     }
+
+    return { message: "SR_ADD_OK", error: false, params: {} };
   }
 
-  /*public when(si: SongInfo) {
+  public when(si: QueueEntry) {
     const convertToHumanForm = (d: number) => {
       const minutePart = Math.floor(d / 60);
       const secondsPart = Math.floor(d % 60);
@@ -262,67 +250,75 @@ export class SRRewritten {
       durationUntilSong += this.queue[i].duration;
     }
 
-    const tmp = (this.currentSong?.duration ?? 0) - this.currentPlayerMark;
+    const tmp =
+      (this.currentSong?.duration ?? 0) -
+      (this.playbackState.playerState?.currentTime ?? 0);
     if (tmp > 0) durationUntilSong += tmp;
 
     return { when: convertToHumanForm(durationUntilSong), index: index + 1 };
-  }*/
-
-  public getCurrentSongUserReputation(): number {
-    if (!this.currentSong) return 0;
-    return this.reputationRanking[this.currentSong?.requestedBy] ?? 0;
   }
 
   public async tryAddSongByUser(
     audioSource: string,
     user: SRUser,
   ): Promise<SRAddResult> {
-    const config = await this.configManager.getConfig();
+    if (this.userTrap[user.id]) {
+      return { message: "SR_USER_TRAP_HAUS", error: true, params: {} };
+    }
+    this.userTrap[user.id] = true;
+    try {
+      const config = await this.configManager.getConfig();
 
-    // TODO: Add vip check to config and skip check.
-    const skipChecks = user.isModerator
-      ? config.data.songRequest.modSkipLimits
-      : false;
+      // TODO: Add vip check to config and skip check.
+      const skipChecks = user.isModerator
+        ? config.data.songRequest.modSkipLimits
+        : false;
 
-    if (
-      audioSource.includes("youtube.com") ||
-      audioSource.includes("youtu.be")
-    ) {
-      try {
-        const songInfo = await ytdl.getInfo(audioSource);
+      if (
+        audioSource.includes("youtube.com") ||
+        audioSource.includes("youtu.be")
+      ) {
+        try {
+          const songInfo = await ytdl.getInfo(audioSource);
 
-        if (!skipChecks) {
-          for (const check of SRChecks) {
-            const ret = await check({
-              source: audioSource,
-              user: user,
-              queue: this.queue,
-              config: config,
-              songInfo: songInfo,
-            });
+          if (!skipChecks) {
+            for (const check of SRChecks) {
+              const ret = await check({
+                source: audioSource,
+                user: user,
+                queue: this.queue,
+                config: config,
+                songInfo: songInfo,
+              });
 
-            if (ret !== null) {
-              return ret;
+              if (ret !== null) {
+                return ret;
+              }
             }
           }
-        }
 
-        return this.tryAppendSongNoVerify(audioSource, user.username, false);
-      } catch (e) {
-        console.error(e);
-        return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
-      }
-    } else {
-      try {
-        const d = await findYtVideoByTitle(audioSource);
-        if (d === null) {
-          return { message: "SR_NOT_FOUND", error: true, params: {} };
+          return this.tryAppendSongNoVerify(songInfo, user, false);
+        } catch (e) {
+          console.error(e);
+          return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
         }
-        return this.tryAddSongByUser(d, user);
-      } catch (e) {
-        console.error(e);
-        return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
+      } else {
+        try {
+          const d = await findYtVideoByTitle(audioSource);
+          if (d === null) {
+            return { message: "SR_NOT_FOUND", error: true, params: {} };
+          }
+          return this.tryAddSongByUser(d, user);
+        } catch (e) {
+          console.error(e);
+          return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
+        }
       }
+    } catch (e) {
+      console.error(e);
+      return { message: "SR_USER_TRAP_HAUS2", error: true, params: {} };
+    } finally {
+      this.userTrap[user.id] = false;
     }
   }
 
@@ -344,7 +340,13 @@ export class SRRewritten {
   }
 
   public skip(): void {
-    /* TODO: Implement skip */
+    if (this.currentSong && this.session) {
+      this.changeCurrentSong(null).then(
+        this.transmitPlaybackControlUpdate.bind(this),
+      );
+    } else {
+      throw new Error("Can't skip song, no song is playing.");
+    }
   }
 
   public getVolume(): number {
@@ -353,25 +355,38 @@ export class SRRewritten {
 
   public setVolume(v: number): void {
     this.volume = v;
+    this.transmitPlaybackControlUpdate();
   }
 
-  public handleVote(from: SRUser, to: SRUser, amount: number): number {
-    if (from === to) throw new Error("SR_ERROR_VOTE_SELF");
+  private transmitPlaybackControlUpdate() {
+    this.session?.sendFrameNoResponse({
+      type: WSNetworkFrameType.SR_V1_PLAYBACK_CONTROL_UPDATE,
+      params: {
+        isPaused: this.isPaused,
+        volume: this.volume,
+        pointsChange: this.currentSongDiff,
+      },
+    } as SR_V1_PLAYBACK_CONTROL_UPDATE);
+  }
+
+  public async handleVote(from: SRUser, amount: number): Promise<number> {
+    const to = this.currentSong?.user;
+    if (!to) throw new Error("SR_ERROR_NO_SONG");
+
+    if (from.id === to.id) throw new Error("SR_ERROR_VOTE_SELF");
 
     if (this.currentSongVotes.includes(from.id)) {
       throw new Error("SR_ERROR_VOTE_MULTIPLE");
     }
     this.currentSongVotes.push(from.id);
 
-    if (!this.reputationRanking[to.id]) this.reputationRanking[to.id] = 0;
+    await this.mongo.updateRanking(to.id, this.id, amount);
 
-    this.reputationRanking[to.id] += amount;
+    this.currentSongDiff += amount;
 
-    MongoDBClient.getDefaultInstance()
-      .storeRanking(this.id, JSON.stringify(this.reputationRanking))
-      .catch(console.error);
+    this.transmitPlaybackControlUpdate();
 
-    return this.reputationRanking[to.id];
+    return this.currentSongDiff;
   }
 
   public wipeQueue() {

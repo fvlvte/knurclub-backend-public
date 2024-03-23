@@ -44,8 +44,6 @@ import { Logger } from "../util/Logger";
 import { WebSocketSession } from "../managers/websocket/WebSocketSession";
 import { SongRequestPlay } from "../commands/SongRequest/SongRequestPlay";
 import { SongRequestStop } from "../commands/SongRequest/SongRequestStop";
-import { SRAdd } from "../commands/NewSongRequest/SRAdd";
-
 export class TwitchClient {
   constructor(refreshToken: string, userId: string) {
     this.streamerId = userId;
@@ -61,8 +59,6 @@ export class TwitchClient {
   private TWITCH_BOT_ACCESS_TOKEN = "dupablada";
 
   private commandHandlers: CommandHandler[] = [
-    new SRAdd(),
-
     new CreateReward(),
     new ReloadLocale(),
     new SongRequestReputationVote(),

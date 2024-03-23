@@ -9,7 +9,7 @@ import {
 import { SRRewritten } from "../../features/SRRewritten";
 
 export class WebSocketHandler {
-  private session: WebSocketSession;
+  private readonly session: WebSocketSession;
   private clientHelloExchange = false;
 
   constructor(webSocketSession: WebSocketSession) {
@@ -21,7 +21,6 @@ export class WebSocketHandler {
       this.clientHelloExchange = true;
       const id = await this.session.getClient().getBroadcasterId();
       SRRewritten.getInstance(id).bindWS(this.session);
-      console.log("client hello", id);
       await SRRewritten.getInstance(id).restart();
     }
   }

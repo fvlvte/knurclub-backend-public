@@ -70,12 +70,6 @@ export class MongoDBClient {
     return data;
   }
 
-  public async getUserInfoByTwitchId(id: string): Promise<UserInfo | null> {
-    const users = this.client.db("users");
-    const info = users.collection<UserInfo>("info");
-    return await info.findOne({ twitchUserId: id });
-  }
-
   public async fetchUserConfig(id: string) {
     try {
       const users = this.client.db("users");
@@ -185,6 +179,39 @@ export class MongoDBClient {
       );
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  public async updateRanking(userId: string, hostId: string, change: number) {
+    try {
+      const sr = this.client.db("users");
+      const ranking = sr.collection("ranking");
+      await ranking.updateOne(
+        { userId },
+        {
+          $inc: {
+            global: change,
+            [`host_${hostId}`]: change,
+          },
+        },
+        { upsert: true },
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  public async getRankingPoints(
+    userId: string,
+    hostId?: string,
+  ): Promise<number> {
+    const sr = this.client.db("users");
+    const ranking = sr.collection("ranking");
+    const result = await ranking.findOne({ userId });
+    if (!hostId) {
+      return result?.global ?? 0;
+    } else {
+      return result?.[`host_${hostId}`] ?? 0;
     }
   }
 

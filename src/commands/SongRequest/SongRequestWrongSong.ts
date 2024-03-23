@@ -3,57 +3,103 @@ import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { Songrequest } from "../../features/Songrequest";
 import { TwitchClient } from "../../clients/TwitchClient";
+import { FeatureFlag, isFeatureEnabled } from "../../util/FeatureFlag";
+import { SRRewritten } from "../../features/SRRewritten";
 
 export class SongRequestWrongSong extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,
   ): Promise<void> {
-    const translationManager = TranslationManager.getInstance(
-      await client.getStreamLanguage(),
-      await client.getBroadcasterId(),
-    );
+    const language = await client.getStreamLanguage();
+    const hostId = await client.getBroadcasterId();
 
-    const sr = Songrequest.getInstance(await client.getBroadcasterId());
+    const translationManager = TranslationManager.getInstance(language, hostId);
 
-    const queue = sr.getQueue();
+    if (isFeatureEnabled(FeatureFlag.FF_NEW_PLAYER, hostId)) {
+      const sr = SRRewritten.getInstance(hostId);
 
-    const currentSong = sr.getCurrentSong();
-    const song = queue.findLast(
-      (v) => v.requestedBy.toLowerCase() === message.username.toLowerCase(),
-    );
+      const queue = sr.getQueue();
 
-    if (!song) {
-      if (
-        currentSong?.requestedBy.toLowerCase() !==
-        message.username.toLowerCase()
-      ) {
-        return await client.dispatchBotMessage(
-          translationManager.translate("SR_WRONG_SONG_NOT_FOUND", {
-            invokedBy: message.username,
-          }),
-        );
-      } else {
-        sr.skip();
-        return await client.dispatchBotMessage(
-          translationManager.translate("SR_WRONG_SONG_WIPED", {
-            invokedBy: message.username,
-            title: currentSong.title,
-            url: currentSong.url,
-          }),
-        );
+      const currentSong = sr.getCurrentSong();
+      const song = queue.findLast(
+        (v) => v.user.username.toLowerCase() === message.username.toLowerCase(),
+      );
+
+      if (!song) {
+        if (
+          currentSong?.user.username.toLowerCase() !==
+          message.username.toLowerCase()
+        ) {
+          return await client.dispatchBotMessage(
+            translationManager.translate("SR_WRONG_SONG_NOT_FOUND", {
+              invokedBy: message.username,
+            }),
+          );
+        } else {
+          sr.skip();
+          return await client.dispatchBotMessage(
+            translationManager.translate("SR_WRONG_SONG_WIPED", {
+              invokedBy: message.username,
+              title: currentSong.title,
+              url: currentSong.url,
+            }),
+          );
+        }
       }
+
+      sr.removeFromQueue(song);
+
+      return await client.dispatchBotMessage(
+        translationManager.translate("SR_WRONG_SONG_WIPED", {
+          invokedBy: message.username,
+          title: song.title,
+          url: song.url,
+        }),
+      );
+    } else {
+      // TODO: Remove old player.
+      const sr = Songrequest.getInstance(hostId);
+
+      const queue = sr.getQueue();
+
+      const currentSong = sr.getCurrentSong();
+      const song = queue.findLast(
+        (v) => v.requestedBy.toLowerCase() === message.username.toLowerCase(),
+      );
+
+      if (!song) {
+        if (
+          currentSong?.requestedBy.toLowerCase() !==
+          message.username.toLowerCase()
+        ) {
+          return await client.dispatchBotMessage(
+            translationManager.translate("SR_WRONG_SONG_NOT_FOUND", {
+              invokedBy: message.username,
+            }),
+          );
+        } else {
+          sr.skip();
+          return await client.dispatchBotMessage(
+            translationManager.translate("SR_WRONG_SONG_WIPED", {
+              invokedBy: message.username,
+              title: currentSong.title,
+              url: currentSong.url,
+            }),
+          );
+        }
+      }
+
+      sr.removeFromQueue(song);
+
+      return await client.dispatchBotMessage(
+        translationManager.translate("SR_WRONG_SONG_WIPED", {
+          invokedBy: message.username,
+          title: song.title,
+          url: song.url,
+        }),
+      );
     }
-
-    sr.removeFromQueue(song);
-
-    return await client.dispatchBotMessage(
-      translationManager.translate("SR_WRONG_SONG_WIPED", {
-        invokedBy: message.username,
-        title: song.title,
-        url: song.url,
-      }),
-    );
   }
 
   getMatchingExp(): RegExp {
