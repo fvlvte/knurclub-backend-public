@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8"/>
+    <title>KNURCAMP REJESTRACJA</title>
+    <script>
+        const BACKEND_BASE = "###CVL###";
+
+        function jebacReact() {
+            const uriParams = new URLSearchParams();
+            uriParams.set("response_type", "code");
+            uriParams.set("client_id", "z4ngv8hovfeaq7rstf7egijqn351wu");
+            uriParams.set("redirect_uri", `${BACKEND_BASE}/oauth_landing`)
+            uriParams.set("scope", "user:read:subscriptions")
+            window.location = `https://id.twitch.tv/oauth2/authorize?${uriParams.toString()}`
+        }
+    </script>
+    <link href="https://fonts.cdnfonts.com/css/dedicool" rel="stylesheet">
+    <style>
+        .button {
+            background-color: #fbeee0;
+            border: 2px solid #422800;
+            border-radius: 30px;
+            box-shadow: #422800 4px 4px 0 0;
+            color: #422800;
+            cursor: pointer;
+            display: block;
+            margin: auto;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 0 18px;
+            line-height: 50px;
+            text-align: center;
+            text-decoration: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body style="background-color:#FF69B4; display:flex">
+<div style="position:relative; margin-left: auto;margin-right: auto ">
+    <h1 style="font-family: 'Dedicool', sans-serif;">ZAPISZ SIE NA KNURCAMP</h1>
+    <button class="button" onclick="jebacReact()">ELO CHCE SIE ZAPISAC OK</button>
+</div>
+</body>
+</html>

@@ -262,10 +262,6 @@ export class SRRewritten {
     audioSource: string,
     user: SRUser,
   ): Promise<SRAddResult> {
-    if (this.userTrap[user.id]) {
-      return { message: "SR_USER_TRAP_HAUS", error: true, params: {} };
-    }
-    this.userTrap[user.id] = true;
     try {
       const config = await this.configManager.getConfig();
 
@@ -278,7 +274,13 @@ export class SRRewritten {
         audioSource.includes("youtube.com") ||
         audioSource.includes("youtu.be")
       ) {
+        if (this.userTrap[user.username]) {
+          return { message: "SR_USER_TRAP_HAUS", error: true, params: {} };
+        }
+
         try {
+          this.userTrap[user.username] = true;
+
           const songInfo = await ytdl.getInfo(audioSource);
 
           if (!skipChecks) {
@@ -301,6 +303,8 @@ export class SRRewritten {
         } catch (e) {
           console.error(e);
           return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
+        } finally {
+          this.userTrap[user.username] = false;
         }
       } else {
         try {
@@ -317,8 +321,6 @@ export class SRRewritten {
     } catch (e) {
       console.error(e);
       return { message: "SR_USER_TRAP_HAUS2", error: true, params: {} };
-    } finally {
-      this.userTrap[user.id] = false;
     }
   }
 

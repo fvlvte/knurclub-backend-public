@@ -1,0 +1,16 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+      - name: Login, build, tag, and push image to Docker Container Registry
+        id: build-image
+        run: |
+          docker login -u fvlvte -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build --build-arg="BUILD_TS_ARG=${{ github.event.repository.pushed_at }}" -q -t fvlvte/knurpyton:latest ./pythonBackend
+          docker push fvlvte/knurpyton:latest
