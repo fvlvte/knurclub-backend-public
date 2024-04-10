@@ -3,12 +3,13 @@
 <head>
     <meta charset="utf-8"/>
     <title>KNURCAMP REJESTRACJA</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         const BACKEND_BASE = "###CVL###";
         var BACKEND_DATA = null;
 
-        async function expandCodeToToken(code, redirect_url) {
-            const body = {code, redirect_url};
+        async function expandCodeToToken(code, redirect_url, captcha) {
+            const body = {code, redirect_url, captcha};
 
             const r = await fetch(`${BACKEND_BASE}/twitch/oauth`, {
                 method: "POST", body: JSON.stringify(body), headers: {
@@ -33,9 +34,9 @@
             document.getElementById("auth").style.display = stanxD === "auth" ? "block" : "none";
         }
 
-        async function main() {
+        function main(captchaToken) {
             const data = new URLSearchParams(window.location.search);
-            expandCodeToToken(data.get("code"), `${BACKEND_BASE}/oauth_landing`).then(() => {
+            expandCodeToToken(data.get("code"), `${BACKEND_BASE}/oauth_landing`, captchaToken).then(() => {
                 budzetowyReact("auth");
             }).catch(() => {
                 budzetowyReact("non-auth");
@@ -50,13 +51,21 @@
             window.location = "https://www.twitch.tv/fvlvte"
         }
 
-        main();
+        function mainFlow() {
+            const ret = grecaptcha.getResponse();
+            if (ret.length === 0) {
+                alert("ZRUB KAPCZE MISIU PYSIU AOK");
+            }
+            main(ret);
+        }
     </script>
 </head>
 <body>
 <center>
     <div id="hangscreen">
-        <h1>WITAJ KNURZE PIĘKNY POCZEKAJ HWILE UWU :3</h1>
+        <h1>WITAJ KNURZE PIĘKNY POKASZ MI ŻE NIE JESTEŚ BOTEM TYLKO DZIKIM KOTEM :3</h1>
+        <div class="g-recaptcha" data-sitekey="6LcRTbcpAAAAAIi-98ysncWSMK0_NkyfQsxLvACb"></div>
+        <button onclick="mainFlow()">JAZDA</button>
     </div>
     <div id="non-auth" style="display: none">
         <h1>NIE MASZ SUBA ROBACZKU NIE MASZ KNURCAMPA HEHE (ALBO SIE BACKEND WYWALIŁ XD)</h1>

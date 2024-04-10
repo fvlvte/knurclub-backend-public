@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <title>KNURCAMP REJESTRACJA</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         const BACKEND_BASE = "###CVL###";
 
@@ -36,12 +37,161 @@
             -webkit-user-select: none;
             touch-action: manipulation;
         }
+
+        .dupa {
+            display: flex;
+            flex-direction: column;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .gif {
+            position: absolute;
+            left: 150px;
+            top: 530px;
+            -webkit-animation: spin 2s linear infinite;
+            -moz-animation: spin 2s linear infinite;
+            animation: spin 2s linear infinite;
+        }
+
+        @-moz-keyframes spin {
+            100% {
+                -moz-transform: rotate(360deg);
+            }
+        }
+
+        @-webkit-keyframes spin {
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+
+
+        }
+
+        .tekst {
+            position: absolute;
+            margin-left: auto;
+            margin-right: auto;
+            top: 250px;
+        }
+
+        .kitty {
+
+            position: absolute;
+            left: 1280px;
+            top: 20px;
+        }
+
+        .mel {
+            position: absolute;
+            left: 130px;
+            top: -30px;
+        }
+
+        .pur {
+            position: absolute;
+            left: 1300px;
+            top: 560px;
+        }
+
+        @media (width <= 800px) {
+            /* … */
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Dedicool', sans-serif;
+                background-color: #FF69B4;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+            }
+
+            .container {
+                text-align: center;
+                position: relative;
+            }
+
+            .button {
+                background-color: #fbeee0;
+                border: 2px solid #422800;
+                border-radius: 30px;
+                box-shadow: #422800 4px 4px 0 0;
+                color: #422800;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 18px;
+                padding: 0 18px;
+                line-height: 50px;
+                text-align: center;
+                text-decoration: none;
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: manipulation;
+            }
+
+            .images {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+
+            .images img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+            }
+
+
+            .container {
+                flex-direction: column;
+            }
+
+            .images {
+                position: static;
+            }
+
+            .tekst {
+                margin-top: 50px;
+            }
+
+        }
+
+
     </style>
 </head>
 <body style="background-color:#FF69B4; display:flex">
-<div style="position:relative; margin-left: auto;margin-right: auto ">
+<div class="tekst">
     <h1 style="font-family: 'Dedicool', sans-serif;">ZAPISZ SIE NA KNURCAMP</h1>
-    <button class="button" onclick="jebacReact()">ELO CHCE SIE ZAPISAC OK</button>
+    <button onclick="jebacReact()" class="button">ELO CHCE SIE ZAPISAC OK</button>
+</div>
+<div class="dupa">
+    <div class="kitty">
+        <img src="https://pngfre.com/wp-content/uploads/hello-kitty-poster.png" alt="kitty">
+    </div>
+    <div class="mel">
+        <img src="https://www.pngall.com/wp-content/uploads/13/My-Melody-PNG-Free-Image.png" alt="mel">
+    </div>
+    <div class="gif">
+        <img src="https://img1.picmix.com/output/pic/normal/4/6/8/6/8636864_c120c.gif" ;>
+    </div>
+    <div class="pur">
+        <img src="https://sanriosociety.files.wordpress.com/2015/06/9743.png" alt="pur">
+    </div>
 </div>
 </body>
 </html>

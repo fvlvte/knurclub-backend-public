@@ -7,10 +7,11 @@ from models.TwitchOAuthResponse import TwitchOAuthResponse
 import json
 import datetime
 import os
-# TODO: Formularzyk w SQLITE
-# import sqlite3
+import pymongo
 
 import httpx
+
+client = pymongo.MongoClient("localhost", 27017)
 
 try:
     BACKEND_BASE = os.environ["BACKEND_BASE"]
@@ -20,7 +21,6 @@ except KeyError:
 with open("./static/rejestracjaEtap2xd.html") as file:
     html2 = file.read().replace('###CVL###', BACKEND_BASE)
 
-# TODO: Dodaj rate limiter deklu.
 app = FastAPI()
 
 
@@ -52,6 +52,23 @@ async def twitch_is_subscribing_to_channel(channel_id: str, user_id: str, token:
             raise Exception("Failed to get subscription info")
 
 
+async def captcha_verify(token: str) -> bool:
+    async with httpx.AsyncClient() as client:
+        data = {
+            "secret": os.getenv('CAPTCHA_SECRET'),
+            "response": token,
+        }
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+        url = 'https://www.google.com/recaptcha/api/siteverify'
+        response = await client.post(url, data=data, headers=headers)
+        if response.status_code == 200:
+            return response.json()['success']
+        else:
+            return False
+
+
 async def twitch_user_info(token):
     async with httpx.AsyncClient() as client:
         headers = {
@@ -64,7 +81,6 @@ async def twitch_user_info(token):
         return json.loads(response.text)
 
 
-# TODO: Zweryfikuj deklu czy użyszkodnik ma suba na twoim kanale.
 async def twitch_oauth_handler(code, redirect_url):
     async with httpx.AsyncClient() as client:
         headers = {
@@ -83,23 +99,50 @@ async def twitch_oauth_handler(code, redirect_url):
         return json.loads(response.text)
 
 
+def get_form(user_id: str) -> dict | None:
+    db = client.get_database('knurcamp')
+    zapisy = db.get_collection('zapisy')
+    return zapisy.find_one({"user_id": user_id})
+
+
+def save_form(form: dict) -> None:
+    if get_form(user_id=form['user_id']):
+        raise Exception("Form already exists")
+
+    db = client.get_database('knurcamp')
+    zapisy = db.get_collection('zapisy')
+
+    zapisy.insert_one(form)
+
+
 @app.post("/twitch/oauth")
 async def twitch_oauth(request: TwitchOAuthResponse):
-    async with httpx.AsyncClient() as client:
-        auth = await twitch_oauth_handler(request.code, request.redirect_url)
-        data = await twitch_user_info(auth.get("access_token"))
+    if await captcha_verify(request.captcha) is not True:
+        return JSONResponse({"error": "wrong captcha"}, status_code=403)
 
-        destructured_data = data["data"][0]
+    auth = await twitch_oauth_handler(request.code, request.redirect_url)
+    data = await twitch_user_info(auth.get("access_token"))
 
-        user_id = destructured_data["id"]
+    destructured_data = data["data"][0]
 
-        is_subscribed = await twitch_is_subscribing_to_channel("268563714", user_id, auth.get("access_token"))
+    user_id = destructured_data["id"]
 
-        if not is_subscribed:
-            return JSONResponse({"error": "not subscribed"}, status_code=403)
+    is_subscribed = await twitch_is_subscribing_to_channel("268563714", user_id, auth.get("access_token"))
 
-        return {"auth": auth, "data": destructured_data,
-                "token": make_token({"id": user_id, "username": destructured_data["login"]})}
+    if get_form(user_id) is not None:
+        form = True
+    else:
+        form = False
+
+    if not is_subscribed:
+        return JSONResponse({"error": "not subscribed"}, status_code=403)
+
+    return {
+        "auth": auth,
+        "data": destructured_data,
+        "form": form,
+        "token": make_token({"id": user_id, "username": destructured_data["login"]})
+    }
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -112,8 +155,3 @@ async def root():
 async def oauth_landing():
     with open("./static/rejestracjaEtap2xd.html") as file:
         return file.read().replace('###CVL###', BACKEND_BASE)
-
-
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
