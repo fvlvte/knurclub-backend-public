@@ -3,6 +3,7 @@ export enum FeatureFlag {
 }
 const newPlayerEnabledIds = [
   "1024010545",
+  "197171878",
   process.env.NODE_END !== "production" ? "268563714" : undefined,
 ];
 
