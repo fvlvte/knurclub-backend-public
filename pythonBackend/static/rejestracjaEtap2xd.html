@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8"/>
+    <title>KNURCAMP REJESTRACJA</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script>
+        const BACKEND_BASE = "###CVL###";
+        var BACKEND_DATA = null;
+
+        async function expandCodeToToken(code, redirect_url, captcha) {
+            const body = {code, redirect_url, captcha};
+
+            const r = await fetch(`${BACKEND_BASE}/twitch/oauth`, {
+                method: "POST", body: JSON.stringify(body), headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+
+            if (r.status !== 200) {
+                throw new Error("Failed to authenticate.")
+            }
+
+            const data = await r.json();
+            BACKEND_DATA = data;
+
+            document.getElementById("username").innerText = data.data.display_name;
+            document.getElementById("profiluwa").src = data.data.profile_image_url;
+        }
+
+        function budzetowyReact(stanxD) {
+            document.getElementById("hangscreen").style.display = stanxD === "hangscreen" ? "none" : "none";
+            document.getElementById("non-auth").style.display = stanxD === "non-auth" ? "block" : "none";
+            document.getElementById("auth").style.display = stanxD === "auth" ? "block" : "none";
+        }
+
+        function main(captchaToken) {
+            const data = new URLSearchParams(window.location.search);
+            expandCodeToToken(data.get("code"), `${BACKEND_BASE}/oauth_landing`, captchaToken).then(() => {
+                budzetowyReact("auth");
+            }).catch(() => {
+                budzetowyReact("non-auth");
+            });
+        }
+
+        function fuckGoBack() {
+            window.location = "/";
+        }
+
+        function kupSub() {
+            window.location = "https://www.twitch.tv/fvlvte"
+        }
+
+        function mainFlow() {
+            const ret = grecaptcha.getResponse();
+            if (ret.length === 0) {
+                alert("ZRUB KAPCZE MISIU PYSIU AOK");
+            }
+            main(ret);
+        }
+    </script>
+</head>
+<body>
+<center>
+    <div id="hangscreen">
+        <h1>WITAJ KNURZE PIĘKNY POKASZ MI ŻE NIE JESTEŚ BOTEM TYLKO DZIKIM KOTEM :3</h1>
+        <div class="g-recaptcha" data-sitekey="6LcRTbcpAAAAAIi-98ysncWSMK0_NkyfQsxLvACb"></div>
+        <button onclick="mainFlow()">JAZDA</button>
+    </div>
+    <div id="non-auth" style="display: none">
+        <h1>NIE MASZ SUBA ROBACZKU NIE MASZ KNURCAMPA HEHE (ALBO SIE BACKEND WYWALIŁ XD)</h1>
+        <p>Bank (koniecznie wpisz DAROWIZNA w tytule przelewu): PL 85 1560 0013 2243 3952 8000 0006 kod SWIFT (tzw.
+            BIC): GBGCPLPK</p>
+        <button onclick="kupSub()">KUP SUB</button>
+        <button onclick="fuckGoBack()">SPRUBUJ PONOWNIE</button>
+    </div>
+    <div id="auth" style="display: none">
+        <h1>WITAM SERDECZNEGO KNURA</h1>
+        <h2 id="username"></h2>
+        <img alt="twojaStary" id="profiluwa" width="100" height="100"/>
+    </div>
+</center>
+</body>
+</html>

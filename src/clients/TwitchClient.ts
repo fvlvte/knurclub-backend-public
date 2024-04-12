@@ -44,7 +44,8 @@ import { Logger } from "../util/Logger";
 import { WebSocketSession } from "../managers/websocket/WebSocketSession";
 import { SongRequestPlay } from "../commands/SongRequest/SongRequestPlay";
 import { SongRequestStop } from "../commands/SongRequest/SongRequestStop";
-export class TwitchClient {
+import { TwitchClientInterface } from "../interfaces/TwitchClientInterface";
+export class TwitchClient implements TwitchClientInterface {
   constructor(refreshToken: string, userId: string) {
     this.streamerId = userId;
     this.TWITCH_REFRESH_TOKEN = refreshToken;
@@ -548,6 +549,7 @@ export class TwitchClient {
   }
 
   private async onIrcMessage(msg: Messages): Promise<void> {
+    console.log(msg);
     const castedMessage = msg as unknown as TwitchMessage;
 
     if (!castedMessage.message) return;
