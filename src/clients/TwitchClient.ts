@@ -549,6 +549,7 @@ export class TwitchClient implements TwitchClientInterface {
   }
 
   private async onIrcMessage(msg: Messages): Promise<void> {
+    console.log(msg);
     const castedMessage = msg as unknown as TwitchMessage;
 
     if (!castedMessage.message) return;

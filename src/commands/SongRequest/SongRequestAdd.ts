@@ -40,7 +40,10 @@ export class SongRequestAdd extends CommandHandler {
     } else {
       // TODO: Remove old player.
       const subLevel =
-        typeof message.tags.badges.subscriber === "number" ? 1 : 0;
+        typeof message.tags.badges.subscriber === "number" ||
+        message.tags.badgeInfo === "founder/11"
+          ? 1
+          : 0;
 
       const username = message.username;
 
