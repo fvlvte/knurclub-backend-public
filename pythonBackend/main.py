@@ -2,14 +2,35 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from starlette.responses import JSONResponse
 import jwt
+import time
 
 from models.TwitchOAuthResponse import TwitchOAuthResponse
+from models.SaveForm import SaveForm
 import json
 import datetime
 import os
 import pymongo
 
 import httpx
+
+ALLOWED_QUESTIONS = [
+    "Jak oceniasz swój poziom wiedzy niskopoziomowej (technologie: C/ASM)",
+    "Jak oceniasz swój poziom wiedzy z systemów Unix (stack sieciowy, threading, memory)",
+    "Dlaczego chcesz się zapisać",
+    "Co chcesz osiągnąć jako absolwet knurcamp",
+    "Jakbyś był zwierzęciem to jakim byś był zwierzęciem za 5 lat w naszej firmie",
+    "Opisz swoje doświadczenia z branżą IT (czy lizłeś np. zagadnienia computer science)",
+    "Co oczekujesz się nauczyć na tym campie?",
+]
+
+SCALE_QUESTIONS = [
+    "Jak oceniasz swój poziom wiedzy niskopoziomowej (technologie: C/ASM)",
+    "Jak oceniasz swój poziom wiedzy z systemów Unix (stack sieciowy, threading, memory)",
+]
+
+QUESTION_AMOUNT = len(ALLOWED_QUESTIONS)
+
+MAX_ANSWER_LEN = 4096
 
 client = pymongo.MongoClient("localhost", 27017)
 
@@ -25,13 +46,13 @@ app = FastAPI()
 
 
 def make_token(payload: dict) -> str:
-    payload["exp"] = datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+    payload["exp"] = int(time.time()) + 24 * 60 * 60
     return jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm='HS256')
 
 
 def decode_token(token: str) -> dict:
     tk = jwt.decode(token, os.getenv('SECRET_KEY'), algorithms=['HS256'])
-    if tk['exp'] < datetime.datetime.utcnow():
+    if tk['exp'] < int(time.time()):
         raise Exception("Token is expired")
     return tk
 
@@ -106,11 +127,10 @@ def get_form(user_id: str) -> dict | None:
 
 
 def save_form(form: dict) -> None:
-    if get_form(user_id=form['user_id']):
-        raise Exception("Form already exists")
-
     db = client.get_database('knurcamp')
     zapisy = db.get_collection('zapisy')
+
+    zapisy.delete_many({"user_id": form["user_id"]})
 
     zapisy.insert_one(form)
 
@@ -145,6 +165,36 @@ async def twitch_oauth(request: TwitchOAuthResponse):
     }
 
 
+@app.post("/save")
+async def twitch_oauth(request: SaveForm):
+    if await captcha_verify(request.captcha) is not True:
+        return JSONResponse({"error": "wrong captcha"}, status_code=403)
+    tokenData = decode_token(request.token)
+
+    id = tokenData["id"]
+    username = tokenData["username"]
+
+    formData = {}
+
+    for x in request.form:
+        if x.question not in ALLOWED_QUESTIONS:
+            return JSONResponse({"error": "wypierdalaj skriptkidosie obsrany"}, status_code=400)
+        if x.question in SCALE_QUESTIONS:
+            if int(x.value) not in range(0, 100):
+                return JSONResponse({"error": "wypierdalaj skriptkidosie obsrany"}, status_code=400)
+        if len(x.question) > MAX_ANSWER_LEN:
+            return JSONResponse({"error": "za dluga maczuga"}, status_code=400)
+        formData[x.question] = x.value
+
+    save_form({
+        "user_id": id,
+        "username": username,
+        "form": formData,
+    })
+
+    return {"ok": "ok"}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     with open("./static/rejestracjaEtap1xd.html") as file:
@@ -155,3 +205,9 @@ async def root():
 async def oauth_landing():
     with open("./static/rejestracjaEtap2xd.html") as file:
         return file.read().replace('###CVL###', BACKEND_BASE)
+
+
+@app.get("/formularzyk", response_class=HTMLResponse)
+async def oauth_landing():
+    with open("./static/formularzyk.html") as file:
+        return file.read()

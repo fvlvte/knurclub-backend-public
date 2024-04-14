@@ -4,7 +4,7 @@ import { SRUser } from "../../features/SRRewritten";
 export function util_makeSrUserFromMessage(message: TwitchMessage): SRUser {
   const subLevel =
     typeof message.tags.badges.subscriber === "number" ||
-    message.tags.badgeInfo === "founder/11"
+    message.tags.badgeInfo.includes("founder")
       ? 1
       : 0;
 

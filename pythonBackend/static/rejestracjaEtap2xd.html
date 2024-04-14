@@ -26,6 +26,12 @@
 
             document.getElementById("username").innerText = data.data.display_name;
             document.getElementById("profiluwa").src = data.data.profile_image_url;
+            if (data.form) {
+                document.getElementById("naChujSieGapisz").style.display = "none";
+                document.getElementById("dzienki").innerText = "dzienki za zgłoszenie";
+            } else {
+                document.getElementById("naChujSieGapisz").src = "/formularzyk?token=" + BACKEND_DATA.token
+            }
         }
 
         function budzetowyReact(stanxD) {
@@ -78,6 +84,9 @@
         <h1>WITAM SERDECZNEGO KNURA</h1>
         <h2 id="username"></h2>
         <img alt="twojaStary" id="profiluwa" width="100" height="100"/>
+        <br/>
+        <iframe style="width: 80%;height: 60vh" id="naChujSieGapisz"></iframe>
+        <h2 id="dzienki"></h2>
     </div>
 </center>
 </body>

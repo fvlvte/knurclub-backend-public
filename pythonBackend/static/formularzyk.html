@@ -1,0 +1,127 @@
+<html lang="ne">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FORMULARZYK</title>
+    <style>
+        p,
+        label {
+            font: 1rem 'Fira Sans',
+            sans-serif;
+        }
+
+        input {
+            margin: 0.4rem;
+        }
+    </style>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script>
+        function doLoad() {
+
+        }
+
+        // document.getElementById("formularzyk").children[0].children[1].children[0]
+
+        function doSave() {
+            const qs = new URLSearchParams(location.search);
+            const token = qs.get("token");
+
+            const f = document.getElementById("formularzyk");
+
+            const jsonData = [];
+
+            for (const element of Array.from(f.children)) {
+                const e = Array.from(element.children);
+
+                if (e.length === 2) {
+                    const question = e[0].innerText;
+                    const target = e[1].children[0]
+
+                    if (target && target.value) {
+                        const value = target.value;
+                        jsonData.push({question, value});
+                    }
+                }
+            }
+
+            const ret = grecaptcha.getResponse();
+            if (ret.length === 0) {
+                alert("ZRUB KAPCZE MISIU PYSIU AOK");
+            }
+
+            const backendPayload = {
+                token,
+                form: jsonData,
+                captcha: ret
+            }
+
+            fetch("/save", {
+                method: "POST",
+                body: JSON.stringify(backendPayload),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }).then((request) => {
+                request.json().then((rjson) => {
+                    console.log(rjson);
+                    if (request.status !== 200) {
+                        alert("ups cos sie wysrało")
+                    } else {
+                        alert("zapisaned")
+                    }
+                });
+            }).catch(() => {
+                alert("ups cos sie wysrało")
+            })
+        }
+    </script>
+</head>
+<body>
+<div id="formularzyk">
+    <fieldset>
+        <legend>Jak oceniasz swój poziom wiedzy niskopoziomowej (technologie: C/ASM)</legend>
+        <div>
+            <input type="range"/>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Jak oceniasz swój poziom wiedzy z systemów Unix (stack sieciowy, threading, memory)</legend>
+        <div>
+            <input type="range"/>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Dlaczego chcesz się zapisać</legend>
+        <div>
+            <textarea></textarea>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Co chcesz osiągnąć jako absolwet knurcamp</legend>
+        <div>
+            <textarea></textarea>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Jakbyś był zwierzęciem to jakim byś był zwierzęciem za 5 lat w naszej firmie</legend>
+        <div>
+            <textarea></textarea>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Opisz swoje doświadczenia z branżą IT (czy lizłeś np. zagadnienia computer science)</legend>
+        <div>
+            <textarea></textarea>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Co oczekujesz się nauczyć na tym campie?</legend>
+        <div>
+            <textarea></textarea>
+        </div>
+    </fieldset>
+    <div class="g-recaptcha" data-sitekey="6LcRTbcpAAAAAIi-98ysncWSMK0_NkyfQsxLvACb"></div>
+    <button onclick="doSave()">ZAPISZ</button>
+</div>
+</body>
+</html>
