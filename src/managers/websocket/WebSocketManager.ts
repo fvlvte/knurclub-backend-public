@@ -65,7 +65,7 @@ export class WebSocketManager {
     }
   }
 
-  init(): void {
+  init(port?: number): void {
     this.server = createServer();
     this.wss = new WebSocketServer({
       noServer: true,
@@ -73,7 +73,7 @@ export class WebSocketManager {
 
     this.server.on("upgrade", this.upgrade.bind(this));
 
-    this.server.listen(8080);
+    this.server.listen(port ?? 8080);
 
     this.wss.on(
       "connection",

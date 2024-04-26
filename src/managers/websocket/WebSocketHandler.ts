@@ -10,19 +10,15 @@ import { SRRewritten } from "../../features/SRRewritten";
 
 export class WebSocketHandler {
   private readonly session: WebSocketSession;
-  private clientHelloExchange = false;
 
   constructor(webSocketSession: WebSocketSession) {
     this.session = webSocketSession;
   }
 
   private async handleClientHello() {
-    if (!this.clientHelloExchange) {
-      this.clientHelloExchange = true;
-      const id = await this.session.getClient().getBroadcasterId();
-      SRRewritten.getInstance(id).bindWS(this.session);
-      await SRRewritten.getInstance(id).restart();
-    }
+    const id = await this.session.getClient().getBroadcasterId();
+    SRRewritten.getInstance(id).bindWS(this.session);
+    await SRRewritten.getInstance(id).restart();
   }
 
   public async processRawFrame(data: string) {
