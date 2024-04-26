@@ -2,6 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Added viewport meta tag -->
     <title>KNURCAMP REJESTRACJA</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
@@ -65,28 +66,79 @@
             main(ret);
         }
     </script>
+    <link href="https://fonts.cdnfonts.com/css/dedicool" rel="stylesheet">
+    <style>
+        body {
+            background-color: #FDB9C8;
+            font-family: 'Dedicool', sans-serif;
+            margin: 0; /* Added to remove default body margin */
+            padding: 0; /* Added to remove default body padding */
+
+        }
+
+        .button {
+            background-color: #fbeee0;
+            border: 2px solid #422800;
+            border-radius: 30px;
+            box-shadow: #422800 4px 4px 0 0;
+            color: #422800;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 0 18px;
+            line-height: 50px;
+            text-align: center;
+            text-decoration: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            margin-top: 20px; /* Adjusted for responsiveness */
+        }
+
+        /* Added media query for smaller screens */
+        @media only screen and (max-width: 600px) {
+            .button {
+                font-size: 16px; /* Adjusted font size for smaller screens */
+                line-height: 40px; /* Adjusted line height for smaller screens */
+            }
+        }
+
+
+    </style>
 </head>
 <body>
 <center>
-    <div id="hangscreen">
-        <h1>WITAJ KNURZE PIĘKNY POKASZ MI ŻE NIE JESTEŚ BOTEM TYLKO DZIKIM KOTEM :3</h1>
-        <div class="g-recaptcha" data-sitekey="6LcRTbcpAAAAAIi-98ysncWSMK0_NkyfQsxLvACb"></div>
-        <button onclick="mainFlow()">JAZDA</button>
-    </div>
-    <div id="non-auth" style="display: none">
-        <h1>NIE MASZ SUBA ROBACZKU NIE MASZ KNURCAMPA HEHE (ALBO SIE BACKEND WYWALIŁ XD)</h1>
-        <p>Bank (koniecznie wpisz DAROWIZNA w tytule przelewu): PL 85 1560 0013 2243 3952 8000 0006 kod SWIFT (tzw.
-            BIC): GBGCPLPK</p>
-        <button onclick="kupSub()">KUP SUB</button>
-        <button onclick="fuckGoBack()">SPRUBUJ PONOWNIE</button>
-    </div>
-    <div id="auth" style="display: none">
-        <h1>WITAM SERDECZNEGO KNURA</h1>
-        <h2 id="username"></h2>
-        <img alt="twojaStary" id="profiluwa" width="100" height="100"/>
-        <br/>
-        <iframe style="width: 80%;height: 60vh" id="naChujSieGapisz"></iframe>
-        <h2 id="dzienki"></h2>
+    <div class="tak">
+        <div id="hangscreen">
+            <h1>WITAJ KNURZE PIEKNY POKASZ MI ZE NIE JESTES BOTEM TYLKO DZIKIM KOTEM :3</h1>
+            <div class="g-recaptcha" data-sitekey="6LcRTbcpAAAAAIi-98ysncWSMK0_NkyfQsxLvACb"></div>
+            <button onclick="mainFlow()" class="button">JAZDA</button>
+            <div class="gif">
+                <img src="https://cdn.7tv.app/emote/60773136a807bed006130b28/4x.gif" ;>
+            </div>
+            <div class="mhm">
+                <img src="https://cdn.7tv.app/emote/61422765962a609048649063/4x.png" ;>
+            </div>
+
+            <div class="tako">
+                <img src="https://cdn.7tv.app/emote/629fa7bb2b24f7ba48b6e6c4/4x.gif" ;>
+            </div>
+        </div>
+        <div id="non-auth" style="display: none">
+            <h1>NIE MASZ SUBA ROBACZKU NIE MASZ KNURCAMPA HEHE (ALBO SIE BACKEND WYWALIŁ XD)</h1>
+            <p>Bank (koniecznie wpisz DAROWIZNA w tytule przelewu): PL 85 1560 0013 2243 3952 8000 0006 kod SWIFT (tzw.
+                BIC): GBGCPLPK</p>
+            <button onclick="kupSub()">KUP SUB</button>
+            <button onclick="fuckGoBack()">SPRUBUJ PONOWNIE</button>
+        </div>
+        <div id="auth" style="display: none">
+            <h1>WITAM SERDECZNEGO KNURA</h1>
+            <h2 id="username"></h2>
+            <img alt="twojaStary" id="profiluwa" width="100" height="100"/>
+            <br/>
+            <iframe style="width: 80%;height: 60vh" id="naChujSieGapisz"></iframe>
+            <h2 id="dzienki"></h2>
+        </div>
     </div>
 </center>
 </body>
