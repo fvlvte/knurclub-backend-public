@@ -83,7 +83,10 @@ export class SRRewritten {
   }
 
   private async tryInitiatePlayback() {
-    if (this.currentSong && !this.frontendPlaybackState.playing) {
+    if (
+      this.currentSong &&
+      this.currentSongTimeMark > this.currentSong.duration - 5
+    ) {
       await this.changeCurrentSong(this.currentSong);
       return;
     }
