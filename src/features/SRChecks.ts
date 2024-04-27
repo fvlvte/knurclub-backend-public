@@ -41,7 +41,7 @@ const srCheck_limitPerUser: SRCheck = async ({ config, queue, user }) => {
 
   let songsInQueuePerUser = 0;
   for (const item of queue) {
-    if (item.user.username.toLowerCase() === user.id) {
+    if (item.user.id.toLowerCase() === user.id) {
       songsInQueuePerUser++;
     }
   }
