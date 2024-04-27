@@ -125,9 +125,8 @@ const srCheck_reputation: SRCheck = async ({ user, config }) => {
   const repLimit = Math.round(config.data.songRequest.badVoteLimit);
 
   if (
-    (await MongoDBClient.getDefaultInstance().getRankingPoints(
-      user.username,
-    )) <= repLimit
+    (await MongoDBClient.getDefaultInstance().getRankingPoints(user.id)) <=
+    repLimit
   ) {
     return Promise.resolve({
       message: "SR_NEGATIVE_REPUTATION_LIMIT",
