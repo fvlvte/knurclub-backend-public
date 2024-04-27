@@ -52,6 +52,7 @@ export class SRRewritten {
   private configManager: ConfigManager;
 
   private currentSong: QueueEntry | null = null;
+  private currentSongTimeMark: number = 0;
 
   private skipCounter: string[] = [];
 
@@ -63,7 +64,7 @@ export class SRRewritten {
 
   private volume: number = 0.21; //.37
   // TODO: implement idle health checks
-  private playbackState: PlaybackState = {
+  private frontendPlaybackState: PlaybackState = {
     playing: false,
   };
 
@@ -75,78 +76,91 @@ export class SRRewritten {
   }
 
   public async handlePlaybackStateChange(state: PlaybackState) {
-    this.playbackState = state;
+    this.frontendPlaybackState = state;
   }
 
-  private async tryPlayNextSong() {
+  private async tryInitiatePlayback() {
+    if (this.currentSong) {
+      await this.changeCurrentSong(this.currentSong);
+      return;
+    }
+
     if (this.queue.length > 0) {
       const cs = this.queue.shift() ?? null;
-      await this.changeCurrentSong(cs);
       if (cs) {
         this.isPlaying = true;
         this.isPaused = false;
         this.currentSongVotes = [];
         this.skipCounter.length = 0;
         this.currentSongDiff = 0;
-        this.playbackState = {
+        this.frontendPlaybackState = {
           playing: true,
           playerState: {
             currentTime: 0,
-            duration: this.currentSong?.duration ?? 0,
+            duration: cs.duration ?? 0,
           },
-          songId: this.currentSong?.url,
+          songId: cs.url,
         };
       }
+      await this.changeCurrentSong(cs);
     } else {
       await this.changeCurrentSong(null);
     }
   }
 
   private async changeCurrentSong(song: QueueEntry | null) {
+    if (song !== this.currentSong) this.currentSongTimeMark = 0;
     this.currentSong = song;
-    this.session?.sendFrameNoResponse({
-      type: WSNetworkFrameType.SR_V1_CHANGE_CURRENT_SONG,
-      params: song
-        ? ({
-            title: song.title,
-            audioSourceURL: song.url,
-            iconSource: song.coverImage,
-            user: {
-              id: song.user.id,
-              name: song.user.username,
-              reputation: await this.mongo.getRankingPoints(song.user.id),
-            },
-            duration: song.duration,
-            playing: true,
-          } as BackendSong)
-        : null,
-    });
-    this.transmitPlaybackControlUpdate();
     if (song === null) {
       this.isPlaying = false;
-      this.playbackState = {
+      this.frontendPlaybackState = {
         playing: false,
       };
     }
+    const frames = [
+      {
+        type: WSNetworkFrameType.SR_V1_CHANGE_CURRENT_SONG,
+        params: song
+          ? ({
+              title: song.title,
+              audioSourceURL: song.url,
+              iconSource: song.coverImage,
+              user: {
+                id: song.user.id,
+                name: song.user.username,
+                reputation: await this.mongo.getRankingPoints(song.user.id),
+              },
+              duration: song.duration,
+              playing: true,
+              startFrom: this.currentSongTimeMark,
+            } as BackendSong)
+          : null,
+      },
+      this.playbackControlUpdate(false),
+    ];
+    this.session?.sendFrameNoResponse(frames);
   }
 
   private async worker() {
     try {
       if (this.isPaused) return;
-      if (!this.isPlaying && this.queue.length > 0) {
-        await this.tryPlayNextSong();
+      if (!this.frontendPlaybackState.playing && !this.isPaused) {
+        await this.tryInitiatePlayback();
         return;
-      } else if (this.playbackState.playing) {
+      } else if (!this.isPlaying && this.queue.length > 0) {
+        await this.tryInitiatePlayback();
         return;
-      } else if (!this.playbackState.playing && !this.isPlaying) {
+      } else if (this.frontendPlaybackState.playing) {
+        return;
+      } else if (!this.frontendPlaybackState.playing && !this.isPlaying) {
         return;
       } else if (
-        (this.playbackState.playerState?.duration ?? 10) -
-          (this.playbackState.playerState?.currentTime ?? 0) <
+        (this.frontendPlaybackState.playerState?.duration ?? 10) -
+          (this.frontendPlaybackState.playerState?.currentTime ?? 0) <
         1
       ) {
         await this.changeCurrentSong(null);
-        await this.tryPlayNextSong();
+        await this.tryInitiatePlayback();
       }
     } catch (e) {
     } finally {
@@ -169,7 +183,7 @@ export class SRRewritten {
     try {
       const storedQueue = await this.mongo.restoreQueue(this.id);
       if (storedQueue) {
-        // TODO: Apply stored queue.
+        this.queue = JSON.parse(storedQueue);
       }
     } catch (e) {
       console.error("Failed to restore queue", e);
@@ -193,12 +207,12 @@ export class SRRewritten {
 
   public stop() {
     this.isPaused = true;
-    this.transmitPlaybackControlUpdate();
+    this.playbackControlUpdate();
   }
 
   public play() {
     this.isPaused = false;
-    this.transmitPlaybackControlUpdate();
+    this.playbackControlUpdate();
   }
 
   async tryAppendSongNoVerify(
@@ -221,9 +235,19 @@ export class SRRewritten {
       this.queue.unshift(songData);
     } else {
       this.queue.push(songData);
+      await this.mongo.storeQueue(this.id, JSON.stringify(this.queue));
     }
 
-    return { message: "SR_ADD_OK", error: false, params: {} };
+    return {
+      message: "SR_ADD_OK",
+      error: false,
+      params: {
+        invokedBy: user.username,
+        url: data.videoDetails.video_url,
+        title: data.videoDetails.title,
+        ...this.when(songData),
+      },
+    };
   }
 
   public when(si: QueueEntry) {
@@ -252,7 +276,7 @@ export class SRRewritten {
 
     const tmp =
       (this.currentSong?.duration ?? 0) -
-      (this.playbackState.playerState?.currentTime ?? 0);
+      (this.frontendPlaybackState.playerState?.currentTime ?? 0);
     if (tmp > 0) durationUntilSong += tmp;
 
     return { when: convertToHumanForm(durationUntilSong), index: index + 1 };
@@ -341,14 +365,8 @@ export class SRRewritten {
     return skipCounter >= 0 ? skipCounter : 0;
   }
 
-  public skip(): void {
-    if (this.currentSong && this.session) {
-      this.changeCurrentSong(null).then(
-        this.transmitPlaybackControlUpdate.bind(this),
-      );
-    } else {
-      throw new Error("Can't skip song, no song is playing.");
-    }
+  public async skip(): Promise<void> {
+    await this.changeCurrentSong(null);
   }
 
   public getVolume(): number {
@@ -357,18 +375,22 @@ export class SRRewritten {
 
   public setVolume(v: number): void {
     this.volume = v;
-    this.transmitPlaybackControlUpdate();
+    this.playbackControlUpdate();
   }
 
-  private transmitPlaybackControlUpdate() {
-    this.session?.sendFrameNoResponse({
+  private playbackControlUpdate(send?: boolean) {
+    const frame = {
       type: WSNetworkFrameType.SR_V1_PLAYBACK_CONTROL_UPDATE,
       params: {
         isPaused: this.isPaused,
         volume: this.volume,
         pointsChange: this.currentSongDiff,
       },
-    } as SR_V1_PLAYBACK_CONTROL_UPDATE);
+    } as SR_V1_PLAYBACK_CONTROL_UPDATE;
+    if (send) {
+      this.session?.sendFrameNoResponse(frame);
+    }
+    return frame;
   }
 
   public async handleVote(from: SRUser, amount: number): Promise<number> {
@@ -386,7 +408,7 @@ export class SRRewritten {
 
     this.currentSongDiff += amount;
 
-    this.transmitPlaybackControlUpdate();
+    this.playbackControlUpdate(true);
 
     return this.currentSongDiff;
   }

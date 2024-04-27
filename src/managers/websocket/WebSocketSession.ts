@@ -17,17 +17,23 @@ export class WebSocketSession {
   private readonly client: TwitchClient;
   private readonly handler: WebSocketHandler = new WebSocketHandler(this);
 
-  public sendFrameNoResponse(frame: WSNetworkFrame) {
-    if (!frame.id) {
-      frame.id =
-        Math.random().toString(36).substring(2, 15) +
-        new Date().getTime().toString();
-    }
+  public sendFrameNoResponse(frame: WSNetworkFrame | WSNetworkFrame[]) {
+    if (!Array.isArray(frame)) {
+      if (!frame.id) {
+        frame.id =
+          Math.random().toString(36).substring(2, 15) +
+          new Date().getTime().toString();
+      }
 
-    if (this.ws.readyState === this.ws.OPEN) {
-      this.ws.send(JSON.stringify(frame));
+      if (this.ws.readyState === this.ws.OPEN) {
+        this.ws.send(JSON.stringify(frame));
+      } else {
+        throw new Error("WebSocket not open");
+      }
     } else {
-      throw new Error("WebSocket not open");
+      for (const f of frame) {
+        this.sendFrameNoResponse(f);
+      }
     }
   }
 

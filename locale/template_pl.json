@@ -23,7 +23,7 @@
   "SR_EMPTY_QUEUE": "@{{invokedBy}} kolejka jest pusta",
   "SR_QUEUE_PRINT": "@{{invokedBy}} oto nadchodzonce 3 pioseneg {{queue}}",
   "SR_ERR_NO_SONG": "@{{invokedBy}} nie ma nic w queue SR dodaj se piosenke komendom !ksr",
-  "SR_SONG_INFO": "@{{invokedBy}} aktualna piosenka to {{{url}}} {{{title}}} dodana przez {{requestedBy}} ({{rep}})",
+  "SR_SONG_INFO": "@{{invokedBy}} aktualna piosenka to {{{url}}} {{{title}}} dodana przez {{requestedBy}}",
   "SR_SKIP_VOTE_IN_PROGRESS": "@{{invokedBy}} potrzeba jeszcze {{counter}} głosuw żeby skipnonc",
   "SR_SKIP_VOTE_SUCCESS": "@{{invokedBy}} demokracja przemuwila skipujemy",
   "SR_ADMIN_SKIP": "@{{invokedBy}} autorytarna władza przemuwiła",

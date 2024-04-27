@@ -60,7 +60,6 @@ export class SongRequestCurrent extends CommandHandler {
         translationManager.translate("SR_SONG_INFO", {
           invokedBy: message.username,
           title: songInfo.title,
-          rep: songInfo.userReputation ?? 0,
           url: songInfo.url,
           requestedBy: songInfo.requestedBy,
         }),
