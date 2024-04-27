@@ -8,6 +8,8 @@ import { FeatureFlag, isFeatureEnabled } from "../../util/FeatureFlag";
 import { SRRewritten } from "../../features/SRRewritten";
 import { util_makeSrUserFromMessage } from "./util_makeSrUserFromMessage";
 
+const BANNED_SPELLE = ["miinioo_"];
+
 export class SongRequestSkipVote extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
@@ -15,6 +17,10 @@ export class SongRequestSkipVote extends CommandHandler {
   ): Promise<void> {
     const language = await client.getStreamLanguage();
     const hostId = await client.getBroadcasterId();
+
+    if (BANNED_SPELLE.includes(message.username.toLowerCase())) {
+      return;
+    }
 
     const translationManager = TranslationManager.getInstance(language, hostId);
 
@@ -47,7 +53,7 @@ export class SongRequestSkipVote extends CommandHandler {
               invokedBy: message.username,
               targetUser: song.user.username,
               change: -1,
-              currentValue: ret,
+              currentValue: ret.total,
             }),
           );
         } catch (_e) {}
