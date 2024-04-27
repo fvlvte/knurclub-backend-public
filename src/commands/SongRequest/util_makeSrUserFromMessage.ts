@@ -1,6 +1,8 @@
 import { TwitchMessage } from "../../types/TwitchTypes";
 import { SRUser } from "../../features/SRRewritten";
 
+const SPELL_MODERATORZY = ["miinioo_"];
+
 export function util_makeSrUserFromMessage(message: TwitchMessage): SRUser {
   const subLevel =
     typeof message.tags.badges.subscriber === "number" ||
@@ -13,7 +15,9 @@ export function util_makeSrUserFromMessage(message: TwitchMessage): SRUser {
     username: message.username,
     isSub: subLevel > 0 ?? false,
     subLevel: subLevel,
-    isModerator: message.tags.isModerator ?? false,
+    isModerator: SPELL_MODERATORZY.includes(message.username)
+      ? false
+      : message.tags.isModerator ?? false,
     isVIP: false,
   };
 }
