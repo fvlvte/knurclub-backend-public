@@ -167,6 +167,7 @@ export class SRRewritten {
       }
     } catch (e) {
     } finally {
+      this.playbackControlUpdate(true);
     }
   }
 
