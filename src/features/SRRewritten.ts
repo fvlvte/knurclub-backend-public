@@ -42,6 +42,8 @@ export class SRRewritten {
   /** User instances collection */
   private static instances: { [id: string]: SRRewritten } = {};
 
+  private skippedSongs: { url: string; expires: number }[] = [];
+
   private readonly mongo: MongoDBClient;
 
   private queue: QueueEntry[] = [];
@@ -223,6 +225,24 @@ export class SRRewritten {
     const title = data.videoDetails.title;
     const length = parseInt(data.videoDetails.lengthSeconds);
 
+    this.skippedSongs = this.skippedSongs.filter((x) => x.expires < Date.now());
+
+    const skipped = this.skippedSongs.find(
+      (x) => x.url === data.videoDetails.video_url,
+    );
+
+    if (skipped && user.id !== this.id) {
+      return {
+        message: "SR_ADD_BANNED_SONG_24H",
+        error: true,
+        params: {
+          invokedBy: user.username,
+          url: data.videoDetails.video_url,
+          title: data.videoDetails.title,
+        },
+      };
+    }
+
     const songData = {
       title: title,
       coverImage: data.videoDetails.thumbnails[0].url,
@@ -366,6 +386,14 @@ export class SRRewritten {
   }
 
   public async skip(): Promise<void> {
+    if (this.currentSong) {
+      if (!this.skippedSongs.find((x) => x.url === this.currentSong?.url)) {
+        this.skippedSongs.push({
+          url: this.currentSong.url,
+          expires: Date.now() + 1000 * 60 * 60 * 24,
+        });
+      }
+    }
     await this.changeCurrentSong(null);
   }
 
