@@ -207,12 +207,12 @@ export class SRRewritten {
 
   public stop() {
     this.isPaused = true;
-    this.playbackControlUpdate();
+    this.playbackControlUpdate(true);
   }
 
   public play() {
     this.isPaused = false;
-    this.playbackControlUpdate();
+    this.playbackControlUpdate(true);
   }
 
   async tryAppendSongNoVerify(
@@ -375,7 +375,7 @@ export class SRRewritten {
 
   public setVolume(v: number): void {
     this.volume = v;
-    this.playbackControlUpdate();
+    this.playbackControlUpdate(true);
   }
 
   private playbackControlUpdate(send?: boolean) {
@@ -393,7 +393,10 @@ export class SRRewritten {
     return frame;
   }
 
-  public async handleVote(from: SRUser, amount: number): Promise<number> {
+  public async handleVote(
+    from: SRUser,
+    amount: number,
+  ): Promise<{ diff: number; total: number }> {
     const to = this.currentSong?.user;
     if (!to) throw new Error("SR_ERROR_NO_SONG");
 
@@ -410,7 +413,10 @@ export class SRRewritten {
 
     this.playbackControlUpdate(true);
 
-    return this.currentSongDiff;
+    return {
+      diff: this.currentSongDiff,
+      total: await this.mongo.getRankingPoints(to.id),
+    };
   }
 
   public wipeQueue() {

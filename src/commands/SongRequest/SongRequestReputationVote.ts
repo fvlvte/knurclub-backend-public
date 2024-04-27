@@ -52,7 +52,7 @@ export class SongRequestReputationVote extends CommandHandler {
             invokedBy: message.username,
             targetUser: currentSong.user.username,
             change: value,
-            currentValue: ret,
+            currentValue: ret.total,
           }),
         );
       } catch (e) {
