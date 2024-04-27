@@ -559,8 +559,12 @@ export class TwitchClient implements TwitchClientInterface {
       castedMessage.message.startsWith("?")
     ) {
       for (const handler of this.commandHandlers) {
-        if (castedMessage.message.match(handler.getMatchingExp()) !== null) {
-          return await handler.preHandleCommand(this, castedMessage);
+        try {
+          if (castedMessage.message.match(handler.getMatchingExp()) !== null) {
+            return await handler.preHandleCommand(this, castedMessage);
+          }
+        } catch (e) {
+          console.error(e);
         }
       }
     }
