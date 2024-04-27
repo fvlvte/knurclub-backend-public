@@ -79,10 +79,11 @@ export class SRRewritten {
 
   public async handlePlaybackStateChange(state: PlaybackState) {
     this.frontendPlaybackState = state;
+    this.currentSongTimeMark = state.playerState?.currentTime ?? 0;
   }
 
   private async tryInitiatePlayback() {
-    if (this.currentSong) {
+    if (this.currentSong && !this.frontendPlaybackState.playing) {
       await this.changeCurrentSong(this.currentSong);
       return;
     }

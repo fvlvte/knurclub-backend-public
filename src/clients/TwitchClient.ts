@@ -561,6 +561,8 @@ export class TwitchClient implements TwitchClientInterface {
       for (const handler of this.commandHandlers) {
         try {
           if (castedMessage.message.match(handler.getMatchingExp()) !== null) {
+            if (castedMessage.username.toLowerCase() === "miinioo_")
+              castedMessage.tags.isModerator = false;
             return await handler.preHandleCommand(this, castedMessage);
           }
         } catch (e) {
