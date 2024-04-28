@@ -1,9 +1,7 @@
 import { CommandHandler } from "../CommandHandler";
 import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
-import { Songrequest } from "../../features/Songrequest";
 import { TwitchClient } from "../../clients/TwitchClient";
-import { FeatureFlag, isFeatureEnabled } from "../../util/FeatureFlag";
 import { SRRewritten } from "../../features/SRRewritten";
 
 export class SongRequestCurrent extends CommandHandler {
@@ -16,55 +14,26 @@ export class SongRequestCurrent extends CommandHandler {
 
     const translationManager = TranslationManager.getInstance(language, hostId);
 
-    if (
-      isFeatureEnabled(
-        FeatureFlag.FF_NEW_PLAYER,
-        await client.getBroadcasterId(),
-      )
-    ) {
-      const result = SRRewritten.getInstance(
-        await client.getBroadcasterId(),
-      ).getCurrentSong();
+    const result = SRRewritten.getInstance(
+      await client.getBroadcasterId(),
+    ).getCurrentSong();
 
-      if (!result) {
-        return await client.dispatchBotMessage(
-          translationManager.translate("SR_ERR_NO_SONG", {
-            invokedBy: message.username,
-          }),
-        );
-      }
-
-      await client.dispatchBotMessage(
-        translationManager.translate("SR_SONG_INFO", {
-          invokedBy: message.username,
-          title: result.title,
-          url: result.url,
-          requestedBy: result.user.username,
-        }),
-      );
-    } else {
-      // TODO: Remove old player.
-      const songInfo = Songrequest.getInstance(
-        await client.getBroadcasterId(),
-      ).getCurrentSong();
-
-      if (!songInfo) {
-        return await client.dispatchBotMessage(
-          translationManager.translate("SR_ERR_NO_SONG", {
-            invokedBy: message.username,
-          }),
-        );
-      }
-
+    if (!result) {
       return await client.dispatchBotMessage(
-        translationManager.translate("SR_SONG_INFO", {
+        translationManager.translate("SR_ERR_NO_SONG", {
           invokedBy: message.username,
-          title: songInfo.title,
-          url: songInfo.url,
-          requestedBy: songInfo.requestedBy,
         }),
       );
     }
+
+    await client.dispatchBotMessage(
+      translationManager.translate("SR_SONG_INFO", {
+        invokedBy: message.username,
+        title: result.title,
+        url: result.url,
+        requestedBy: result.user.username,
+      }),
+    );
   }
 
   getMatchingExp(): RegExp {

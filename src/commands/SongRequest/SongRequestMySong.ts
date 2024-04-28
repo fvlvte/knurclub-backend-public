@@ -1,9 +1,7 @@
 import { CommandHandler } from "../CommandHandler";
 import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
-import { Songrequest } from "../../features/Songrequest";
 import { TwitchClient } from "../../clients/TwitchClient";
-import { FeatureFlag, isFeatureEnabled } from "../../util/FeatureFlag";
 import { SRRewritten } from "../../features/SRRewritten";
 
 export class SongRequestMySong extends CommandHandler {
@@ -16,63 +14,30 @@ export class SongRequestMySong extends CommandHandler {
 
     const translationManager = TranslationManager.getInstance(language, hostId);
 
-    if (
-      isFeatureEnabled(
-        FeatureFlag.FF_NEW_PLAYER,
-        await client.getBroadcasterId(),
-      )
-    ) {
-      const sr = SRRewritten.getInstance(await client.getBroadcasterId());
+    const sr = SRRewritten.getInstance(await client.getBroadcasterId());
 
-      const queue = sr.getQueue();
+    const queue = sr.getQueue();
 
-      const song = queue.find(
-        (v) => v.user.username.toLowerCase() === message.username.toLowerCase(),
-      );
+    const song = queue.find(
+      (v) => v.user.username.toLowerCase() === message.username.toLowerCase(),
+    );
 
-      if (!song) {
-        return await client.dispatchBotMessage(
-          translationManager.translate("SR_MY_SONG_NOT_FOUND", {
-            invokedBy: message.username,
-          }),
-        );
-      }
-
+    if (!song) {
       return await client.dispatchBotMessage(
-        translationManager.translate("SR_MY_SONG_INFO", {
+        translationManager.translate("SR_MY_SONG_NOT_FOUND", {
           invokedBy: message.username,
-          title: song.title,
-          url: song.url,
-          ...sr.when(song),
-        }),
-      );
-    } else {
-      // TODO: Remove old player.
-      const sr = Songrequest.getInstance(await client.getBroadcasterId());
-
-      const queue = sr.getQueue();
-
-      const song = queue.find(
-        (v) => v.requestedBy.toLowerCase() === message.username.toLowerCase(),
-      );
-
-      if (!song) {
-        return await client.dispatchBotMessage(
-          translationManager.translate("SR_MY_SONG_NOT_FOUND", {
-            invokedBy: message.username,
-          }),
-        );
-      }
-
-      return await client.dispatchBotMessage(
-        translationManager.translate("SR_MY_SONG_INFO", {
-          invokedBy: message.username,
-          title: song.title,
-          url: song.url,
-          ...sr.when(song),
         }),
       );
     }
+
+    return await client.dispatchBotMessage(
+      translationManager.translate("SR_MY_SONG_INFO", {
+        invokedBy: message.username,
+        title: song.title,
+        url: song.url,
+        ...sr.when(song),
+      }),
+    );
   }
 
   getMatchingExp(): RegExp {

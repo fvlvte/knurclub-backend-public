@@ -8,18 +8,11 @@ import {
   ApiKnurcampMetrics,
   AuthTwitchLogin,
   CoreKeepAlive,
-  V1SaQueue,
-  V1SrQueue,
   V1Timer,
 } from "./routes";
-import { V1SrPlayback } from "./routes/v1/sr/Playback";
 import { V1Event } from "./routes";
 import { V1ConfigGet } from "./routes/v1/ConfigGet";
 import { V1ConfigSet } from "./routes/v1/ConfigSet";
-
-/*
-  LOCAL TEST ACC CREDENTIALS
-*/
 
 import { WebSocketServer } from "ws";
 
@@ -84,9 +77,6 @@ export class ExternalServer {
     const routes = [
       new AuthTwitchLogin(),
       new CoreKeepAlive(),
-      new V1SrQueue(),
-      new V1SrPlayback(),
-      new V1SaQueue(),
       new ApiKnurcampMetrics(),
 
       new V1Event(),

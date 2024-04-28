@@ -7,7 +7,6 @@ import {
 import WebSocket from "ws";
 import { AlertInfo, AlertTypes } from "../types/API";
 import { SecretsGuard } from "../util/SecretsGuard";
-import { Songrequest } from "../features/Songrequest";
 import { CommandHandler } from "../commands/CommandHandler";
 import { CreateReward } from "../commands/CreateReward";
 import { ReloadLocale } from "../commands/ReloadLocale";
@@ -45,6 +44,7 @@ import { WebSocketSession } from "../managers/websocket/WebSocketSession";
 import { SongRequestPlay } from "../commands/SongRequest/SongRequestPlay";
 import { SongRequestStop } from "../commands/SongRequest/SongRequestStop";
 import { TwitchClientInterface } from "../interfaces/TwitchClientInterface";
+import { SRRewritten } from "../features/SRRewritten";
 export class TwitchClient implements TwitchClientInterface {
   constructor(refreshToken: string, userId: string) {
     this.streamerId = userId;
@@ -163,24 +163,8 @@ export class TwitchClient implements TwitchClientInterface {
       const dt: FileReward = record as unknown as FileReward;
 
       switch (dt.type) {
-        case "SOUND_ALERT": {
-          await Songrequest.getInstance(this.streamerId).tryAddSong(
-            dt.param,
-            { subLevel: 0, username: data.user_login },
-            true,
-          );
-          break;
-        }
-        case "SR_SKIP_QUEUE": {
-          Songrequest.getInstance(this.streamerId).tryAppendSongNoVerify(
-            dt.param,
-            { subLevel: 0, username: data.user_login },
-            true,
-          );
-          break;
-        }
         case "SKIP_SR": {
-          Songrequest.getInstance(this.streamerId).skip();
+          await SRRewritten.getInstance(this.streamerId ?? "jd").skip();
           break;
         }
       }

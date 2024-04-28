@@ -1,9 +1,7 @@
 import { CommandHandler } from "../CommandHandler";
 import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
-import { Songrequest } from "../../features/Songrequest";
 import { TwitchClient } from "../../clients/TwitchClient";
-import { FeatureFlag, isFeatureEnabled } from "../../util/FeatureFlag";
 import { SRRewritten } from "../../features/SRRewritten";
 import { util_makeSrUserFromMessage } from "./util_makeSrUserFromMessage";
 
@@ -21,51 +19,16 @@ export class SongRequestAdd extends CommandHandler {
 
     const ytLink = array.join(" ");
 
-    if (
-      isFeatureEnabled(
-        FeatureFlag.FF_NEW_PLAYER,
-        await client.getBroadcasterId(),
-      )
-    ) {
-      const result = await SRRewritten.getInstance(
-        await client.getBroadcasterId(),
-      ).tryAddSongByUser(ytLink, util_makeSrUserFromMessage(message));
+    const result = await SRRewritten.getInstance(
+      await client.getBroadcasterId(),
+    ).tryAddSongByUser(ytLink, util_makeSrUserFromMessage(message));
 
-      await client.dispatchBotMessage(
-        translationManager.translate(result.message, {
-          invokedBy: message.username,
-          ...result.params,
-        }),
-      );
-    } else {
-      // TODO: Remove old player.
-      const subLevel =
-        typeof message.tags.badges.subscriber === "number" ||
-        message.tags.badgeInfo === "founder/11"
-          ? 1
-          : 0;
-
-      const username = message.username;
-
-      const result = await Songrequest.getInstance(
-        await client.getBroadcasterId(),
-      ).tryAddSong(
-        ytLink,
-        {
-          subLevel,
-          username,
-          isMod: message.tags.isModerator ?? false,
-        },
-        false,
-      );
-
-      await client.dispatchBotMessage(
-        translationManager.translate(result.message, {
-          invokedBy: message.username,
-          ...result.param,
-        }),
-      );
-    }
+    await client.dispatchBotMessage(
+      translationManager.translate(result.message, {
+        invokedBy: message.username,
+        ...result.params,
+      }),
+    );
   }
 
   getMatchingExp(): RegExp {
