@@ -1,5 +1,4 @@
 import { default as express, NextFunction, Request, Response } from "express";
-import * as http from "node:http";
 import { TwitchAuthGuard, Data } from "./util/TwitchAuthGuard";
 import * as cors from "cors";
 import { default as bodyParser } from "body-parser";
@@ -14,15 +13,11 @@ import { V1Event } from "./routes";
 import { V1ConfigGet } from "./routes/v1/ConfigGet";
 import { V1ConfigSet } from "./routes/v1/ConfigSet";
 
-import { WebSocketServer } from "ws";
-
 type RequestWithAuthData = Request & { authData?: Data };
 export type AuthData = { authData?: Data };
 
 export class ExternalServer {
   private readonly app: express.Application;
-  private server?: http.Server;
-  private wsServer?: WebSocketServer;
 
   constructor() {
     this.app = express();
@@ -110,9 +105,7 @@ export class ExternalServer {
 
       this.bindRoutes();
 
-      this.server = this.app.listen(port);
-
-      this.wsServer = new WebSocketServer({ noServer: true });
+      this.app.listen(port);
 
       return true;
     } catch (e) {
