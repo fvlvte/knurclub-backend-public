@@ -12,9 +12,27 @@ import {
 import { V1Event } from "./routes";
 import { V1ConfigGet } from "./routes/v1/ConfigGet";
 import { V1ConfigSet } from "./routes/v1/ConfigSet";
+import { CorsOptions } from "cors";
+import helmet from "helmet";
 
 type RequestWithAuthData = Request & { authData?: Data };
 export type AuthData = { authData?: Data };
+
+const ORIGIN_WHITELIST = [
+  "http://localhost:3000",
+  "https://mamm0n.knur.club",
+  "https://knur.club",
+];
+
+const CORS_OPTIONS: CorsOptions = {
+  origin: (origin, callback) => {
+    if (ORIGIN_WHITELIST.indexOf(origin as unknown as string) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
 
 export class ExternalServer {
   private readonly app: express.Application;
@@ -96,9 +114,9 @@ export class ExternalServer {
     try {
       this.app.use(this.authMiddleware.bind(this));
 
-      // TODO: use helmet or limit CORS.
-      this.app.options("*", cors.default());
-      this.app.use(cors.default());
+      this.app.options("*", cors.default(CORS_OPTIONS));
+      this.app.use(cors.default(CORS_OPTIONS));
+      this.app.use(helmet());
 
       this.app.use(bodyParser.json());
       this.app.use(this.timeoutLoggerMiddleware.bind(this));
