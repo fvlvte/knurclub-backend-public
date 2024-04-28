@@ -83,10 +83,9 @@ export class SRRewritten {
   }
 
   private async tryInitiatePlayback() {
-    if (
-      this.currentSong &&
-      this.currentSongTimeMark > this.currentSong.duration - 5
-    ) {
+    const ct = this.frontendPlaybackState.playerState?.currentTime ?? 0;
+    const duration = this.currentSong?.duration ?? 0;
+    if (this.currentSong && ct - duration > 5) {
       await this.changeCurrentSong(this.currentSong);
       return;
     }
@@ -150,23 +149,13 @@ export class SRRewritten {
   private async worker() {
     try {
       if (this.isPaused) return;
-      if (!this.frontendPlaybackState.playing && !this.isPaused) {
-        await this.tryInitiatePlayback();
-        return;
-      } else if (!this.isPlaying && this.queue.length > 0) {
-        await this.tryInitiatePlayback();
-        return;
-      } else if (this.frontendPlaybackState.playing) {
-        return;
-      } else if (!this.frontendPlaybackState.playing && !this.isPlaying) {
-        return;
-      } else if (
-        (this.frontendPlaybackState.playerState?.duration ?? 10) -
-          (this.frontendPlaybackState.playerState?.currentTime ?? 0) <
-        1
+      if (
+        !this.frontendPlaybackState.playing &&
+        !this.isPaused &&
+        this.queue.length > 0
       ) {
-        await this.changeCurrentSong(null);
         await this.tryInitiatePlayback();
+        return;
       }
     } catch (e) {
     } finally {

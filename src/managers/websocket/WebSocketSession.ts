@@ -27,8 +27,6 @@ export class WebSocketSession {
 
       if (this.ws.readyState === this.ws.OPEN) {
         this.ws.send(JSON.stringify(frame));
-      } else {
-        throw new Error("WebSocket not open");
       }
     } else {
       for (const f of frame) {
