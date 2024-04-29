@@ -3,9 +3,9 @@ import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { TwitchClient } from "../../clients/TwitchClient";
 import { ConfigManager } from "../../managers/ConfigManager";
-import { SRRewritten } from "../../features/SRRewritten";
+import { Songrequest } from "../../features/Songrequest";
 
-export class SongRequestVolumeSet extends CommandHandler {
+export class SongRequestVolumeControl extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,
@@ -28,15 +28,16 @@ export class SongRequestVolumeSet extends CommandHandler {
       return;
     }
 
-    const sr = SRRewritten.getInstance(hostId);
+    const sr = Songrequest.getInstance(hostId);
 
     const [, v] = message.message.split(" ");
     const i = parseInt(v);
 
     if (isNaN(i) || i / 100 < 0 || i / 100 > 1) {
       await client.dispatchBotMessage(
-        translationManager.translate("SR_INVALID_VOLUME_VALUE", {
+        translationManager.translate("SR_VOLUME_GET", {
           invokedBy: message.username,
+          volume: (sr.getVolume() * 100).toFixed(0),
         }),
       );
       return;

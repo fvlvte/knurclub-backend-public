@@ -26,6 +26,7 @@
   "SR_SONG_INFO": "@{{invokedBy}} aktualna piosenka to {{{url}}} {{{title}}} dodana przez {{requestedBy}}",
   "SR_SKIP_VOTE_IN_PROGRESS": "@{{invokedBy}} potrzeba jeszcze {{counter}} głosuw żeby skipnonc",
   "SR_SKIP_VOTE_SUCCESS": "@{{invokedBy}} demokracja przemuwila skipujemy",
+  "SR_ADMIN_NO_PRIVILEGES": "@{{invokedBy}} elo mordziaty użyj komendy !voteskip aok ok",
   "SR_ADMIN_SKIP": "@{{invokedBy}} autorytarna władza przemuwiła",
   "SR_WRONG_SONG_NOT_FOUND": "@{{invokedBy}} nie masz piosenki żeby jom wywalic aok",
   "SR_WRONG_SONG_WIPED": "@{{invokedBy}} wywalona piosenga została {{{url}}}",
@@ -46,6 +47,7 @@
 
   "SR_INVALID_VOLUME_VALUE": "@{{invokedBy}} sory nieprawidlowa wartosc 0 - 100",
   "SR_VOLUME_SET": "@{{invokedBy}} ok ustawioned volume ok",
+  "SR_VOLUME_GET": "@{{invokedBy}} ok aktualnr volume to {{volume}} ok",
 
   "SR_ADMIN_STOP": "@{{invokedBy}} ok sr stop ok",
   "SR_ADMIN_PLAY": "@{{invokedBy}} ok sr play ok",

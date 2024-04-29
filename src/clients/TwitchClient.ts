@@ -38,13 +38,13 @@ import { StaticText } from "../commands/StaticText";
 import { Timer } from "../timers/Timer";
 import { SongRequestWipe } from "../commands/SongRequest/SongRequestWipe";
 import { MongoDBClient } from "./MongoDBClient";
-import { SongRequestVolumeSet } from "../commands/SongRequest/SongRequestVolumeSet";
+import { SongRequestVolumeControl } from "../commands/SongRequest/SongRequestVolumeControl";
 import { Logger } from "../util/Logger";
 import { WebSocketSession } from "../managers/websocket/WebSocketSession";
 import { SongRequestPlay } from "../commands/SongRequest/SongRequestPlay";
 import { SongRequestStop } from "../commands/SongRequest/SongRequestStop";
 import { TwitchClientInterface } from "../interfaces/TwitchClientInterface";
-import { SRRewritten } from "../features/SRRewritten";
+import { Songrequest } from "../features/Songrequest";
 export class TwitchClient implements TwitchClientInterface {
   constructor(refreshToken: string, userId: string) {
     this.streamerId = userId;
@@ -70,7 +70,7 @@ export class TwitchClient implements TwitchClientInterface {
     new SongRequestCurrent(),
     new SongRequestSkipVote(),
     new SongRequestWrongSong(),
-    new SongRequestVolumeSet(),
+    new SongRequestVolumeControl(),
     new SongRequestMySong(),
     new SongRequestWipe(),
     new StaticText(
@@ -164,7 +164,7 @@ export class TwitchClient implements TwitchClientInterface {
 
       switch (dt.type) {
         case "SKIP_SR": {
-          await SRRewritten.getInstance(this.streamerId ?? "jd").skip();
+          await Songrequest.getInstance(this.streamerId ?? "jd").skip();
           break;
         }
       }

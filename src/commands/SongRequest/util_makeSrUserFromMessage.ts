@@ -1,5 +1,5 @@
 import { TwitchMessage } from "../../types/TwitchTypes";
-import { SRUser } from "../../features/SRRewritten";
+import { SRUser } from "../../features/Songrequest";
 
 const SPELL_MODERATORZY = ["miinioo_"];
 

@@ -3,10 +3,10 @@ import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { TwitchClient } from "../../clients/TwitchClient";
 import { ConfigManager } from "../../managers/ConfigManager";
-import { SRRewritten } from "../../features/SRRewritten";
+import { Songrequest } from "../../features/Songrequest";
 import { util_makeSrUserFromMessage } from "./util_makeSrUserFromMessage";
 
-const BANNED_SPELLE = ["miinioo_"];
+//const BANNED_SPELLE = ["miinioo_"];
 
 export class SongRequestSkipVote extends CommandHandler {
   async handleCommand(
@@ -16,9 +16,9 @@ export class SongRequestSkipVote extends CommandHandler {
     const language = await client.getStreamLanguage();
     const hostId = await client.getBroadcasterId();
 
-    if (BANNED_SPELLE.includes(message.username.toLowerCase())) {
+    /*if (BANNED_SPELLE.includes(message.username.toLowerCase())) {
       return;
-    }
+    }*/
 
     const translationManager = TranslationManager.getInstance(language, hostId);
 
@@ -26,7 +26,7 @@ export class SongRequestSkipVote extends CommandHandler {
       await client.getBroadcasterId(),
     ).getConfig();
 
-    const sr = SRRewritten.getInstance(await client.getBroadcasterId());
+    const sr = Songrequest.getInstance(await client.getBroadcasterId());
 
     const song = sr.getCurrentSong();
 
@@ -49,20 +49,6 @@ export class SongRequestSkipVote extends CommandHandler {
           }),
         );
       } catch (_e) {}
-    }
-
-    if (
-      message.tags.isModerator ||
-      message.username.toLowerCase() ===
-        (await client.getStreamerUsername()).toLowerCase()
-    ) {
-      await client.dispatchBotMessage(
-        translationManager.translate("SR_ADMIN_SKIP", {
-          invokedBy: message.username,
-        }),
-      );
-      sr.skip();
-      return;
     }
 
     if (!config.data.songRequest.allowSkipVote) {
@@ -88,6 +74,6 @@ export class SongRequestSkipVote extends CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^(!knurskip)|(!kskip)|(!skip)|(!sskip)\s*$/i;
+    return /^(!voteskip)|(!vskip)|(!skipvote)|(!knurprzewintoprosze)\s*$/i;
   }
 }

@@ -1,7 +1,7 @@
-import { QueueEntry, SRAddResult, SRUser } from "./SRRewritten";
+import { QueueEntry, SRAddResult, SRUser } from "./index";
 import { type videoInfo } from "@distube/ytdl-core";
-import { ConfigContainer } from "../managers/ConfigManager";
-import { MongoDBClient } from "../clients/MongoDBClient";
+import { ConfigContainer } from "../../managers/ConfigManager";
+import { MongoDBClient } from "../../clients/MongoDBClient";
 
 type SRCheckParam = {
   source?: string;
@@ -138,7 +138,7 @@ const srCheck_reputation: SRCheck = async ({ user, config }) => {
   return Promise.resolve(null);
 };
 
-export const SRChecks: SRCheck[] = [
+export const Checks: SRCheck[] = [
   srCheck_title,
   srCheck_queueLimit,
   srCheck_limitPerUser,

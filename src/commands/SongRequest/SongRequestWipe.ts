@@ -2,7 +2,7 @@ import { CommandHandler } from "../CommandHandler";
 import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { TwitchClient } from "../../clients/TwitchClient";
-import { SRRewritten } from "../../features/SRRewritten";
+import { Songrequest } from "../../features/Songrequest";
 
 export class SongRequestWipe extends CommandHandler {
   async handleCommand(
@@ -14,7 +14,7 @@ export class SongRequestWipe extends CommandHandler {
 
     const translationManager = TranslationManager.getInstance(language, hostId);
 
-    const sr = SRRewritten.getInstance(hostId);
+    const sr = Songrequest.getInstance(hostId);
 
     if (
       message.tags.isModerator ||

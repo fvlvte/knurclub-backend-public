@@ -2,7 +2,7 @@ import { CommandHandler } from "../CommandHandler";
 import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { TwitchClient } from "../../clients/TwitchClient";
-import { SRRewritten } from "../../features/SRRewritten";
+import { Songrequest } from "../../features/Songrequest";
 
 export class SongRequestPlay extends CommandHandler {
   async handleCommand(
@@ -24,7 +24,7 @@ export class SongRequestPlay extends CommandHandler {
           invokedBy: message.username,
         }),
       );
-      SRRewritten.getInstance(await client.getBroadcasterId()).play();
+      Songrequest.getInstance(await client.getBroadcasterId()).play();
     }
   }
 

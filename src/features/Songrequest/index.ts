@@ -1,15 +1,15 @@
 import ytdl from "@distube/ytdl-core";
-import { MongoDBClient } from "../clients/MongoDBClient";
-import { ConfigManager } from "../managers/ConfigManager";
-import { WebSocketSession } from "../managers/websocket/WebSocketSession";
-import { findYtVideoByTitle, ytDlBufferBase64New } from "../util/SRUtils";
-import { SRChecks } from "./SRChecks";
+import { MongoDBClient } from "../../clients/MongoDBClient";
+import { ConfigManager } from "../../managers/ConfigManager";
+import { WebSocketSession } from "../../managers/websocket/WebSocketSession";
+import { findYtVideoByTitle, ytDlBufferBase64New } from "../../util/SRUtils";
+import { Checks } from "./checks";
 import {
   BackendSong,
   PlaybackState,
   SR_V1_PLAYBACK_CONTROL_UPDATE,
   WSNetworkFrameType,
-} from "../types/WSShared";
+} from "../../types/WSShared";
 
 export type SRAddResult = {
   message: string;
@@ -35,12 +35,12 @@ export type QueueEntry = {
   duration: number;
 };
 
-export class SRRewritten {
+export class Songrequest {
   /** End user ID */
   private readonly id: string;
 
   /** User instances collection */
-  private static instances: { [id: string]: SRRewritten } = {};
+  private static instances: { [id: string]: Songrequest } = {};
 
   private skippedSongs: { url: string; expires: number }[] = [];
 
@@ -83,13 +83,6 @@ export class SRRewritten {
   }
 
   private async tryInitiatePlayback() {
-    const ct = this.frontendPlaybackState.playerState?.currentTime ?? 0;
-    const duration = this.currentSong?.duration ?? 0;
-    if (this.currentSong && ct - duration > 5) {
-      await this.changeCurrentSong(this.currentSong);
-      return;
-    }
-
     if (this.queue.length > 0) {
       const cs = this.queue.shift() ?? null;
       if (cs) {
@@ -186,9 +179,9 @@ export class SRRewritten {
     }
   }
 
-  public static getInstance(id: string): SRRewritten {
+  public static getInstance(id: string): Songrequest {
     if (!this.instances[id]) {
-      this.instances[id] = new SRRewritten(id);
+      this.instances[id] = new Songrequest(id);
     }
     return this.instances[id];
   }
@@ -322,7 +315,7 @@ export class SRRewritten {
           const songInfo = await ytdl.getInfo(audioSource);
 
           if (!skipChecks) {
-            for (const check of SRChecks) {
+            for (const check of Checks) {
               const ret = await check({
                 source: audioSource,
                 user: user,

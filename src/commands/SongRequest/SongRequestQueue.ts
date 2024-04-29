@@ -2,7 +2,7 @@ import { CommandHandler } from "../CommandHandler";
 import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { TwitchClient } from "../../clients/TwitchClient";
-import { SRRewritten } from "../../features/SRRewritten";
+import { Songrequest } from "../../features/Songrequest";
 
 export class SongRequestQueue extends CommandHandler {
   async handleCommand(
@@ -14,7 +14,7 @@ export class SongRequestQueue extends CommandHandler {
 
     const translationManager = TranslationManager.getInstance(language, hostId);
 
-    const queue = SRRewritten.getInstance(hostId).getQueue();
+    const queue = Songrequest.getInstance(hostId).getQueue();
     const songInfo: string[] = [];
 
     for (let i = 0; i < 3; i++) {

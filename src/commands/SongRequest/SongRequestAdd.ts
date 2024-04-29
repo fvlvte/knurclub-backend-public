@@ -2,7 +2,7 @@ import { CommandHandler } from "../CommandHandler";
 import { TwitchMessage } from "../../types/TwitchTypes";
 import { TranslationManager } from "../../managers/TranslationManager";
 import { TwitchClient } from "../../clients/TwitchClient";
-import { SRRewritten } from "../../features/SRRewritten";
+import { Songrequest } from "../../features/Songrequest";
 import { util_makeSrUserFromMessage } from "./util_makeSrUserFromMessage";
 
 export class SongRequestAdd extends CommandHandler {
@@ -19,7 +19,7 @@ export class SongRequestAdd extends CommandHandler {
 
     const ytLink = array.join(" ");
 
-    const result = await SRRewritten.getInstance(
+    const result = await Songrequest.getInstance(
       await client.getBroadcasterId(),
     ).tryAddSongByUser(ytLink, util_makeSrUserFromMessage(message));
 
@@ -32,6 +32,6 @@ export class SongRequestAdd extends CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^([?!]ksr)|([?!]sr)|([?!]knursr)|([?!]songrequest)|([?!]knursongrequest)|([?!]wezpuscpiosenkeknurze)/i;
+    return /^([?!]ksr)|([?!]sr)|([?!]knursr)|([?!]songrequest)|([?!]knursongrequest)|([?!]wezpuscpiosenkeknurze)|([?!]krs)|([?!]krd)|([?!]nik)|([?!]uokik)/i;
   }
 }

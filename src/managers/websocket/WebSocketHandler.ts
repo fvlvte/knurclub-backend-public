@@ -6,7 +6,7 @@ import {
   WSNetworkFrame,
   WSNetworkFrameType,
 } from "../../types/WSShared";
-import { SRRewritten } from "../../features/SRRewritten";
+import { Songrequest } from "../../features/Songrequest";
 
 export class WebSocketHandler {
   private readonly session: WebSocketSession;
@@ -17,8 +17,8 @@ export class WebSocketHandler {
 
   private async handleClientHello() {
     const id = await this.session.getClient().getBroadcasterId();
-    SRRewritten.getInstance(id).bindWS(this.session);
-    await SRRewritten.getInstance(id).restart();
+    Songrequest.getInstance(id).bindWS(this.session);
+    await Songrequest.getInstance(id).restart();
   }
 
   public async processRawFrame(data: string) {
@@ -30,7 +30,7 @@ export class WebSocketHandler {
         case WSNetworkFrameType.SR_V1_CACHE_QUERY_BULK_RESULT: {
           const packetData = parsedData as SR_V1_CACHE_QUERY_BULK_RESULT;
           for (let i = 0; i < packetData.params.length; i++) {
-            const sr = SRRewritten.getInstance(userId);
+            const sr = Songrequest.getInstance(userId);
             const entry = packetData.params[i];
             if (!entry.hit) {
               const data = await sr.fetch(entry.url);
@@ -47,7 +47,7 @@ export class WebSocketHandler {
         }
         case WSNetworkFrameType.SR_V1_FETCH: {
           const { params } = parsedData as SR_V1_FETCH;
-          const sr = SRRewritten.getInstance(userId);
+          const sr = Songrequest.getInstance(userId);
 
           for (let i = 0; i < params.length; i++) {
             const data = await sr.fetch(params[i]);
@@ -62,7 +62,7 @@ export class WebSocketHandler {
         case WSNetworkFrameType.SR_V1_PLAYBACK_STATE: {
           const { params } = parsedData as SR_V1_PLAYBACK_STATE;
 
-          const sr = SRRewritten.getInstance(userId);
+          const sr = Songrequest.getInstance(userId);
           await sr.handlePlaybackStateChange(params);
           break;
         }
