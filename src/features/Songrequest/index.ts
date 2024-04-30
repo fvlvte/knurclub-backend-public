@@ -110,7 +110,7 @@ export class Songrequest {
         this.requiredVotesToSkipDynamic =
           config.data.songRequest.dynamicSkipThreshold *
           this.client?.getAverageCountOfActiveChattersForPeriod(
-            config.data.songRequest.dynamicSkipActivityPeriod,
+            config.data.songRequest.dynamicSkipActivityPeriod * 1000,
           );
         this.requiredVotesToSkipDynamic = Math.round(
           this.requiredVotesToSkipDynamic,
