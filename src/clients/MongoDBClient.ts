@@ -232,7 +232,7 @@ export class MongoDBClient {
 
       const rep = await this.getRankingPoints(targetId, hostId);
 
-      if (rep > -1) {
+      if (rep + change >= 0) {
         return "ERR_POSITIVE";
       }
 
