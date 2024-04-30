@@ -119,6 +119,7 @@ export class Songrequest {
         this.requiredVotesToSkipDynamic =
           config.data.songRequest.requiredVotesToSkip;
       }
+      await this.changeCurrentSong(cs);
     } else {
       await this.changeCurrentSong(null);
     }
