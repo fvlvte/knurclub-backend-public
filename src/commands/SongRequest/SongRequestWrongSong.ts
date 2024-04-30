@@ -34,7 +34,7 @@ export class SongRequestWrongSong extends CommandHandler {
           }),
         );
       } else {
-        sr.skip();
+        if (song === currentSong) await sr.skip();
         return await client.dispatchBotMessage(
           translationManager.translate("SR_WRONG_SONG_WIPED", {
             invokedBy: message.username,
