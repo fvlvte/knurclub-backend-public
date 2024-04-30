@@ -161,11 +161,7 @@ export class Songrequest {
   private async worker() {
     try {
       if (this.isPaused) return;
-      if (
-        !this.frontendPlaybackState.playing &&
-        !this.isPaused &&
-        this.queue.length > 0
-      ) {
+      if (!this.frontendPlaybackState.playing && !this.isPaused) {
         await this.tryInitiatePlayback();
         return;
       }
