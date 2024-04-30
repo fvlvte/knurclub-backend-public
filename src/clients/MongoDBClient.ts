@@ -215,6 +215,47 @@ export class MongoDBClient {
     }
   }
 
+  public async pdw(
+    userId: string,
+    targetId: string,
+    hostId: string,
+    change: number,
+  ) {
+    try {
+      const users = this.client.db("users");
+      const pdw = users.collection<{ userId: string; lastPDW: number }>("pdw");
+
+      const result = await pdw.findOne({ userId });
+      if (result && result.lastPDW > Date.now() - 24 * 60 * 60 * 1000) {
+        return "ERR_ALREADY";
+      }
+
+      const rep = await this.getRankingPoints(targetId, hostId);
+
+      if (rep > -1) {
+        return "ERR_POSITIVE";
+      }
+
+      await pdw.updateOne(
+        {
+          userId,
+        },
+        {
+          $set: {
+            lastPDW: Date.now(),
+          },
+        },
+        { upsert: true },
+      );
+
+      await this.updateRanking(targetId, hostId, change);
+      return await this.getRankingPoints(targetId, hostId);
+    } catch (e) {
+      console.error(e);
+      return "ERR_UNKNOWN";
+    }
+  }
+
   public async restoreRanking(streamerId: string): Promise<string | null> {
     try {
       const sr = this.client.db("sr");

@@ -458,6 +458,17 @@ export class Songrequest {
     };
   }
 
+  public async handlePDW(
+    from: SRUser,
+    toId: string,
+  ): Promise<
+    "ERR_NO_SUB" | "ERR_ALREADY" | "ERR_UNKNOWN" | "ERR_POSITIVE" | number
+  > {
+    if (!from.isSub) return "ERR_NO_SUB";
+
+    return await this.mongo.pdw(from.id, toId, this.id, 5);
+  }
+
   public wipeQueue() {
     this.queue.length = 0;
     this.currentSong = null;
