@@ -55,15 +55,7 @@ export class SongRequestSkipVote extends CommandHandler {
       return;
     }
 
-    const counter = await sr.voteSkip(
-      message.username,
-      config.data.songRequest.useDynamicSkip
-        ? config.data.songRequest.dynamicSkipThreshold *
-            client.getAverageCountOfActiveChattersForPeriod(
-              config.data.songRequest.dynamicSkipActivityPeriod * 1000,
-            )
-        : undefined,
-    );
+    const counter = await sr.voteSkip(message.username);
 
     if (counter > 0) {
       await client.dispatchBotMessage(

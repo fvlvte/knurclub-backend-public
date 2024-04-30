@@ -2,6 +2,7 @@ import { TwitchClient } from "../clients/TwitchClient";
 import { Logger } from "../util/Logger";
 import { MongoDBClient } from "../clients/MongoDBClient";
 import { QuickCrypt } from "../util/QuickCrypt";
+import { Songrequest } from "../features/Songrequest";
 
 export class ClientManager {
   private static instance: ClientManager;
@@ -54,6 +55,7 @@ export class ClientManager {
     if (this.records[uid] === undefined) {
       const client = new TwitchClient(refreshToken, uid);
       this.records[uid] = client;
+      Songrequest.getInstance(uid).bindClient(client);
       if (!tmp) client.initialize().then().catch(console.error);
       return this.records[uid];
     } else {

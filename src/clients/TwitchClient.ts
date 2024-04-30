@@ -541,6 +541,7 @@ export class TwitchClient implements TwitchClientInterface {
     let count = 0;
     for (const key in this.activeChatters) {
       if (this.activeChatters[key] > periodStart) count++;
+      else delete this.activeChatters[key];
     }
     return count;
   }
@@ -548,7 +549,8 @@ export class TwitchClient implements TwitchClientInterface {
   private async onIrcMessage(msg: Messages): Promise<void> {
     const castedMessage = msg as unknown as TwitchMessage;
 
-    this.activeChatters[castedMessage.username] = new Date().getTime();
+    this.activeChatters[castedMessage.username.toLowerCase()] =
+      new Date().getTime();
 
     if (!castedMessage.message) return;
 

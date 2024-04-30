@@ -10,6 +10,7 @@ import {
   SR_V1_PLAYBACK_CONTROL_UPDATE,
   WSNetworkFrameType,
 } from "../../types/WSShared";
+import { TwitchClient } from "../../clients/TwitchClient";
 
 export type SRAddResult = {
   message: string;
@@ -46,6 +47,8 @@ export class Songrequest {
 
   private readonly mongo: MongoDBClient;
 
+  private client?: TwitchClient;
+
   private queue: QueueEntry[] = [];
   private session: WebSocketSession | null = null;
   private isPlaying: boolean = false;
@@ -57,6 +60,8 @@ export class Songrequest {
   private currentSongTimeMark: number = 0;
 
   private skipCounter: string[] = [];
+
+  private requiredVotesToSkipDynamic = 0;
 
   private currentSongVotes: string[] = [];
 
@@ -83,6 +88,7 @@ export class Songrequest {
   }
 
   private async tryInitiatePlayback() {
+    const config = await ConfigManager.getUserInstance(this.id).getConfig();
     if (this.queue.length > 0) {
       const cs = this.queue.shift() ?? null;
       if (cs) {
@@ -100,7 +106,19 @@ export class Songrequest {
           songId: cs.url,
         };
       }
-      await this.changeCurrentSong(cs);
+      if (this.client) {
+        this.requiredVotesToSkipDynamic =
+          config.data.songRequest.dynamicSkipThreshold *
+          this.client?.getAverageCountOfActiveChattersForPeriod(
+            config.data.songRequest.dynamicSkipActivityPeriod,
+          );
+        this.requiredVotesToSkipDynamic = Math.round(
+          this.requiredVotesToSkipDynamic,
+        );
+      } else {
+        this.requiredVotesToSkipDynamic =
+          config.data.songRequest.requiredVotesToSkip;
+      }
     } else {
       await this.changeCurrentSong(null);
     }
@@ -158,6 +176,10 @@ export class Songrequest {
 
   private async initWorker() {
     this.controllerInterval = setInterval(this.worker.bind(this), 1000);
+  }
+
+  public bindClient(client: TwitchClient) {
+    this.client = client;
   }
 
   public async restart() {
@@ -355,22 +377,20 @@ export class Songrequest {
     }
   }
 
-  public async voteSkip(
-    username: string,
-    votesOverride?: number,
-  ): Promise<number> {
+  public async voteSkip(username: string): Promise<number> {
     if (!this.skipCounter.includes(username)) {
       this.skipCounter.push(username);
     }
 
     const config = await this.configManager.getConfig();
-    const requiredVotes =
-      votesOverride ?? config.data.songRequest.requiredVotesToSkip;
+    const requiredVotes = config.data.songRequest.useDynamicSkip
+      ? this.requiredVotesToSkipDynamic
+      : config.data.songRequest.requiredVotesToSkip;
     const skipCounter = requiredVotes - this.skipCounter.length;
 
     if (skipCounter < 1) {
       this.skipCounter = [];
-      this.skip();
+      await this.skip();
     }
 
     return skipCounter >= 0 ? skipCounter : 0;
