@@ -355,13 +355,17 @@ export class Songrequest {
     }
   }
 
-  public async voteSkip(username: string): Promise<number> {
+  public async voteSkip(
+    username: string,
+    votesOverride?: number,
+  ): Promise<number> {
     if (!this.skipCounter.includes(username)) {
       this.skipCounter.push(username);
     }
 
     const config = await this.configManager.getConfig();
-    const requiredVotes = config.data.songRequest.requiredVotesToSkip;
+    const requiredVotes =
+      votesOverride ?? config.data.songRequest.requiredVotesToSkip;
     const skipCounter = requiredVotes - this.skipCounter.length;
 
     if (skipCounter < 1) {

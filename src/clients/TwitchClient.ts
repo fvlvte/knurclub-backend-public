@@ -45,6 +45,7 @@ import { SongRequestPlay } from "../commands/SongRequest/SongRequestPlay";
 import { SongRequestStop } from "../commands/SongRequest/SongRequestStop";
 import { TwitchClientInterface } from "../interfaces/TwitchClientInterface";
 import { Songrequest } from "../features/Songrequest";
+import { SongRequestAdminSkip } from "../commands/SongRequest/SongRequestAdminSkip";
 export class TwitchClient implements TwitchClientInterface {
   constructor(refreshToken: string, userId: string) {
     this.streamerId = userId;
@@ -67,6 +68,7 @@ export class TwitchClient implements TwitchClientInterface {
     new SongRequestQueue(),
     new SongRequestPlay(),
     new SongRequestStop(),
+    new SongRequestAdminSkip(),
     new SongRequestCurrent(),
     new SongRequestSkipVote(),
     new SongRequestWrongSong(),
@@ -105,6 +107,7 @@ export class TwitchClient implements TwitchClientInterface {
   private keepAliveTsLast = new Date().getTime();
   private isWebSocketRestarting = false;
   private isClosing = false;
+  private activeChatters: { [id: string]: number } = {};
 
   private refreshInterval?: NodeJS.Timeout;
 
@@ -532,9 +535,20 @@ export class TwitchClient implements TwitchClientInterface {
     }
   }
 
+  public getAverageCountOfActiveChattersForPeriod(period: number): number {
+    const now = new Date().getTime();
+    const periodStart = now - period;
+    let count = 0;
+    for (const key in this.activeChatters) {
+      if (this.activeChatters[key] > periodStart) count++;
+    }
+    return count;
+  }
+
   private async onIrcMessage(msg: Messages): Promise<void> {
-    console.log(msg);
     const castedMessage = msg as unknown as TwitchMessage;
+
+    this.activeChatters[castedMessage.username] = new Date().getTime();
 
     if (!castedMessage.message) return;
 

@@ -4,7 +4,7 @@ import { TranslationManager } from "../../managers/TranslationManager";
 import { TwitchClient } from "../../clients/TwitchClient";
 import { Songrequest } from "../../features/Songrequest";
 
-export class SongRequestSkipVote extends CommandHandler {
+export class SongRequestAdminSkip extends CommandHandler {
   async handleCommand(
     client: TwitchClient,
     message: TwitchMessage,

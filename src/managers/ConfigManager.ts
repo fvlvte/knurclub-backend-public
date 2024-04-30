@@ -1,6 +1,7 @@
 import { MongoDBClient } from "../clients/MongoDBClient";
 import { readFileSync } from "node:fs";
 import { TranslationManager } from "./TranslationManager";
+import deepMerge from "../util/deepMerge";
 
 const TRANSLATION_TEMPLATE = JSON.parse(
   readFileSync("./locale/template_pl.json", "utf-8"),
@@ -24,6 +25,10 @@ export type SongRequestV1Config = {
 
   allowSkipVote: boolean;
   requiredVotesToSkip: number;
+
+  useDynamicSkip: boolean;
+  dynamicSkipActivityPeriod: number;
+  dynamicSkipThreshold: number;
 
   badVoteLimit: number;
   //badVoteDecay: number;
@@ -54,6 +59,9 @@ const V1DefaultConfig: ConfigV1 = {
 
     allowSkipVote: true,
     requiredVotesToSkip: 10,
+    useDynamicSkip: true,
+    dynamicSkipActivityPeriod: 300,
+    dynamicSkipThreshold: 0.1,
 
     badVoteLimit: -25,
   },
@@ -94,10 +102,10 @@ export class ConfigManager {
         data: { ...V1DefaultConfig },
       };
 
-      newConfig.data.translations = Object.assign(
+      newConfig.data.translations = deepMerge(
         TRANSLATION_TEMPLATE,
         newConfig.data.translations,
-      );
+      ) as Record<string, string>;
 
       await MongoDBClient.getDefaultInstance().updateUserConfig(
         this.userId,
@@ -108,15 +116,12 @@ export class ConfigManager {
 
       return newConfig;
     }
-    const upgradedConfig = {
-      ...V1DefaultConfig,
-      ...cfg.data,
-    };
+    const upgradedConfig = deepMerge(V1DefaultConfig, cfg.data);
 
     this.config = {
       version: 1,
       updatedAt: new Date().getTime(),
-      data: upgradedConfig,
+      data: upgradedConfig as ConfigV1,
     };
 
     this.config.data.translations = Object.assign(
