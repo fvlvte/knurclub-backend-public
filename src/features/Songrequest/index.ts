@@ -337,6 +337,9 @@ export class Songrequest {
 
           const songInfo = await ytdl.getInfo(audioSource);
 
+          if (songInfo.videoDetails.isLive)
+            return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
+
           if (!skipChecks) {
             for (const check of Checks) {
               const ret = await check({
