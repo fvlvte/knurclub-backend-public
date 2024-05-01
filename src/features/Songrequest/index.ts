@@ -458,6 +458,10 @@ export class Songrequest {
     };
   }
 
+  public async handleNuke(to: string, change: number): Promise<void> {
+    await this.mongo.updateRanking(this.id, to, change);
+  }
+
   public async handlePDW(
     from: SRUser,
     toId: string,

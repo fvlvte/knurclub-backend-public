@@ -232,6 +232,10 @@ export class MongoDBClient {
 
       const rep = await this.getRankingPoints(targetId, hostId);
 
+      if (rep < 50000) {
+        return "ERR_UNKNOWN";
+      }
+
       if (rep + change >= 0) {
         return "ERR_POSITIVE";
       }

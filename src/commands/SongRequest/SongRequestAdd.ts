@@ -19,6 +19,15 @@ export class SongRequestAdd extends CommandHandler {
 
     const ytLink = array.join(" ");
 
+    if (ytLink.length < 5) {
+      await client.dispatchBotMessage(
+        translationManager.translate("SR_ADD_UNKNOWN_ERROR", {
+          invokedBy: message.username,
+        }),
+      );
+      return;
+    }
+
     const result = await Songrequest.getInstance(
       await client.getBroadcasterId(),
     ).tryAddSongByUser(ytLink, util_makeSrUserFromMessage(message));

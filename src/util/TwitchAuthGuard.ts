@@ -29,7 +29,6 @@ const whitelistedUserIDs = [
   "883479198", // tortilka
   "268563714", // fulufte
   "27187817", // lewus aok
-  "578320988", // ta strimerka na n
   //"54234510", // juriko
   //"68174363", // xbladejojo [git]
   "25452828", // smaczny [git]
