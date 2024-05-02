@@ -40,6 +40,9 @@
   "SR_PDW_ERR_WHO": "@{{invokedBy}} musisz podać nick więźnia aby go pozdrowić",
   "SR_PDW_SUCCESS": "@{{invokedBy}} pozdrowiono więźnia @{{target}} i ma teraz {{current}} punktów reputacji",
 
+  "SR_REP_CURRENT": "@{{invokedBy}} masz teraz {{current}} punktów reputacji",
+  "SR_REP_ERR_UNKNOWN": "@{{invokedBy}} sory nie można sprawdzić reputacji bo błond wystompił jakiś idk jaki",
+
   "INFO_KNURCAMP": "aktualnie trwa knurcamp z fronted - reacta, możesz wziąć udział biernie - więcej info na DC https://discord.gg/BnRNzSzcv9",
   "SOCIALS_DISCORD": "@{{invokedBy}} elo eskorta wsiadaj na diskorta https://discord.gg/BnRNzSzcv9",
   "SOCIALS_YT": "@{{invokedBy}} elo daj suba na jutuba https://www.youtube.com/@fvlvte",

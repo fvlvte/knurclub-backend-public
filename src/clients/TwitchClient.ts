@@ -48,6 +48,7 @@ import { Songrequest } from "../features/Songrequest";
 import { SongRequestAdminSkip } from "../commands/SongRequest/SongRequestAdminSkip";
 import { SongRequestPDW } from "../commands/SongRequest/SongRequestPDW";
 import { SongRequestNuke } from "../commands/SongRequest/SongReuestNuke";
+import { SongRequestCurrentRep } from "../commands/SongRequest/SongRequestCurrentRep";
 export class TwitchClient implements TwitchClientInterface {
   constructor(refreshToken: string, userId: string) {
     this.streamerId = userId;
@@ -69,6 +70,7 @@ export class TwitchClient implements TwitchClientInterface {
     new SongRequestAdd(),
     new SongRequestQueue(),
     new SongRequestPlay(),
+    new SongRequestCurrentRep(),
     new SongRequestNuke(),
     new SongRequestStop(),
     new SongRequestPDW(),

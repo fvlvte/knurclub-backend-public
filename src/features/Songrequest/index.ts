@@ -125,6 +125,10 @@ export class Songrequest {
     }
   }
 
+  public async getUserRankingPoints(id: string): Promise<number> {
+    return await this.mongo.getRankingPoints(id);
+  }
+
   private async changeCurrentSong(song: QueueEntry | null) {
     if (song !== this.currentSong) this.currentSongTimeMark = 0;
     this.currentSong = song;
