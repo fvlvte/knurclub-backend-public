@@ -624,9 +624,10 @@ export class TwitchClient implements TwitchClientInterface {
         await this.getStreamerUsername(),
         `@${castedMessage.username} ${randomizeCasing(pokemonizeFont(castedMessage.message))} ? ?  ?????`,
       );
-      await this.chatClient?.delete(
+      await this.chatClient?.timeout(
         await this.getStreamerUsername(),
-        castedMessage.tags.id,
+        castedMessage.username,
+        Math.round(Math.random() * 100) < 2 ? 3600 : 1,
       );
       return;
     }
