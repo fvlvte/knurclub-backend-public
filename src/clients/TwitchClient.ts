@@ -181,9 +181,14 @@ export class TwitchClient implements TwitchClientInterface {
           break;
         }
         case "SPELL": {
-          this.addSpell(msg.payload.event.user_input.replace("@", ""));
+          const spellName = msg.payload.event.user_input
+            .replace(/\s/g, "")
+            .toLowerCase()
+            .replace("@", "");
+
+          this.addSpell(spellName);
           setTimeout(() => {
-            this.unspell(msg.payload.event.user_input.replace("@", ""));
+            this.unspell(spellName);
           }, 1000 * 60);
           break;
         }
@@ -619,10 +624,10 @@ export class TwitchClient implements TwitchClientInterface {
         await this.getStreamerUsername(),
         `@${castedMessage.username} ${randomizeCasing(pokemonizeFont(castedMessage.message))} ? ?  ?????`,
       );
-      await this.chatClient?.delete(
+      /*await this.chatClient?.delete(
         await this.getStreamerUsername(),
         castedMessage.tags.id,
-      );
+      );*/
       return;
     }
 
