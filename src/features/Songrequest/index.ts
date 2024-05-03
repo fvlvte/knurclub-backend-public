@@ -105,21 +105,23 @@ export class Songrequest {
           },
           songId: cs.url,
         };
-      }
-      if (this.client) {
-        this.requiredVotesToSkipDynamic =
-          config.data.songRequest.dynamicSkipThreshold *
-          this.client?.getAverageCountOfActiveChattersForPeriod(
-            config.data.songRequest.dynamicSkipActivityPeriod * 1000,
+        if (this.client) {
+          this.requiredVotesToSkipDynamic =
+            config.data.songRequest.dynamicSkipThreshold *
+            this.client?.getAverageCountOfActiveChattersForPeriod(
+              config.data.songRequest.dynamicSkipActivityPeriod * 1000,
+            );
+          this.requiredVotesToSkipDynamic = Math.round(
+            this.requiredVotesToSkipDynamic,
           );
-        this.requiredVotesToSkipDynamic = Math.round(
-          this.requiredVotesToSkipDynamic,
-        );
+        } else {
+          this.requiredVotesToSkipDynamic =
+            config.data.songRequest.requiredVotesToSkip;
+        }
+        await this.changeCurrentSong(cs);
       } else {
-        this.requiredVotesToSkipDynamic =
-          config.data.songRequest.requiredVotesToSkip;
+        await this.changeCurrentSong(null);
       }
-      await this.changeCurrentSong(cs);
     } else {
       await this.changeCurrentSong(null);
     }
