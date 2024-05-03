@@ -49,6 +49,7 @@ import { SongRequestAdminSkip } from "../commands/SongRequest/SongRequestAdminSk
 import { SongRequestPDW } from "../commands/SongRequest/SongRequestPDW";
 import { SongRequestNuke } from "../commands/SongRequest/SongReuestNuke";
 import { SongRequestCurrentRep } from "../commands/SongRequest/SongRequestCurrentRep";
+import { Spell } from "../commands/Spell";
 export class TwitchClient implements TwitchClientInterface {
   constructor(refreshToken: string, userId: string) {
     this.streamerId = userId;
@@ -63,6 +64,8 @@ export class TwitchClient implements TwitchClientInterface {
     process.env.TWITCH_BOT_REFRESH_TOKEN ?? "dupa";
   private TWITCH_BOT_ACCESS_TOKEN = "dupablada";
 
+  private SPELLE: string[] = [];
+
   private commandHandlers: CommandHandler[] = [
     new CreateReward(),
     new ReloadLocale(),
@@ -71,6 +74,7 @@ export class TwitchClient implements TwitchClientInterface {
     new SongRequestQueue(),
     new SongRequestPlay(),
     new SongRequestCurrentRep(),
+    new Spell(),
     new SongRequestNuke(),
     new SongRequestStop(),
     new SongRequestPDW(),
@@ -189,6 +193,14 @@ export class TwitchClient implements TwitchClientInterface {
       entities: Entitsy,
     });
     this.kohaneFolowkiMeowAraAra.push(`${user_name} dzięki za sypukcje`);
+  }
+
+  public unspell(username: string): void {
+    this.SPELLE = this.SPELLE.filter((x) => x !== username.toLowerCase());
+  }
+
+  public addSpell(username: string): void {
+    this.SPELLE.push(username.toLowerCase());
   }
 
   private async handleBitsDajPieniondz(msg: TwitchWebsocketBitsMessage) {
@@ -559,6 +571,43 @@ export class TwitchClient implements TwitchClientInterface {
       new Date().getTime();
 
     if (!castedMessage.message) return;
+
+    const randomizeCasing = (text: string): string => {
+      return text
+        .split("")
+        .map((char) => {
+          if (Math.random() > 0.5) return char.toUpperCase();
+          return char.toLowerCase();
+        })
+        .join("");
+    };
+
+    const pokemonizeFont = (text: string): string => {
+      return text
+        .split("")
+        .map((char) => {
+          if (char === " ") return " ";
+          if (char === "i") return "1";
+          if (char === "l") return "1";
+          if (char === "e") return "3";
+          if (char === "a") return "4";
+          if (char === "s") return "5";
+          if (char === "t") return "7";
+          if (char === "o") return "0";
+          if (char === "b") return "8";
+          if (char === "g") return "9";
+          return char;
+        })
+        .join("");
+    };
+
+    if (this.SPELLE.includes(castedMessage.username.toLowerCase())) {
+      await this.chatClient?.say(
+        await this.getStreamerUsername(),
+        `@${castedMessage.username} ${randomizeCasing(pokemonizeFont(castedMessage.message))} ? ?  ?????`,
+      );
+      return;
+    }
 
     if (
       castedMessage.message.startsWith("!") ||
