@@ -584,12 +584,16 @@ export class TwitchClient implements TwitchClientInterface {
 
     const pokemonizeFont = (text: string): string => {
       return text
+        .toLowerCase()
         .split("")
         .map((char) => {
           if (char === " ") return " ";
           if (char === "i") return "1";
+          if (char === "c") return "s";
+          if (char === "p") return "r";
           if (char === "l") return "1";
           if (char === "e") return "3";
+          if (char === "a") return "4";
           if (char === "a") return "4";
           if (char === "s") return "5";
           if (char === "t") return "7";
