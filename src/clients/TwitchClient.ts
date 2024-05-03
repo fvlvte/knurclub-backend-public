@@ -180,6 +180,13 @@ export class TwitchClient implements TwitchClientInterface {
           await Songrequest.getInstance(this.streamerId ?? "jd").skip();
           break;
         }
+        case "SPELL": {
+          this.addSpell(msg.payload.event.user_input.replace("@", ""));
+          setTimeout(() => {
+            this.unspell(msg.payload.event.user_input.replace("@", ""));
+          }, 1000 * 60);
+          break;
+        }
       }
     }
   }
@@ -565,6 +572,7 @@ export class TwitchClient implements TwitchClientInterface {
   }
 
   private async onIrcMessage(msg: Messages): Promise<void> {
+    console.log(msg);
     const castedMessage = msg as unknown as TwitchMessage;
 
     this.activeChatters[castedMessage.username.toLowerCase()] =
@@ -605,10 +613,15 @@ export class TwitchClient implements TwitchClientInterface {
         .join("");
     };
 
+    // SPELL FUNCTIONALITY HOOK
     if (this.SPELLE.includes(castedMessage.username.toLowerCase())) {
       await this.chatClient?.say(
         await this.getStreamerUsername(),
         `@${castedMessage.username} ${randomizeCasing(pokemonizeFont(castedMessage.message))} ? ?  ?????`,
+      );
+      await this.chatClient?.delete(
+        await this.getStreamerUsername(),
+        castedMessage.tags.id,
       );
       return;
     }
