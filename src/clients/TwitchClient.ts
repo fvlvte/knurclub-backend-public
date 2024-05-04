@@ -626,7 +626,7 @@ export class TwitchClient implements TwitchClientInterface {
       );
       await this.chatClient?.timeout(
         await this.getStreamerUsername(),
-        castedMessage.username,
+        castedMessage.tags.username,
         Math.round(Math.random() * 100) < 2 ? 3600 : 1,
       );
       return;
