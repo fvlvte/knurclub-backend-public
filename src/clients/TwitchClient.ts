@@ -634,13 +634,12 @@ export class TwitchClient implements TwitchClientInterface {
   }
 
   private async onIrcMessage(msg: Messages): Promise<void> {
-    console.log(msg);
     const castedMessage = msg as unknown as TwitchMessage;
+
+    if (!castedMessage.message) return;
 
     this.activeChatters[castedMessage.username.toLowerCase()] =
       new Date().getTime();
-
-    if (!castedMessage.message) return;
 
     const randomizeCasing = (text: string): string => {
       return text
