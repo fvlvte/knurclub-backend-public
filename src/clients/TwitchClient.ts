@@ -15,6 +15,7 @@ import { SongRequestReputationVote } from "../commands/SongRequest/SongRequestRe
 import {
   Entitsy,
   TransportMethods,
+  TwitchHelix_BanBody,
   TwitchHelix_SubscribeBody,
   TwitchMessage,
   TwitchMessageTypes,
@@ -118,6 +119,9 @@ export class TwitchClient implements TwitchClientInterface {
   private isWebSocketRestarting = false;
   private isClosing = false;
   private activeChatters: { [id: string]: number } = {};
+  private spellTable: {
+    [id: string]: { id: string; timeout?: NodeJS.Timeout; special?: boolean };
+  } = {};
 
   private refreshInterval?: NodeJS.Timeout;
 
@@ -186,10 +190,21 @@ export class TwitchClient implements TwitchClientInterface {
             .toLowerCase()
             .replace("@", "");
 
-          this.addSpell(spellName);
-          setTimeout(() => {
-            this.unspell(spellName);
-          }, 1000 * 60);
+          await this.addSpell(spellName);
+
+          if (this.spellTable[spellName].timeout) {
+            clearTimeout(this.spellTable[spellName].timeout);
+            this.spellTable[spellName].timeout = undefined;
+          }
+
+          if (!this.spellTable[spellName].special) {
+            this.spellTable[spellName].timeout = setTimeout(
+              () => {
+                this.unspell(spellName);
+              },
+              1000 * 60 * parseInt(dt.param),
+            );
+          }
           break;
         }
       }
@@ -209,9 +224,20 @@ export class TwitchClient implements TwitchClientInterface {
 
   public unspell(username: string): void {
     this.SPELLE = this.SPELLE.filter((x) => x !== username.toLowerCase());
+    delete this.spellTable[username];
   }
 
-  public addSpell(username: string): void {
+  public async addSpell(username: string, special?: boolean): Promise<void> {
+    try {
+      const response = await axios.get(
+        `https://emotes.adamcy.pl/v1/channel/${username}/id`,
+      );
+      const id = response.data.id as number;
+      this.spellTable[username] = { id: id.toString(), special };
+    } catch (e) {
+      console.error(e);
+    }
+
     this.SPELLE.push(username.toLowerCase());
   }
 
@@ -372,6 +398,10 @@ export class TwitchClient implements TwitchClientInterface {
     return this.streamerId ?? "";
   }
 
+  public async getModeratorId(): Promise<string> {
+    return "1024010545";
+  }
+
   private async onWebsocketMessage(
     data: TwitchWebsocketMetadata,
   ): Promise<void> {
@@ -409,6 +439,25 @@ export class TwitchClient implements TwitchClientInterface {
           );
           break;
       }
+    }
+  }
+
+  async banSpella(param: TwitchHelix_BanBody): Promise<void> {
+    try {
+      await axios.post<TwitchHelix_ChannelPoint_CreateReward_Response>(
+        `https://api.twitch.tv/helix/moderation/bans?broadcaster_id=${await this.getBroadcasterId()}&moderator_id=${await this.getModeratorId()}`,
+        param,
+        {
+          headers: {
+            Authorization: `Bearer ${this.TWITCH_ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+            "client-id": this.TWITCH_CLIENT_ID,
+          },
+        },
+      );
+    } catch (e) {
+      console.error(e);
+      console.error(`antileak klucza ok ok error 69 pl`);
     }
   }
 
@@ -624,11 +673,15 @@ export class TwitchClient implements TwitchClientInterface {
         await this.getStreamerUsername(),
         `@${castedMessage.username} ${randomizeCasing(pokemonizeFont(castedMessage.message))} ? ?  ?????`,
       );
-      await this.chatClient?.timeout(
-        await this.getStreamerUsername(),
-        castedMessage.tags.username,
-        Math.round(Math.random() * 100) < 2 ? 3600 : 1,
-      );
+      if (this.spellTable[castedMessage.username.toLowerCase()]) {
+        await this.banSpella({
+          data: {
+            user_id: this.spellTable[castedMessage.username.toLowerCase()].id,
+            reason: "spellu",
+            duration: Math.round(Math.random() * 100) < 2 ? 3600 : 1,
+          },
+        });
+      }
       return;
     }
 

@@ -180,6 +180,14 @@ export type TwitchMessage = {
   };
 };
 
+export interface TwitchHelix_BanBody {
+  data: {
+    user_id: string;
+    duration?: number;
+    reason?: string;
+  };
+}
+
 export interface TwitchHelix_SubscribeBody {
   type: string;
   version: string;
