@@ -236,6 +236,7 @@ export class TwitchClient implements TwitchClientInterface {
   }
 
   public async addSpell(username: string, special?: boolean): Promise<void> {
+    if (username.toLowerCase() === "fvlvtebot") return;
     try {
       const response = await axios.get(
         `https://emotes.adamcy.pl/v1/channel/${username}/id`,
@@ -679,7 +680,10 @@ export class TwitchClient implements TwitchClientInterface {
         await this.getStreamerUsername(),
         `@${castedMessage.username} ${randomizeCasing(pokemonizeFont(castedMessage.message))} ??  ?????`,
       );
-      if (this.spellTable[castedMessage.username.toLowerCase()]) {
+      if (
+        this.spellTable[castedMessage.username.toLowerCase()] &&
+        !castedMessage.tags.isModerator
+      ) {
         await this.banSpella({
           data: {
             user_id: this.spellTable[castedMessage.username.toLowerCase()].id,
