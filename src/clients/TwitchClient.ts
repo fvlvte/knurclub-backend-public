@@ -51,6 +51,14 @@ import { SongRequestPDW } from "../commands/SongRequest/SongRequestPDW";
 import { SongRequestNuke } from "../commands/SongRequest/SongReuestNuke";
 import { SongRequestCurrentRep } from "../commands/SongRequest/SongRequestCurrentRep";
 import { Spell } from "../commands/Spell";
+
+const REASONS = [
+  "zastanuw sie nad sobom",
+  "niezły z ciebie spell",
+  "papaj nie był by dumny",
+  "a rodzice wiedzom żeś spell?",
+];
+
 export class TwitchClient implements TwitchClientInterface {
   constructor(refreshToken: string, userId: string) {
     this.streamerId = userId;
@@ -677,7 +685,7 @@ export class TwitchClient implements TwitchClientInterface {
         await this.banSpella({
           data: {
             user_id: this.spellTable[castedMessage.username.toLowerCase()].id,
-            reason: "spellu",
+            reason: REASONS[Math.floor(Math.random() * REASONS.length)],
             duration: Math.round(Math.random() * 100) < 2 ? 3600 : 1,
           },
         });
