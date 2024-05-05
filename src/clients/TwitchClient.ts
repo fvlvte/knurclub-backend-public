@@ -663,7 +663,6 @@ export class TwitchClient implements TwitchClientInterface {
           if (char === "l") return "1";
           if (char === "e") return "3";
           if (char === "a") return "4";
-          if (char === "a") return "4";
           if (char === "s") return "5";
           if (char === "t") return "7";
           if (char === "o") return "0";
@@ -678,7 +677,7 @@ export class TwitchClient implements TwitchClientInterface {
     if (this.SPELLE.includes(castedMessage.username.toLowerCase())) {
       await this.chatClient?.say(
         await this.getStreamerUsername(),
-        `@${castedMessage.username} ${randomizeCasing(pokemonizeFont(castedMessage.message))} ? ?  ?????`,
+        `@${castedMessage.username} ${randomizeCasing(pokemonizeFont(castedMessage.message))} ??  ?????`,
       );
       if (this.spellTable[castedMessage.username.toLowerCase()]) {
         await this.banSpella({
