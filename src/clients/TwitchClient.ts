@@ -445,7 +445,7 @@ export class TwitchClient implements TwitchClientInterface {
   async banSpella(param: TwitchHelix_BanBody): Promise<void> {
     try {
       await axios.post<TwitchHelix_ChannelPoint_CreateReward_Response>(
-        `https://api.twitch.tv/helix/moderation/bans?broadcaster_id=${await this.getBroadcasterId()}&moderator_id=${await this.getModeratorId()}`,
+        `https://api.twitch.tv/helix/moderation/bans?broadcaster_id=${await this.getBroadcasterId()}&moderator_id=${await this.getBroadcasterId()}`,
         param,
         {
           headers: {
