@@ -692,7 +692,7 @@ export class TwitchClient implements TwitchClientInterface {
           },
         });
       }
-      return;
+      if (!castedMessage.tags.isModerator) return;
     }
 
     if (
