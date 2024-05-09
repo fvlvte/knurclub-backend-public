@@ -200,12 +200,12 @@ export class TwitchClient implements TwitchClientInterface {
 
           await this.addSpell(spellName);
 
-          if (this.spellTable[spellName].timeout) {
+          if (this.spellTable[spellName]?.timeout) {
             clearTimeout(this.spellTable[spellName].timeout);
             this.spellTable[spellName].timeout = undefined;
           }
 
-          if (!this.spellTable[spellName].special) {
+          if (!this.spellTable[spellName]?.special) {
             this.spellTable[spellName].timeout = setTimeout(
               () => {
                 this.unspell(spellName);
