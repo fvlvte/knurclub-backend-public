@@ -21,6 +21,29 @@ const srCheck_title: SRCheck = ({ source }) => {
       params: {},
     });
   }
+  const bannedWords = [
+    "nigga",
+    "nigger",
+    "czarnuch",
+    "murzyn",
+    "cwel",
+    "pedał",
+    "incel",
+    "simp",
+    "s1mp",
+    "virgin",
+    "ciota",
+  ];
+
+  for (const word of bannedWords) {
+    if (source.replace(/ /g, "").toLowerCase().includes(word)) {
+      return Promise.resolve({
+        message: "SR_ADD_RACIST_BANNED",
+        error: false,
+        params: {},
+      });
+    }
+  }
   return Promise.resolve(null);
 };
 
