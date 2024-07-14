@@ -6,14 +6,16 @@ import { Songrequest } from "../features/Songrequest";
 
 export class ClientManager {
   private static instance: ClientManager;
-  private interval: NodeJS.Timeout;
+  private readonly interval: NodeJS.Timeout;
+
+  private readonly MAX_INACTIVE_TIME = 60 * 1000 * 60 * 24;
 
   private keepAliveWorker() {
     for (const key in this.records) {
       try {
         if (
           new Date().getTime() - this.records[key].getLastKeepAliveTick() >=
-          60 * 1000 * 10
+          this.MAX_INACTIVE_TIME
         ) {
           console.log(`Cleaning up session for ${key}`);
           this.records[key].shutdown().then().catch(console.error);
@@ -27,6 +29,13 @@ export class ClientManager {
 
   private constructor() {
     this.interval = setInterval(this.keepAliveWorker.bind(this), 60000);
+  }
+
+  public destroy() {
+    clearInterval(this.interval);
+    for (const key in this.records) {
+      this.records[key].shutdown().then().catch(console.error);
+    }
   }
 
   private records: Record<string, TwitchClient> = {};
