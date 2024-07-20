@@ -51,6 +51,7 @@ import { SongRequestPDW } from "../commands/SongRequest/SongRequestPDW";
 import { SongRequestNuke } from "../commands/SongRequest/SongReuestNuke";
 import { SongRequestCurrentRep } from "../commands/SongRequest/SongRequestCurrentRep";
 import { Spell } from "../commands/Spell";
+import { StaticTextTimer } from "../timers/StaticTextTimer";
 
 const REASONS = [
   "zastanuw sie nad sobom",
@@ -113,8 +114,8 @@ export class TwitchClient implements TwitchClientInterface {
   ];
 
   private timers: Timer[] = [
-    //new StaticTextTimer("TIMER_DISCORD", 1000 * 60 * 15),
-    //new StaticTextTimer("TIMER_YT", 1000 * 60 * 33),
+    new StaticTextTimer("TIMER_DISCORD", 1000 * 60 * 15),
+    new StaticTextTimer("TIMER_YT", 1000 * 60 * 33),
   ];
 
   private chatClient?: Chat;
