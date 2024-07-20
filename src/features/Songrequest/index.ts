@@ -372,6 +372,11 @@ export class Songrequest {
               params: { message: e.message },
             };
           }
+          return {
+            message: "SR_ADD_UNKNOWN_ERROR3",
+            error: true,
+            params: {},
+          };
         } finally {
           this.userTrap[user.username] = false;
         }
