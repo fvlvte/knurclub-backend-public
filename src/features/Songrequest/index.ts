@@ -340,7 +340,11 @@ export class Songrequest {
           const songInfo = await ytdl.getInfo(audioSource);
 
           if (songInfo.videoDetails.isLive)
-            return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
+            return {
+              message: "SR_ADD_UNKNOWN_ERROR4",
+              error: true,
+              params: {},
+            };
 
           if (!skipChecks) {
             for (const check of Checks) {
@@ -361,7 +365,7 @@ export class Songrequest {
           return this.tryAppendSongNoVerify(songInfo, user, false);
         } catch (e) {
           console.error(e);
-          return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
+          return { message: "SR_ADD_UNKNOWN_ERROR3", error: true, params: {} };
         } finally {
           this.userTrap[user.username] = false;
         }
@@ -374,7 +378,7 @@ export class Songrequest {
           return this.tryAddSongByUser(d, user);
         } catch (e) {
           console.error(e);
-          return { message: "SR_ADD_UNKNOWN_ERROR", error: true, params: {} };
+          return { message: "SR_ADD_UNKNOWN_ERROR2", error: true, params: {} };
         }
       }
     } catch (e) {
