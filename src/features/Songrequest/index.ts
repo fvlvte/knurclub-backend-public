@@ -365,7 +365,13 @@ export class Songrequest {
           return this.tryAppendSongNoVerify(songInfo, user, false);
         } catch (e) {
           console.error(e);
-          return { message: "SR_ADD_UNKNOWN_ERROR3", error: true, params: {} };
+          if (e instanceof Error) {
+            return {
+              message: "SR_ADD_UNKNOWN_ERROR3",
+              error: true,
+              params: { message: e.message },
+            };
+          }
         } finally {
           this.userTrap[user.username] = false;
         }
