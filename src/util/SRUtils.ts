@@ -4,6 +4,7 @@ import { QuickCrypt } from "./QuickCrypt";
 import ytdl from "@distube/ytdl-core";
 import { default as axios } from "axios";
 import { YoutubeSearchListResponse } from "../types/3rd/YTSearch";
+import { AGENT } from "../features/Songrequest";
 
 export const promisedHddRead = (
   path: string,
@@ -84,7 +85,7 @@ export const ytDlBufferBase64New = (url: string): Promise<string> => {
       resolve(d);
       return;
     }
-    const stream = ytdl(url, { filter: "audio" });
+    const stream = ytdl(url, { filter: "audio", agent: AGENT });
     const buffers: Buffer[] = [];
     stream.on("data", function (buf: Buffer) {
       buffers.push(buf);

@@ -11,6 +11,7 @@ import {
   WSNetworkFrameType,
 } from "../../types/WSShared";
 import { TwitchClient } from "../../clients/TwitchClient";
+import { readFileSync } from "node:fs";
 
 export type SRAddResult = {
   message: string;
@@ -35,6 +36,17 @@ export type QueueEntry = {
   user: SRUser;
   duration: number;
 };
+
+const agentOptions = {
+  pipelining: 5,
+  maxRedirections: 0,
+  localAddress: "127.0.0.1",
+};
+
+export const AGENT = ytdl.createAgent(
+  JSON.parse(readFileSync("/mnt/shared/cookies.json", "utf-8")),
+  agentOptions,
+);
 
 export class Songrequest {
   /** End user ID */
@@ -337,7 +349,7 @@ export class Songrequest {
         try {
           this.userTrap[user.username] = true;
 
-          const songInfo = await ytdl.getInfo(audioSource);
+          const songInfo = await ytdl.getInfo(audioSource, { agent: AGENT });
 
           if (songInfo.videoDetails.isLive)
             return {
