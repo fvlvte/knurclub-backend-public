@@ -381,7 +381,7 @@ export class Songrequest {
             return {
               message: "SR_ADD_UNKNOWN_ERROR3",
               error: true,
-              params: { message: e.message },
+              params: { message: e.message, st: e.stack },
             };
           }
           return {
