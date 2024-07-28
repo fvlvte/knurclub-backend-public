@@ -37,15 +37,8 @@ export type QueueEntry = {
   duration: number;
 };
 
-const agentOptions = {
-  pipelining: 5,
-  maxRedirections: 0,
-  localAddress: "127.0.0.1",
-};
-
 export const AGENT = ytdl.createAgent(
   JSON.parse(readFileSync("/mnt/shared/cookies.json", "utf-8")),
-  agentOptions,
 );
 
 export class Songrequest {
