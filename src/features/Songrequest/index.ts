@@ -346,10 +346,14 @@ export class Songrequest {
           return { message: "SR_USER_TRAP_HAUS", error: true, params: {} };
         }
 
+        let linesExecuted = 0;
+
         try {
           this.userTrap[user.username] = true;
+          linesExecuted++;
 
           const songInfo = await ytdl.getInfo(audioSource, { agent: AGENT });
+          linesExecuted++;
 
           if (songInfo.videoDetails.isLive)
             return {
@@ -357,6 +361,7 @@ export class Songrequest {
               error: true,
               params: {},
             };
+          linesExecuted++;
 
           if (!skipChecks) {
             for (const check of Checks) {
@@ -373,6 +378,7 @@ export class Songrequest {
               }
             }
           }
+          linesExecuted++;
 
           return this.tryAppendSongNoVerify(songInfo, user, false);
         } catch (e) {
@@ -381,7 +387,7 @@ export class Songrequest {
             return {
               message: "SR_ADD_UNKNOWN_ERROR3",
               error: true,
-              params: { message: e.message, st: e.stack },
+              params: { message: e.message, st: e.stack, ex: linesExecuted },
             };
           }
           return {
