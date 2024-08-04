@@ -11,6 +11,7 @@ import {
   WSNetworkFrameType,
 } from "../../types/WSShared";
 import { TwitchClient } from "../../clients/TwitchClient";
+import { readFileSync } from "node:fs";
 //import { readFileSync } from "node:fs";
 
 export type SRAddResult = {
@@ -38,8 +39,7 @@ export type QueueEntry = {
 };
 
 export const AGENT = ytdl.createAgent(
-  [],
-  //JSON.parse(readFileSync("/mnt/shared/cookies.json", "utf-8")),
+  JSON.parse(readFileSync("/mnt/shared/cookies.json", "utf-8")),
 );
 
 export class Songrequest {
