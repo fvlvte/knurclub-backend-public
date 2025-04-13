@@ -4,6 +4,11 @@ import { ConfigContainer } from "../managers/ConfigManager";
 import { UserInfo } from "../types/UserInfo";
 import { AuthToken } from "../types/Auth";
 import { deepEqualHelper } from "../util/Common";
+import { FiutPlayer } from "../types/FiutPlayer";
+
+const FIUT_DB_PROD = "fiut3";
+const FIUT_ITEM_CD = 60 * 60 * 1000;
+const FIUT_COMBAT_ATTACK_CD = 15 * 60;
 
 export class MongoDBClient {
   private client: MongoClient;
@@ -180,6 +185,106 @@ export class MongoDBClient {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  public async getFiut(userId: string): Promise<number | null> {
+    try {
+      const users = this.client.db("users");
+      const fiut = users.collection<FiutPlayer>("fiut3");
+      await fiut.createIndex({ userId: 1 });
+      const result = await fiut.findOne({ userId: userId });
+
+      return result?.rozmiarFiut ?? null;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }
+
+  public async setUserLastAttack(userId: string) {
+    const db = this.client.db("users");
+    const fiut = db.collection<FiutPlayer>(FIUT_DB_PROD);
+
+    await fiut.updateOne(
+      { userId },
+      {
+        $set: {
+          lastCombatAt: Date.now(),
+        },
+      },
+    );
+  }
+
+  public async getFiutPlayer(userId: string): Promise<FiutPlayer | null> {
+    try {
+      const users = this.client.db("users");
+      const fiut = users.collection<FiutPlayer>("fiut3");
+      await fiut.createIndex({ userId: 1 });
+
+      return await fiut.findOne({ userId: userId });
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }
+
+  public async updateFiut(userId: string, rozmiarFiut: number): Promise<void> {
+    const isFiutSet = (await this.getFiut(userId)) !== null;
+
+    const users = this.client.db("users");
+    const fiut = users.collection<FiutPlayer>("fiut3");
+
+    if (isFiutSet) {
+      await fiut.updateOne({ userId }, { $set: { rozmiarFiut: rozmiarFiut } });
+    } else {
+      await fiut.insertOne({ userId, rozmiarFiut });
+    }
+  }
+
+  public async checkFiutItemCooldown(userId: string): Promise<boolean> {
+    const db = this.client.db("users");
+    const fiut = db.collection<FiutPlayer>(FIUT_DB_PROD);
+
+    const fiutek = await fiut.findOne({ userId });
+
+    if (fiutek === null || typeof fiutek.lastItemGainedAt !== "number") {
+      return true;
+    }
+
+    return Date.now() > fiutek.lastItemGainedAt + FIUT_ITEM_CD;
+  }
+
+  public async checkFiutCombatCooldown(userId: string): Promise<boolean> {
+    const db = this.client.db("users");
+    const fiut = db.collection<FiutPlayer>(FIUT_DB_PROD);
+
+    const fiutek = await fiut.findOne({ userId });
+
+    if (fiutek === null || typeof fiutek.lastCombatAt !== "number") {
+      return true;
+    }
+
+    return Date.now() > fiutek.lastCombatAt + FIUT_COMBAT_ATTACK_CD;
+  }
+
+  public async setFiutItem(
+    userId: string,
+    itemId: number,
+    exp: number,
+  ): Promise<void> {
+    const db = this.client.db("users");
+    const fiut = db.collection<FiutPlayer>(FIUT_DB_PROD);
+
+    await fiut.updateOne(
+      { userId },
+      {
+        $set: {
+          equippedItem: itemId,
+          lastItemGainedAt: Date.now(),
+          equippedItemExpiresAt: Date.now() + exp,
+        },
+      },
+    );
   }
 
   public async updateRanking(userId: string, hostId: string, change: number) {

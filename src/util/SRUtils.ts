@@ -1,10 +1,9 @@
 import { existsSync, mkdir, readFile, writeFile } from "node:fs";
 import { createHash } from "node:crypto";
 import { QuickCrypt } from "./QuickCrypt";
-import ytdl from "@distube/ytdl-core";
 import { default as axios } from "axios";
 import { YoutubeSearchListResponse } from "../types/3rd/YTSearch";
-import { AGENT } from "../features/Songrequest";
+import { spawn } from "node:child_process";
 
 export const promisedHddRead = (
   path: string,
@@ -78,26 +77,28 @@ export const hddCacheWrite = async (
   );
 };
 
-export const ytDlBufferBase64New = (url: string): Promise<string> => {
+const fetchYoutubeToBase64 = async (url: string): Promise<string> => {
   return new Promise(async (resolve, reject) => {
-    const d = await hddCacheQuery(url);
-    if (d) {
-      resolve(d);
-      return;
-    }
-    const stream = ytdl(url, { filter: "audio", agent: AGENT });
-    const buffers: Buffer[] = [];
-    stream.on("data", function (buf: Buffer) {
-      buffers.push(buf);
+    const chunks: Buffer[] = [];
+    const process = spawn("yt-dlp", ["-q", "-f", "bestaudio", "-o", "-", url]);
+    process.stdout.on("data", (data) => {
+      chunks.push(data);
     });
-    stream.on("end", function () {
-      const data = Buffer.concat(buffers);
+
+    process.stdout.on("end", () => {
+      const data = Buffer.concat(chunks);
       const armoredData = `data:audio/mp3;base64,${data.toString("base64")}`;
-      hddCacheWrite(url, armoredData).catch(console.error);
       resolve(armoredData);
     });
-    stream.on("error", reject);
+
+    process.on("error", (err) => {
+      reject(err);
+    });
   });
+};
+
+export const ytDlBufferBase64New = (url: string): Promise<string> => {
+  return fetchYoutubeToBase64(url);
 };
 
 export const findYtVideoByTitle = async (

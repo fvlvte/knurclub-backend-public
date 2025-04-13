@@ -52,6 +52,11 @@ import { SongRequestNuke } from "../commands/SongRequest/SongReuestNuke";
 import { SongRequestCurrentRep } from "../commands/SongRequest/SongRequestCurrentRep";
 import { Spell } from "../commands/Spell";
 import { StaticTextTimer } from "../timers/StaticTextTimer";
+import { DickSize } from "../commands/DickSize";
+import { ShowFiut } from "../commands/ShowFiut";
+import { PompkaFiut } from "../commands/PompkaFiut";
+import { GetFiutItem } from "../commands/GetFiutItem";
+import { FiutCombat } from "../commands/FiutCombat";
 
 const REASONS = [
   "zastanuw sie nad sobom",
@@ -111,6 +116,22 @@ export class TwitchClient implements TwitchClientInterface {
       "INFO_KNURCAMP",
       /^(!knurcamp)|(!camp)|(!butkamp)|(!bootcamp)\s*$/i,
     ),
+    new StaticText(
+      "stream przedluzany 1zl = 21.37 min 1 sub = 1min",
+      /^!przedluzany$/i,
+    ),
+    new StaticText("cennik 1zl = 21.37 min 1 sub = 1min", /^!cennik$/i),
+    new StaticText("nie ma donejtuw stary", /^!donate$/),
+    new StaticText("twitch.tv/ssuchy00", /!of$/),
+    new StaticText(
+      "https://maturazlewusem.pl/ z kodem fvlvte",
+      /^!(matura)|(kurs)|(bootcamp)|(butkamp)$/i,
+    ),
+    new GetFiutItem(),
+    new ShowFiut(),
+    new DickSize(),
+    new PompkaFiut(),
+    new FiutCombat(),
   ];
 
   private timers: Timer[] = [

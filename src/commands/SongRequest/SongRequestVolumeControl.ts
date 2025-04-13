@@ -54,6 +54,6 @@ export class SongRequestVolumeControl extends CommandHandler {
   }
 
   getMatchingExp(): RegExp {
-    return /^(!kv)|(!knurvolume)|(!volume) /i;
+    return /^(!kv)|(!knurvolume)|(!volume)/i;
   }
 }

@@ -15,14 +15,14 @@ export class DiscordClient {
   private client?: Client;
   //private applicationCommnadsAPI?: ApplicationCommandsAPI;
   private wsManager?: WebSocketManager;
-  private openai: OpenAI;
+  private openai?: OpenAI;
   //private dialogCache: Record<string, { fromBot: boolean; value: string }[]> =
   //  {};
 
   constructor() {
-    this.openai = new OpenAI({
+    /*this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-    });
+    });*/
   }
 
   /*async giveRoleToUser(username: string) {
@@ -140,7 +140,7 @@ export class DiscordClient {
                 "1029774070507655260",
               );
 
-              const dupskoPrompt =
+              /*const dupskoPrompt =
                 Math.random() > 0.5 ? "komplement" : "obelgę";
 
               const dupskoPrompts = [
@@ -177,10 +177,10 @@ export class DiscordClient {
                       }, użyj maksymalnie 20 słów`,
                   },
                 ],
-              });
+              });*/
 
               await api.channels.createMessage("964679871668314212", {
-                content: `<@${ia.user?.id}> ${chatCompletion.choices[0].message.content}`,
+                content: `<@${ia.user?.id}> elo mordo`,
               });
             } catch (_e) {
               console.error(_e);
